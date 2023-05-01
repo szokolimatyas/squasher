@@ -55,6 +55,7 @@ executable squasher-exe
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
+    , optparse-applicative
     , squasher
     , text >=1.2.5.0
     , transformers >=0.5.6

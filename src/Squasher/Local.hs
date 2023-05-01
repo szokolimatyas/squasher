@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Squasher.Local where
 
@@ -13,7 +14,7 @@ import Data.Set (Set)
 import Control.Monad.Trans.State
 import qualified Data.Set as Set
 import qualified Data.Map as Map
-import Data.ByteString (ByteString)
+import Data.ByteString.Lazy (ByteString)
 import Data.IntMap (IntMap)
 import Data.Data
 import Data.Generics.Uniplate.Operations (transformM)
@@ -23,6 +24,8 @@ import qualified Data.Maybe
 import Data.List (nub, intercalate, (\\), delete)
 import qualified Control.Monad
 import Control.Monad (when)
+import Data.Binary (decode, decodeOrFail)
+import Data.Binary.Get (ByteOffset)
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -65,6 +68,20 @@ instance FromTerm Path where
                 MkPath <$> parts
         _ -> Nothing
 
+instance FromTerm ErlType where
+    fromTerm t = case t of
+        (Atom _ "integer") -> Just EInt
+        (Tuple [Atom _ "atom", Atom _ value]) -> Just $ ENamedAtom value
+        (Tuple [Atom _ "union", List terms Nil]) -> EUnion . Set.fromList <$> mapM fromTerm terms
+        (Tuple [Atom _ "func", List args Nil, res]) -> EFun <$> mapM fromTerm args <*> fromTerm res
+        (Tuple [Atom _ "tuple", List terms Nil]) -> ETuple <$> mapM fromTerm terms
+        (Atom _ "unknown") -> Just EUnknown
+        _ -> Nothing
+
+entryFromTerm :: Term -> Maybe (ErlType, Path)
+entryFromTerm (Tuple [t1, t2]) = (,) <$> fromTerm t1 <*> fromTerm t2
+entryFromTerm _ = Nothing
+
 data ErlType = EInt
              | EFloat
              | ENamedAtom Text
@@ -93,7 +110,23 @@ instance Show ErlType where
         EAliasMeta i -> "#meta{i=" ++ show i ++ "}"
         EUnknown -> "?"
 
+runner :: ByteString -> Maybe TyEnv
+runner bs = case res of
+    Right (_, _, List terms Nil) -> do
+        entries <- mapM entryFromTerm terms 
+        let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
+        let SquashConfig{functions} = 
+                execState (squashLocal env) 
+                    (SquashConfig (MkAliasEnv IntMap.empty) (MkTyEnv Map.empty) 0)
+        return functions
+    _ -> Nothing
+  where
+    res ::  Either (ByteString, ByteOffset, String) (ByteString, ByteOffset, Term)
+    res = decodeOrFail bs 
+
+
 newtype TyEnv = MkTyEnv { unTyEnv :: Map FunName ErlType }
+    deriving(Show)
 
 combine :: ErlType -> ErlType -> ErlType
 combine EUnknown t = t
@@ -141,8 +174,6 @@ recNameToType :: Maybe Text -> ErlType
 recNameToType Nothing = EUnknown
 recNameToType (Just txt) = ENamedAtom txt
 
-toEnv :: ByteString -> TyEnv
-toEnv bs = undefined
 
 newtype AliasEnv = MkAliasEnv { unAliasEnv :: IntMap ErlType }
 

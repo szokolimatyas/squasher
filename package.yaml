@@ -52,6 +52,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - squasher
+    - optparse-applicative
 
 tests:
   squasher-test:
