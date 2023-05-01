@@ -16,23 +16,30 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Data.ByteString.Lazy (ByteString)
 import Data.IntMap (IntMap)
+import Data.IntSet (IntSet)
+import qualified Data.IntSet as IntSet
 import Data.Data
 import Data.Generics.Uniplate.Operations (transformM)
 import Data.Generics.Uniplate.Data
 import qualified Data.IntMap as IntMap
 import qualified Data.Maybe
 import Data.List (nub, intercalate, (\\), delete)
-import qualified Control.Monad
 import Control.Monad (when)
-import Data.Binary (decode, decodeOrFail)
+import Data.Binary (decodeOrFail)
 import Data.Binary.Get (ByteOffset)
+import Control.Monad.Trans.Except (Except, throwE, except)
+import Debug.Trace (traceM)
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
 
 data FunName = MkFunName { funName :: Text
                          , funArity :: Int
-                         } deriving(Eq, Ord, Show)
+                         } deriving(Eq, Ord)
+
+instance Show FunName where
+    show MkFunName{funName, funArity} = 
+        Text.unpack funName ++ "/" ++ show funArity
 
 data PathPart =
               -- ^ Parameter %1 of a function with arity %2
@@ -52,11 +59,17 @@ instance FromTerm PathPart where
     fromTerm t = case t of
         Tuple [Atom _ "rng", Integer i] -> Just $ Range $ fromInteger i
         Tuple [Atom _ "dom", Integer i, Integer j] -> Just $ Dom (fromInteger i) (fromInteger j)
-        Tuple [Atom _ "fun", String s, Integer i] -> Just $ FunN (MkFunName s (fromInteger i))
-        Tuple [Atom _ "rec", Atom _ "undefined", Integer i, Integer j] ->
+        Tuple [Atom _ "name", String s] -> Just $ FunN (MkFunName s 1)
+       -- Tuple [Atom _ "fun", String s, Integer i] -> Just $ FunN (MkFunName s (fromInteger i))
+        Tuple [Atom _ "tuple_index", Atom _ "undefined", Integer i, Integer j] ->
             Just $ Rec Nothing (fromInteger i) (fromInteger j)
-        Tuple [Atom _ "rec", String key, Integer i, Integer j] ->
+        Tuple [Atom _ "tuple_index", Tuple [Atom _ "atom", Atom _ key], Integer i, Integer j] ->
             Just $ Rec (Just key) (fromInteger i) (fromInteger j)
+        -- TODO: what about when the tuple index is not an atom?
+        -- Tuple [Atom _ "rec", Atom _ "undefined", Integer i, Integer j] ->
+        --     Just $ Rec Nothing (fromInteger i) (fromInteger j)
+        -- Tuple [Atom _ "rec", String key, Integer i, Integer j] ->
+        --     Just $ Rec (Just key) (fromInteger i) (fromInteger j)
         _ -> Nothing
 
 instance FromTerm Path where
@@ -78,9 +91,16 @@ instance FromTerm ErlType where
         (Atom _ "unknown") -> Just EUnknown
         _ -> Nothing
 
-entryFromTerm :: Term -> Maybe (ErlType, Path)
-entryFromTerm (Tuple [t1, t2]) = (,) <$> fromTerm t1 <*> fromTerm t2
-entryFromTerm _ = Nothing
+entryFromTerm :: Term -> Except String (ErlType, Path)
+entryFromTerm (Tuple [t1, t2]) = do
+   erlTy <- except $ maybeToEither ("Not an erlang type: " ++ show t1) (fromTerm t1)
+   path <- except $ maybeToEither ("Not a path: " ++ show t2) (fromTerm t2)
+   return (erlTy, path)
+entryFromTerm t = throwE $ "Not an entry: " ++ show t
+
+maybeToEither :: a -> Maybe b -> Either a b
+maybeToEither _def (Just val) = Right val
+maybeToEither def Nothing = Left def
 
 data ErlType = EInt
              | EFloat
@@ -106,27 +126,31 @@ instance Show ErlType where
         ETuple ts -> "{" ++ intercalate ", " (map show ts) ++ "}"
         EAny -> "any()"
         EUnion ts -> intercalate " | " (map show $ Set.toList ts)
+        EFun [t1] t2 -> "fun(" ++ show t1 ++ " -> " ++ show t2 ++ ")"
         EFun ts t -> "fun((" ++ intercalate ", " (map show ts) ++ ") -> " ++ show t ++ ")"
-        EAliasMeta i -> "#meta{i=" ++ show i ++ "}"
+        EAliasMeta i -> "$" ++ show i
         EUnknown -> "?"
 
-runner :: ByteString -> Maybe TyEnv
+runner :: ByteString -> Except String SquashConfig
 runner bs = case res of
-    Right (_, _, List terms Nil) -> do
+    Right (_, _, MkExternalTerm (List terms Nil)) -> do
         entries <- mapM entryFromTerm terms 
+        traceM $ "Entries:\n" ++ show entries ++ "\n"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-        let SquashConfig{functions} = 
-                execState (squashLocal env) 
-                    (SquashConfig (MkAliasEnv IntMap.empty) (MkTyEnv Map.empty) 0)
-        return functions
-    _ -> Nothing
+        traceM $ "Env:\n" ++ show env ++ "\n"
+        return $ execState squashLocal (SquashConfig (MkAliasEnv IntMap.empty) env 0)
+    Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
+    Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
   where
-    res ::  Either (ByteString, ByteOffset, String) (ByteString, ByteOffset, Term)
+    res ::  Either (ByteString, ByteOffset, String) (ByteString, ByteOffset, ExternalTerm)
     res = decodeOrFail bs 
 
 
 newtype TyEnv = MkTyEnv { unTyEnv :: Map FunName ErlType }
-    deriving(Show)
+instance Show TyEnv where
+    show (MkTyEnv m) = 
+        intercalate "\n" (map (\(i, t) -> show i ++ " -> " ++ show t) $ Map.toList m) ++
+        "\n"
 
 combine :: ErlType -> ErlType -> ErlType
 combine EUnknown t = t
@@ -157,17 +181,17 @@ makeArgs t index size =
 update :: ErlType -> Path -> TyEnv -> TyEnv
 update ty (MkPath p) env =
     case p of
-        Rec k index size : p' ->
+        Rec k size index : p' ->
             update (ETuple $ recNameToType k : makeArgs ty (index-1) (size-1))
                    (MkPath p') env
         Dom pos arity : p' ->
             update (EFun (makeArgs ty pos arity) EUnknown) (MkPath p') env
         Range arity : p' ->
             update (EFun (replicate arity EUnknown) ty) (MkPath p') env
-        [FunN fn] ->
-            MkTyEnv $ Map.alter visit fn (unTyEnv env) where
-                visit Nothing = Nothing
-                visit (Just ty') = Just $ combine ty ty'
+        [FunN fn] -> let tenv = unTyEnv env in
+            case Map.lookup fn tenv of
+                Just ty' -> MkTyEnv $ Map.insert fn (combine ty ty') tenv
+                Nothing -> MkTyEnv $ Map.insert fn ty tenv
         _ -> error "Internal error"
 
 recNameToType :: Maybe Text -> ErlType
@@ -176,6 +200,11 @@ recNameToType (Just txt) = ENamedAtom txt
 
 
 newtype AliasEnv = MkAliasEnv { unAliasEnv :: IntMap ErlType }
+
+instance Show AliasEnv where
+    show (MkAliasEnv imap) = 
+        intercalate "\n" (map (\(i, t) -> "$" ++ show i ++ " -> " ++ show t) $ IntMap.toList imap) ++
+        "\n"
 
 -- TODO: nice alias for unions as well
 -- EUnion [ENamedAtom "undefined", ETuple [ENamedAtom "node", ...]] -->
@@ -197,7 +226,7 @@ data SquashConfig = SquashConfig
                   { aliases :: AliasEnv
                   , functions :: TyEnv
                   , counter :: Int
-                  }
+                  } deriving(Show)
 
 -- | Change all occurences of aliases to newT in a type
 substTy :: [Int] -> ErlType -> ErlType -> ErlType
@@ -216,8 +245,8 @@ substInAliases aliases newT = do
 mapAliasesTo :: [Int] -> ErlType -> State SquashConfig ()
 mapAliasesTo as newT = do
     SquashConfig{aliases = MkAliasEnv imap} <- get
-    let newAliases = IntMap.map
-                        (\case {EAliasMeta i | i `elem` as -> newT; t -> t})
+    let newAliases = IntMap.mapWithKey
+                        (\i t -> if i `elem` as then newT else t)
                         imap
     modify (\conf -> conf{aliases = MkAliasEnv newAliases})
     return ()
@@ -248,11 +277,11 @@ resolveUnions t = do
         EUnion ts -> return $ EUnion ts
         _ -> return t
 
-aliasesInTy :: ErlType -> [Int]
-aliasesInTy t = nub $ para visit t where
-    visit :: ErlType -> [[Int]] -> [Int]
-    visit (EAliasMeta i) is = i : concat is
-    visit _ is = concat is
+aliasesInTy :: ErlType -> IntSet
+aliasesInTy = para visit where
+    visit :: ErlType -> [IntSet] -> IntSet
+    visit (EAliasMeta i) is = IntSet.insert i (IntSet.unions is)
+    visit _ is = IntSet.unions is
 
 -- Modified from the paper a bit, unions are kept flat correctly.
 aliasTuples :: ErlType -> State SquashConfig ErlType
@@ -261,7 +290,7 @@ aliasTuples = postwalk f where
     f t@(ETuple (ENamedAtom _ : _)) = reg t
     f (EUnion ts) | any (\case { EAliasMeta _ -> True; _ -> False}) ts = do
         ts' <- traverse resolveUnions (Set.toList ts)
-        reg $ EUnion $ Set.fromList ts'
+        reg $ EUnion $ flattenUnions $ Set.fromList ts'
     f t = return t
 
 -- should this rather be a maybeMerge?
@@ -295,29 +324,41 @@ mergeAliases ai@(a1:as) = do
     return () where
         erase :: ErlType -> ErlType
         erase (EAliasMeta a') | a' `elem` as = EUnion Set.empty
-        erase (EUnion ts) = EUnion (Set.map erase ts)
+        erase (EUnion ts) = EUnion $ flattenUnions $ Set.map erase ts
         erase t = t
 
 -- IntSets?
 -- bad recursion scheme
-squash :: [Int] -> [Int] -> State SquashConfig ()
+squash :: [Int] -> IntSet -> State SquashConfig ()
 squash [] _done = return ()
 squash (a1 : worklist) done = do
     SquashConfig{..} <- get
-    let as = aliasesInTy (lookupAlias a1 aliases) \\ done
-    let ap = Data.List.delete a1 done
-    when (a1 `notElem` done) (mapM_ f (ap ++ as))
-    squash (worklist ++ as) (done ++ [a1])
+    let as = aliasesInTy (lookupAlias a1 aliases) IntSet.\\ done
+    let ap = IntSet.delete a1 done
+    when (IntSet.notMember a1 done) (reduceM_ f (IntSet.union ap as))
+    squash (worklist ++ IntSet.toList as) (IntSet.insert a1 done)
     where
         f a2 = do
             ts <- mapM (resolve . EAliasMeta) [a1, a2]
-            when (shouldMerge ts) $ mergeAliases [a1, a2]
+            traceM $ "squash? " ++ show a1 ++ ", " ++ show a2 ++ "\n" ++
+                     "values:\n" ++ show ts ++ "\n"
+            when (shouldMerge ts) (do
+                traceM $ "merging "  ++ show a1 ++ ", " ++ show a2 ++ "\n" ++
+                         "values:\n" ++ show ts ++ "\n"
+                mergeAliases [a1, a2])
+
+reduceM_ :: (Int -> State SquashConfig ()) -> IntSet -> State SquashConfig ()
+reduceM_ f is = do
+    s <- get
+    let res = IntSet.foldl (\conf key -> execState (f key) conf) s is
+    put res
 
 squashAll :: ErlType -> State SquashConfig ()
-squashAll t =  mapM_ (\a -> squash [a] []) (aliasesInTy t)
+squashAll t =  reduceM_ (\a -> squash [a] IntSet.empty) (aliasesInTy t)
 
-squashLocal :: TyEnv -> State SquashConfig ()
-squashLocal (MkTyEnv e) =
+squashLocal :: State SquashConfig ()
+squashLocal = do
+    (MkTyEnv e) <- gets functions
     mapM_ h (Map.toList e) where
         h :: (FunName, ErlType) -> State SquashConfig ()
         h (x, t) = do

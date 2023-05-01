@@ -24,6 +24,17 @@ import Data.Bits
 import GHC.Stack (HasCallStack)
 import qualified Data.Text.Encoding as Enc
 import Control.Monad (replicateM)
+
+newtype ExternalTerm = MkExternalTerm {fromExternalTerm :: Term}
+  deriving (Eq, Generic, Show)
+
+instance Binary ExternalTerm where
+  put (MkExternalTerm t) = do
+    putWord8 magicVersion
+    put t
+  get = do
+    matchWord8 magicVersion
+    MkExternalTerm <$> get
 data Term
   = Integer Integer
   | Float Double
@@ -325,3 +336,8 @@ putLength32beByteString :: HasCallStack => ByteString -> Put
 putLength32beByteString bs = do
   putWord32be (fromIntegral (BS.length bs))
   putByteString bs
+
+matchWord8 :: HasCallStack => Word8 -> Get ()
+matchWord8 expected = do
+  actual <- getWord8
+  if expected == actual then return () else fail $ "expected " ++ show expected ++ ", actual " ++ show actual
