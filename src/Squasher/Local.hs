@@ -38,7 +38,7 @@ data FunName = MkFunName { funName :: Text
                          } deriving(Eq, Ord)
 
 instance Show FunName where
-    show MkFunName{funName, funArity} = 
+    show MkFunName{funName, funArity} =
         Text.unpack funName ++ "/" ++ show funArity
 
 data PathPart =
@@ -105,7 +105,7 @@ maybeToEither def Nothing = Left def
 data ErlType = EInt
              | EFloat
              | ENamedAtom Text
-             | EAtom
+             | EAnyAtom
              | ETuple [ErlType]
             -- | EList ErlType
              | EAny
@@ -122,7 +122,7 @@ instance Show ErlType where
         EFloat -> "float()"
         -- escape the '-s?
         ENamedAtom a -> "'" ++ Text.unpack a ++ "'"
-        EAtom -> "atom()"
+        EAnyAtom -> "atom()"
         ETuple ts -> "{" ++ intercalate ", " (map show ts) ++ "}"
         EAny -> "any()"
         EUnion ts -> intercalate " | " (map show $ Set.toList ts)
@@ -134,7 +134,7 @@ instance Show ErlType where
 runner :: ByteString -> Except String SquashConfig
 runner bs = case res of
     Right (_, _, MkExternalTerm (List terms Nil)) -> do
-        entries <- mapM entryFromTerm terms 
+        entries <- mapM entryFromTerm terms
         traceM $ "Entries:\n" ++ show entries ++ "\n"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
         traceM $ "Env:\n" ++ show env ++ "\n"
@@ -143,12 +143,12 @@ runner bs = case res of
     Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
   where
     res ::  Either (ByteString, ByteOffset, String) (ByteString, ByteOffset, ExternalTerm)
-    res = decodeOrFail bs 
+    res = decodeOrFail bs
 
 
 newtype TyEnv = MkTyEnv { unTyEnv :: Map FunName ErlType }
 instance Show TyEnv where
-    show (MkTyEnv m) = 
+    show (MkTyEnv m) =
         intercalate "\n" (map (\(i, t) -> show i ++ " -> " ++ show t) $ Map.toList m) ++
         "\n"
 
@@ -165,7 +165,8 @@ combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
 combine t1 t2 = EUnion $ flattenUnions $ Set.fromList [t1, t2]
 
 combines :: [ErlType] -> ErlType
-combines = foldl combine EUnknown
+combines [] = EUnknown
+combines (t:ts) = foldl combine t ts
 
 flattenUnions :: Set ErlType -> Set ErlType
 flattenUnions = Set.fold go Set.empty where
@@ -202,7 +203,7 @@ recNameToType (Just txt) = ENamedAtom txt
 newtype AliasEnv = MkAliasEnv { unAliasEnv :: IntMap ErlType }
 
 instance Show AliasEnv where
-    show (MkAliasEnv imap) = 
+    show (MkAliasEnv imap) =
         intercalate "\n" (map (\(i, t) -> "$" ++ show i ++ " -> " ++ show t) $ IntMap.toList imap) ++
         "\n"
 
@@ -283,15 +284,40 @@ aliasesInTy = para visit where
     visit (EAliasMeta i) is = IntSet.insert i (IntSet.unions is)
     visit _ is = IntSet.unions is
 
+-- | All aliases in a type, and the aliases in the aliases, etc...
+aliasesInTyRec :: IntSet -> ErlType -> SquashConfig -> IntSet
+aliasesInTyRec is t s = case t of
+    ETuple ts -> IntSet.unions $ is : map (\t' -> aliasesInTyRec is t' s) ts
+    EUnion ts -> IntSet.unions $ is : map (\t' -> aliasesInTyRec is t' s) (Set.toList ts)
+    EFun argts rest ->  IntSet.unions $ is : aliasesInTyRec is rest s : map (\t' -> aliasesInTyRec is t' s) argts
+    EAliasMeta i -> 
+        if IntSet.member i is
+        then is
+        else 
+            let t' = lookupAlias i (aliases s) 
+                is' = aliasesInTyRec (IntSet.insert i is) t' s
+            in is'
+    _ -> is
+
 -- Modified from the paper a bit, unions are kept flat correctly.
 aliasTuples :: ErlType -> State SquashConfig ErlType
 aliasTuples = postwalk f where
     f :: ErlType -> State SquashConfig ErlType
     f t@(ETuple (ENamedAtom _ : _)) = reg t
-    f (EUnion ts) | any (\case { EAliasMeta _ -> True; _ -> False}) ts = do
-        ts' <- traverse resolveUnions (Set.toList ts)
-        reg $ EUnion $ flattenUnions $ Set.fromList ts'
+    f (EUnion ts) =
+        if any (\case { EAliasMeta _ -> True; _ -> False}) ts then do
+            ts' <- traverse resolveUnions (Set.toList ts)
+            reg $ EUnion $ flattenUnions $ Set.fromList ts'
+        else
+            return $ EUnion $ flattenUnions ts
     f t = return t
+
+pruneAliases :: State SquashConfig ()
+pruneAliases = do
+    s <- get
+    let tys = Map.elems $ unTyEnv $ functions s
+    let usedAliases = IntSet.unions $ map (\t -> aliasesInTyRec IntSet.empty t s) tys
+    put s{aliases = MkAliasEnv (IntMap.restrictKeys (unAliasEnv $ aliases s) usedAliases)}
 
 -- should this rather be a maybeMerge?
 shouldMerge :: [ErlType] -> Bool
@@ -359,10 +385,14 @@ squashAll t =  reduceM_ (\a -> squash [a] IntSet.empty) (aliasesInTy t)
 squashLocal :: State SquashConfig ()
 squashLocal = do
     (MkTyEnv e) <- gets functions
-    mapM_ h (Map.toList e) where
+    mapM_ h (Map.toList e)
+    pruneAliases where
         h :: (FunName, ErlType) -> State SquashConfig ()
         h (x, t) = do
             t' <- aliasTuples t
+            traceM $ "aliased type:\n" ++ show t' ++ "\n"
+            oldAliases <- gets aliases
+            traceM $ "show aliases:\n" ++ show oldAliases ++ "\n"
             squashAll t'
             SquashConfig{..} <- get
             modify (\conf -> conf{functions=MkTyEnv $ Map.insert x t' (unTyEnv functions)})
