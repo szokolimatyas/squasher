@@ -28,19 +28,6 @@ $8 -> {'leaf', integer()}
 $9 -> {'node', ?, $8}
 $10 -> $0 | $7 | $9
 
-aliases:
-#{"#leaf_0{}" => {tuple,[{atom,leaf},integer]},
-  "#leaf_1{}" => {tuple,[{atom,leaf},integer]},
-  "#leaf_3{}" => {tuple,[{atom,leaf},integer]},
-  "#leaf_4{}" => {tuple,[{atom,leaf},integer]},
-  "#leaf_5{}" => {tuple,[{atom,leaf},integer]},
-  "#leaf_7{}" => {tuple,[{atom,leaf},integer]},
-  "#node_2{}" => {tuple,[{atom,node},unknown,{alias,"#leaf_1{}"}]},
-  "#node_6{}" => {tuple,[{atom,node},{alias,"#leaf_4{}"},{alias,"#leaf_5{}"}]},
-  "#node_9{}" => {tuple,[{atom,node},{alias,"#leaf_3{}"},{alias,"t_8()"}]},
-  "t_10()" =>
-      {union,[{alias,"#leaf_0{}"},{alias,"#node_2{}"},{alias,"#node_9{}"}]},
-  "t_8()" => {union,[{alias,"#leaf_7{}"},{alias,"#node_6{}"}]}}
 
 
 $0 -> $4
@@ -60,3 +47,13 @@ Heuristic:
 we can merge two aliases if:
 - both are record-like
 - In every (most??) occurrence of them:
+
+$2 -> {'leaf', integer()}
+$3 -> {'node', $2, $2}
+$4 -> $2 | $3
+$9 -> {'leaf', integer()}
+$10 -> {'node', $9, $9}
+$11 -> $9 | $10
+
+Functions:
+map_tree/1 -> fun((fun(integer() -> integer()), $4) -> $11)

@@ -29,6 +29,7 @@ import Data.Binary (decodeOrFail)
 import Data.Binary.Get (ByteOffset)
 import Control.Monad.Trans.Except (Except, throwE, except)
 import Debug.Trace (traceM)
+import Data.Foldable (traverse_)
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -386,7 +387,12 @@ squashLocal :: State SquashConfig ()
 squashLocal = do
     (MkTyEnv e) <- gets functions
     mapM_ h (Map.toList e)
-    pruneAliases where
+    pruneAliases 
+    s <- get
+    traceM $ "Result:\n" ++ show s ++ "\n"
+    aliasSingleRec
+    traceM $ "Result aliased:\n" ++ show s ++ "\n"
+    where
         h :: (FunName, ErlType) -> State SquashConfig ()
         h (x, t) = do
             t' <- aliasTuples t
@@ -396,3 +402,34 @@ squashLocal = do
             squashAll t'
             SquashConfig{..} <- get
             modify (\conf -> conf{functions=MkTyEnv $ Map.insert x t' (unTyEnv functions)})
+
+-------------------------------------------------------------------------------
+-- Global squashing
+-------------------------------------------------------------------------------
+
+-- In the base algo, the state change caused by postwalk is ignored
+-- this might be a problem
+singleRec :: ErlType -> State SquashConfig ErlType
+singleRec = postwalk f where
+    f t'@(ETuple (ENamedAtom _ : _)) = reg t'
+    f t' = return t'
+
+singleRec' :: FunName -> ErlType -> State SquashConfig ()
+singleRec' fn t = do
+    sigma <- postwalk f t
+    modify (\s -> s{functions=MkTyEnv $ Map.insert fn sigma (unTyEnv $ functions s)})
+    return () where
+        f t'@(ETuple (ENamedAtom _ : _)) = reg t'
+        f t' = return t'
+
+aliasSingleRec :: State SquashConfig ()
+aliasSingleRec = do
+    s@SquashConfig{..} <- get
+    traverse_ (uncurry singleRec') (Map.toList $ unTyEnv functions)
+    aliases' <- traverse f (unAliasEnv aliases) 
+    put s{aliases=MkAliasEnv aliases'} 
+    where
+        f (EUnion ts) = do
+            ts' <- traverse singleRec $ Set.toList ts
+            return $ EUnion $ flattenUnions $ Set.fromList ts'
+        f t = singleRec t
