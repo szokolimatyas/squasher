@@ -1,12 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Squasher.Local where
 
-import Foreign.Erlang.Term
+import Squasher.Types
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Data.Map (Map)
@@ -18,7 +17,6 @@ import Data.ByteString.Lazy (ByteString)
 import Data.IntMap (IntMap)
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
-import Data.Data
 import Data.Generics.Uniplate.Operations (transformM)
 import Data.Generics.Uniplate.Data
 import qualified Data.IntMap as IntMap
@@ -30,6 +28,7 @@ import Data.Binary.Get (ByteOffset)
 import Control.Monad.Trans.Except (Except, throwE, except)
 import Debug.Trace (traceM)
 import Data.Foldable (traverse_)
+import Foreign.Erlang.Term
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -52,9 +51,6 @@ data PathPart =
               -- ^ Record with key %1, at position %2, field number %3
               | Rec (Maybe Text) Int Int
               deriving(Eq, Show)
-
-class FromTerm a where
-    fromTerm :: Term -> Maybe a
 
 instance FromTerm PathPart where
     fromTerm t = case t of
@@ -82,15 +78,6 @@ instance FromTerm Path where
                 MkPath <$> parts
         _ -> Nothing
 
-instance FromTerm ErlType where
-    fromTerm t = case t of
-        (Atom _ "integer") -> Just EInt
-        (Tuple [Atom _ "atom", Atom _ value]) -> Just $ ENamedAtom value
-        (Tuple [Atom _ "union", List terms Nil]) -> EUnion . Set.fromList <$> mapM fromTerm terms
-        (Tuple [Atom _ "func", List args Nil, res]) -> EFun <$> mapM fromTerm args <*> fromTerm res
-        (Tuple [Atom _ "tuple", List terms Nil]) -> ETuple <$> mapM fromTerm terms
-        (Atom _ "unknown") -> Just EUnknown
-        _ -> Nothing
 
 entryFromTerm :: Term -> Except String (ErlType, Path)
 entryFromTerm (Tuple [t1, t2]) = do
@@ -102,55 +89,6 @@ entryFromTerm t = throwE $ "Not an entry: " ++ show t
 maybeToEither :: a -> Maybe b -> Either a b
 maybeToEither _def (Just val) = Right val
 maybeToEither def Nothing = Left def
-
-data ErlType = EInt
-             | EFloat
-             | ENamedAtom Text
-             | EAnyAtom
-             | ETuple [ErlType]
-            -- | EList ErlType
-             | EAny
-             | EUnion (Set ErlType)
-             | EFun [ErlType] ErlType
-            -- Meta alias, used by the algorithm 
-             | EAliasMeta Int
-             | EUnknown
-            --
-             | EBinary
-             | EBitString
-            -- is_builtin can be used when wrapping functions
-             -- support for improper lists?
-             | EList (Set ErlType)
-             -- keyword maps?
-             | EMap (Map ErlType ErlType)
-             | EPid
-             | EPort
-             | ERef
-             | EBoolean
-             deriving(Ord, Eq, Data, Typeable)
-
-instance Show ErlType where
-    show ty = case ty of
-        EInt -> "integer()"
-        EFloat -> "float()"
-        -- escape the '-s?
-        ENamedAtom a -> "'" ++ Text.unpack a ++ "'"
-        EAnyAtom -> "atom()"
-        ETuple ts -> "{" ++ intercalate ", " (map show ts) ++ "}"
-        EAny -> "any()"
-        EUnion ts -> intercalate " | " (map show $ Set.toList ts)
-        EFun [t1] t2 -> "fun(" ++ show t1 ++ " -> " ++ show t2 ++ ")"
-        EFun ts t -> "fun((" ++ intercalate ", " (map show ts) ++ ") -> " ++ show t ++ ")"
-        EAliasMeta i -> "$" ++ show i
-        EUnknown -> "?"
-        EBinary -> "binary()"
-        EBitString -> "bitstring()"
-        EPid -> "pid()"
-        EPort -> "port()"
-        ERef -> "reference()"
-        EBoolean -> "boolean()"
-        EMap _ -> "map()"
-        EList _ -> "list()" 
 
 runner :: ByteString -> Except String SquashConfig
 runner bs = case res of

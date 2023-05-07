@@ -28,6 +28,7 @@ library
       Foreign.Erlang.Term
       Lib
       Squasher.Local
+      Squasher.Types
   other-modules:
       Paths_squasher
   hs-source-dirs:

@@ -69,6 +69,8 @@ data MapEntry = MapEntry
   }
   deriving(Eq, Generic, Show)
 
+class FromTerm a where
+    fromTerm :: Term -> Maybe a
 
 --------------------------------------------------------------------------------
 -- taken from hinterface
