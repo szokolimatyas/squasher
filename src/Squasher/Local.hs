@@ -115,6 +115,18 @@ data ErlType = EInt
             -- Meta alias, used by the algorithm 
              | EAliasMeta Int
              | EUnknown
+            --
+             | EBinary
+             | EBitString
+            -- is_builtin can be used when wrapping functions
+             -- support for improper lists?
+             | EList (Set ErlType)
+             -- keyword maps?
+             | EMap (Map ErlType ErlType)
+             | EPid
+             | EPort
+             | ERef
+             | EBoolean
              deriving(Ord, Eq, Data, Typeable)
 
 instance Show ErlType where
@@ -131,6 +143,14 @@ instance Show ErlType where
         EFun ts t -> "fun((" ++ intercalate ", " (map show ts) ++ ") -> " ++ show t ++ ")"
         EAliasMeta i -> "$" ++ show i
         EUnknown -> "?"
+        EBinary -> "binary()"
+        EBitString -> "bitstring()"
+        EPid -> "pid()"
+        EPort -> "port()"
+        ERef -> "reference()"
+        EBoolean -> "boolean()"
+        EMap _ -> "map()"
+        EList _ -> "list()" 
 
 runner :: ByteString -> Except String SquashConfig
 runner bs = case res of
@@ -153,10 +173,17 @@ instance Show TyEnv where
         intercalate "\n" (map (\(i, t) -> show i ++ " -> " ++ show t) $ Map.toList m) ++
         "\n"
 
+-- todo: binary/bitrstring
+-- float/integer --> num?
 combine :: ErlType -> ErlType -> ErlType
 combine EUnknown t = t
 combine t EUnknown = t
 combine t1 t2 | t1 == t2 = t1
+combine EBitString EBinary = EBitString
+combine EBinary EBitString = EBitString
+combine (ENamedAtom a1) (ENamedAtom a2) 
+    | a1 `elem` ["true", "false"] && 
+      a2 `elem` ["true", "false"] = EBoolean
 combine (ETuple (ENamedAtom a1 : ts1)) (ETuple (ENamedAtom a2 : ts2)) | a1 == a2 && length ts1 == length ts2 =
     ETuple $ ENamedAtom a1 : zipWith combine ts1 ts2
 combine (EUnion ts) t1 = EUnion $ flattenUnions $ Set.map (`combine` t1) ts
@@ -301,6 +328,7 @@ aliasesInTyRec is t s = case t of
     _ -> is
 
 -- Modified from the paper a bit, unions are kept flat correctly.
+-- But maybe if we do the old way, there is a pont to realiasing in the global step?
 aliasTuples :: ErlType -> State SquashConfig ErlType
 aliasTuples = postwalk f where
     f :: ErlType -> State SquashConfig ErlType
@@ -390,8 +418,6 @@ squashLocal = do
     pruneAliases 
     s <- get
     traceM $ "Result:\n" ++ show s ++ "\n"
-    aliasSingleRec
-    traceM $ "Result aliased:\n" ++ show s ++ "\n"
     where
         h :: (FunName, ErlType) -> State SquashConfig ()
         h (x, t) = do
