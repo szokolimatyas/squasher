@@ -48,8 +48,12 @@ data PathPart =
               | Range Int
               -- ^ Function name and arity
               | FunN FunName
-              -- ^ Record with key %1, at position %2, field number %3
-              | Rec (Maybe Text) Int Int
+              -- ^ Record with key, at position, field number
+              | Rec ErlType Int Int
+              -- ^ List
+              | ListElement 
+              -- ^ Not a shapemap yet!
+              | MapElement ErlType
               deriving(Eq, Show)
 
 instance FromTerm PathPart where
@@ -58,10 +62,13 @@ instance FromTerm PathPart where
         Tuple [Atom _ "dom", Integer i, Integer j] -> Just $ Dom (fromInteger i) (fromInteger j)
         Tuple [Atom _ "name", String s] -> Just $ FunN (MkFunName s 1)
        -- Tuple [Atom _ "fun", String s, Integer i] -> Just $ FunN (MkFunName s (fromInteger i))
-        Tuple [Atom _ "tuple_index", Atom _ "undefined", Integer i, Integer j] ->
-            Just $ Rec Nothing (fromInteger i) (fromInteger j)
-        Tuple [Atom _ "tuple_index", Tuple [Atom _ "atom", Atom _ key], Integer i, Integer j] ->
-            Just $ Rec (Just key) (fromInteger i) (fromInteger j)
+        Tuple [Atom _ "tuple_index", keyTerm, Integer i, Integer j] ->
+            fromTerm keyTerm >>= \et -> Just $ Rec et (fromInteger i) (fromInteger j)
+       -- Tuple [Atom _ "tuple_index", Tuple [Atom _ "atom", Atom _ key], Integer i, Integer j] ->
+       --     Just $ Rec (Just key) (fromInteger i) (fromInteger j)
+        Atom _ "list_element" -> Just ListElement
+        Tuple [Atom _ "map_element", key] -> 
+            MapElement <$> fromTerm key
         -- TODO: what about when the tuple index is not an atom?
         -- Tuple [Atom _ "rec", Atom _ "undefined", Integer i, Integer j] ->
         --     Just $ Rec Nothing (fromInteger i) (fromInteger j)
@@ -124,11 +131,23 @@ combine (ENamedAtom a1) (ENamedAtom a2)
       a2 `elem` ["true", "false"] = EBoolean
 combine (ETuple (ENamedAtom a1 : ts1)) (ETuple (ENamedAtom a2 : ts2)) | a1 == a2 && length ts1 == length ts2 =
     ETuple $ ENamedAtom a1 : zipWith combine ts1 ts2
+combine (EList t1) (EList t2) = EList $ t1 `combine` t2
+-- no support for shapemaps!
+-- this is not the best, there could be too many different key types
+combine (EMap m1) (EMap m2) =
+    -- TODO: magic number
+    -- collapse large maps
+    if Map.size m1 + Map.size m2 < 5 
+    then EMap $ Map.unionWith combine m1 m2
+    else EMap $ uncurry Map.singleton (combineMap $ Map.union m1 m2)
 combine (EUnion ts) t1 = EUnion $ flattenUnions $ Set.map (`combine` t1) ts
 combine t1 (EUnion ts) = EUnion $ flattenUnions $ Set.map (`combine` t1) ts
 combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
     EFun (zipWith combine argts1 argts2) (combine t1 t2)
 combine t1 t2 = EUnion $ flattenUnions $ Set.fromList [t1, t2]
+
+combineMap :: Map ErlType ErlType -> (ErlType, ErlType)
+combineMap = Map.foldrWithKey (\k' v' (k, v) -> (k `combine` k', v `combine` v')) (EUnknown, EUnknown)
 
 combines :: [ErlType] -> ErlType
 combines [] = EUnknown
@@ -149,21 +168,21 @@ update :: ErlType -> Path -> TyEnv -> TyEnv
 update ty (MkPath p) env =
     case p of
         Rec k size index : p' ->
-            update (ETuple $ recNameToType k : makeArgs ty (index-1) (size-1))
+            update (ETuple $ k : makeArgs ty (index-1) (size-1))
                    (MkPath p') env
         Dom pos arity : p' ->
             update (EFun (makeArgs ty pos arity) EUnknown) (MkPath p') env
         Range arity : p' ->
             update (EFun (replicate arity EUnknown) ty) (MkPath p') env
+        ListElement : p' ->
+            update (EList ty) (MkPath p') env
+        MapElement k : p' ->
+            update (EMap $ Map.singleton k ty) (MkPath p') env
         [FunN fn] -> let tenv = unTyEnv env in
             case Map.lookup fn tenv of
                 Just ty' -> MkTyEnv $ Map.insert fn (combine ty ty') tenv
                 Nothing -> MkTyEnv $ Map.insert fn ty tenv
         _ -> error "Internal error"
-
-recNameToType :: Maybe Text -> ErlType
-recNameToType Nothing = EUnknown
-recNameToType (Just txt) = ENamedAtom txt
 
 
 newtype AliasEnv = MkAliasEnv { unAliasEnv :: IntMap ErlType }

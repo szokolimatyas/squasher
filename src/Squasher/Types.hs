@@ -33,7 +33,7 @@ data ErlType = EInt
              | EBitString
             -- is_builtin can be used when wrapping functions
              -- support for improper lists?
-             | EList (Set ErlType)
+             | EList ErlType
              -- keyword maps?
              | EMap (Map ErlType ErlType)
              | EPid
@@ -54,8 +54,8 @@ instance FromTerm ErlType where
         (Atom _ "unknown") -> Just EUnknown
         (Atom _ "binary") -> Just EBinary
         (Atom _ "bitstring") -> Just EBitString
-        (Tuple [Atom _ "list", List terms Nil]) -> 
-            Just $ EList $ Set.fromList $ Maybe.mapMaybe fromTerm terms
+        (Tuple [Atom _ "list",  term]) -> 
+            EList <$> fromTerm term
         (Tuple [Atom _ "map", List terms Nil]) -> 
             Just $ EMap $ Map.fromList $ Maybe.mapMaybe 
                 (\case { Tuple [t1,t2] -> (,) <$> fromTerm t1 <*> fromTerm t2; _ -> Nothing}) terms
@@ -87,4 +87,4 @@ instance Show ErlType where
         ERef -> "reference()"
         EBoolean -> "boolean()"
         EMap ts -> "#{" ++ intercalate ", " (map (\(t1, t2) -> show t1 ++ " => " ++ show t2) (Map.toList ts)) ++ "}"
-        EList ts -> "list(" ++ intercalate "| " (map show $ Set.toList ts) ++ ")" 
+        EList t -> "list(" ++ show t ++ ")" 
