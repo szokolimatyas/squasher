@@ -50,7 +50,7 @@ executable squasher-exe
       Paths_squasher
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N -O2 -optc-ffast-math -optc-O3 -fexcess-precision
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N -O -optc-ffast-math -optc-O3 -fexcess-precision
   build-depends:
       base >=4.10 && <5
     , binary >=0.8.9.0
