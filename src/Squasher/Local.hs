@@ -8,27 +8,30 @@ module Squasher.Local where
 import Squasher.Types
 import Data.Text (Text)
 import qualified Data.Text as Text
-import Data.Map (Map)
+import Data.Map.Strict (Map)
 import Data.Set (Set)
-import Control.Monad.Trans.State
+import Control.Monad.Trans.State.Strict
 import qualified Data.Set as Set
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Data.ByteString.Lazy (ByteString)
-import Data.IntMap (IntMap)
+import Data.IntMap.Strict (IntMap)
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 import Data.Generics.Uniplate.Operations (transformM)
 import Data.Generics.Uniplate.Data
-import qualified Data.IntMap as IntMap
+import qualified Data.IntMap.Strict as IntMap
 import qualified Data.Maybe
 import Data.List (nub, intercalate, (\\), delete)
 import Control.Monad (when)
 import Data.Binary (decodeOrFail)
 import Data.Binary.Get (ByteOffset)
-import Control.Monad.Trans.Except (Except, throwE, except)
-import Debug.Trace (traceM)
+import Control.Monad.Trans.Except (Except, throwE, except) 
 import Data.Foldable (traverse_)
 import Foreign.Erlang.Term
+import Debug.Trace
+
+myTrace _ = return ()
+--myTrace = Debug.traceM
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -95,7 +98,7 @@ runner :: ByteString -> Except String SquashConfig
 runner bs = case res of
     Right (_, _, MkExternalTerm (List terms Nil)) -> do
         entries <- mapM entryFromTerm terms
-        traceM $ "Entries:\n" ++ show entries ++ "\n"
+        myTrace $ "Entries:\n" ++ show entries ++ "\n"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
         traceM $ "Env:\n" ++ show env ++ "\n"
         return $ execState squashLocal (SquashConfig (MkAliasEnv IntMap.empty) env 0)
@@ -346,10 +349,10 @@ squash (a1 : worklist) done = do
     where
         f a2 = do
             ts <- mapM (resolve . EAliasMeta) [a1, a2]
-            traceM $ "squash? " ++ show a1 ++ ", " ++ show a2 ++ "\n" ++
+            myTrace $ "squash? " ++ show a1 ++ ", " ++ show a2 ++ "\n" ++
                      "values:\n" ++ show ts ++ "\n"
             when (shouldMerge ts) (do
-                traceM $ "merging "  ++ show a1 ++ ", " ++ show a2 ++ "\n" ++
+                myTrace $ "merging "  ++ show a1 ++ ", " ++ show a2 ++ "\n" ++
                          "values:\n" ++ show ts ++ "\n"
                 mergeAliases [a1, a2])
 
@@ -368,14 +371,14 @@ squashLocal = do
     mapM_ h (Map.toList e)
     pruneAliases 
     s <- get
-    traceM $ "Result:\n" ++ show s ++ "\n"
+    myTrace $ "Result:\n" ++ show s ++ "\n"
     where
         h :: (FunName, ErlType) -> State SquashConfig ()
         h (x, t) = do
             t' <- aliasTuples t
-            traceM $ "aliased type:\n" ++ show t' ++ "\n"
+            myTrace $ "aliased type:\n" ++ show t' ++ "\n"
             oldAliases <- gets aliases
-            traceM $ "show aliases:\n" ++ show oldAliases ++ "\n"
+            myTrace $ "show aliases:\n" ++ show oldAliases ++ "\n"
             squashAll t'
             SquashConfig{..} <- get
             modify (\conf -> conf{functions=MkTyEnv $ Map.insert x t' (unTyEnv functions)})

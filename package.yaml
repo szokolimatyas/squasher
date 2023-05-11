@@ -50,6 +50,10 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -O2
+    - -optc-ffast-math
+    - -optc-O3
+    - -fexcess-precision
     dependencies:
     - squasher
     - optparse-applicative
