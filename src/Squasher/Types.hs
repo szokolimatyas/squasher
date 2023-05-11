@@ -47,15 +47,20 @@ instance FromTerm ErlType where
         (Atom _ "integer") -> Just EInt
         (Atom _ "float") -> Just EFloat
         (Tuple [Atom _ "atom", Atom _ value]) -> Just $ ENamedAtom value
+        (Tuple [Atom _ "tuple", Nil]) -> Just $ ETuple []
         (Tuple [Atom _ "tuple", List terms Nil]) -> ETuple <$> mapM fromTerm terms
         (Atom _ "any") -> Just EAny
+        (Tuple [Atom _ "union", Nil]) -> Just $ EUnion Set.empty
         (Tuple [Atom _ "union", List terms Nil]) -> EUnion . Set.fromList <$> mapM fromTerm terms
+        (Tuple [Atom _ "function", Nil, res]) -> EFun [] <$> fromTerm res
         (Tuple [Atom _ "function", List args Nil, res]) -> EFun <$> mapM fromTerm args <*> fromTerm res
         (Atom _ "unknown") -> Just EUnknown
         (Atom _ "binary") -> Just EBinary
         (Atom _ "bitstring") -> Just EBitString
         (Tuple [Atom _ "list",  term]) -> 
             EList <$> fromTerm term
+        (Tuple [Atom _ "map", Nil]) -> 
+            Just $ EMap Map.empty
         (Tuple [Atom _ "map", List terms Nil]) -> 
             Just $ EMap $ Map.fromList $ Maybe.mapMaybe 
                 (\case { Tuple [t1,t2] -> (,) <$> fromTerm t1 <*> fromTerm t2; _ -> Nothing}) terms

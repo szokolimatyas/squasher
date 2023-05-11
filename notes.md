@@ -57,3 +57,7 @@ $11 -> $9 | $10
 
 Functions:
 map_tree/1 -> fun((fun(integer() -> integer()), $4) -> $11)
+
+erlc -I
+
+erlc -I erlang\include\ erlang\src\collect.erl

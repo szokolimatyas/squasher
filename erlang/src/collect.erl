@@ -31,7 +31,7 @@ prepare_trace() ->
 start_erlang_trace(InModule) ->
     prepare_trace(),
     Pid = spawn_link(fun collect_loop/0),
-    erlang:trace(all, true, [{tracer, Pid}, call]),
+    erlang:trace(all, true, [call, {tracer, Pid}]),
     erlang:trace_pattern({InModule, '_', '_'}, [{'_', [], [{return_trace}]}], [local]),
     Pid.
 
@@ -60,7 +60,7 @@ collect_loop() ->
                     track(V, [{dom, I, Arity}, {name, io_lib:print(Function), Arity}]) 
                 end, Arguments),
             collect_loop();
-        _ ->
+        _Other ->
             collect_loop()
     end.
 

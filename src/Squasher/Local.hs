@@ -42,26 +42,20 @@ instance Show FunName where
         Text.unpack funName ++ "/" ++ show funArity
 
 data PathPart =
-              -- ^ Parameter %1 of a function with arity %2
-                Dom Int Int
-              -- ^ Result in a function with arity %1
-              | Range Int
-              -- ^ Function name and arity
-              | FunN FunName
-              -- ^ Record with key, at position, field number
-              | Rec ErlType Int Int
-              -- ^ List
-              | ListElement 
-              -- ^ Not a shapemap yet!
-              | MapElement ErlType
+                Dom Int Int -- ^ Parameter %1 of a function with arity %2
+              | Range Int   -- ^ Result in a function with arity %1
+              | FunN FunName -- ^ Function name and arity
+              | Rec ErlType Int Int -- ^ Record with key, at position, field number
+              | ListElement -- ^ List
+              | MapElement ErlType -- ^ Not a shapemap yet!
               deriving(Eq, Show)
 
 instance FromTerm PathPart where
     fromTerm t = case t of
         Tuple [Atom _ "rng", Integer i] -> Just $ Range $ fromInteger i
         Tuple [Atom _ "dom", Integer i, Integer j] -> Just $ Dom (fromInteger i) (fromInteger j)
-        Tuple [Atom _ "name", String s] -> Just $ FunN (MkFunName s 1)
-       -- Tuple [Atom _ "fun", String s, Integer i] -> Just $ FunN (MkFunName s (fromInteger i))
+        Tuple [Atom _ "name", String s, Integer i] ->
+            Just $ FunN (MkFunName s (fromInteger i))
         Tuple [Atom _ "tuple_index", keyTerm, Integer i, Integer j] ->
             fromTerm keyTerm >>= \et -> Just $ Rec et (fromInteger i) (fromInteger j)
        -- Tuple [Atom _ "tuple_index", Tuple [Atom _ "atom", Atom _ key], Integer i, Integer j] ->
@@ -167,7 +161,7 @@ makeArgs t index size =
 update :: ErlType -> Path -> TyEnv -> TyEnv
 update ty (MkPath p) env =
     case p of
-        Rec k size index : p' ->
+        Rec k index size : p' ->
             update (ETuple $ k : makeArgs ty (index-1) (size-1))
                    (MkPath p') env
         Dom pos arity : p' ->

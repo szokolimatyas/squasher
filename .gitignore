@@ -1,2 +1,4 @@
 .stack-work/
+*.beam
+erlang/src/*.beam
 *~
