@@ -23,6 +23,7 @@ data ErlType = EInt
              | ETuple [ErlType]
             -- | EList ErlType
              | EAny
+             | ENone
              | EUnion (Set ErlType)
              | EFun [ErlType] ErlType
             -- Meta alias, used by the algorithm 
@@ -50,6 +51,7 @@ instance FromTerm ErlType where
         (Tuple [Atom _ "tuple", Nil]) -> Just $ ETuple []
         (Tuple [Atom _ "tuple", List terms Nil]) -> ETuple <$> mapM fromTerm terms
         (Atom _ "any") -> Just EAny
+        (Atom _ "none") -> Just ENone
         (Tuple [Atom _ "union", Nil]) -> Just $ EUnion Set.empty
         (Tuple [Atom _ "union", List terms Nil]) -> EUnion . Set.fromList <$> mapM fromTerm terms
         (Tuple [Atom _ "function", Nil, res]) -> EFun [] <$> fromTerm res
@@ -80,6 +82,7 @@ instance Show ErlType where
         EAnyAtom -> "atom()"
         ETuple ts -> "{" ++ intercalate ", " (map show ts) ++ "}"
         EAny -> "any()"
+        ENone -> "none()"
         EUnion ts -> intercalate " | " (map show $ Set.toList ts)
         EFun [t1] t2 -> "fun(" ++ show t1 ++ " -> " ++ show t2 ++ ")"
         EFun ts t -> "fun((" ++ intercalate ", " (map show ts) ++ ") -> " ++ show t ++ ")"

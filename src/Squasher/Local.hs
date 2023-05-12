@@ -98,9 +98,9 @@ runner :: ByteString -> Except String SquashConfig
 runner bs = case res of
     Right (_, _, MkExternalTerm (List terms Nil)) -> do
         entries <- mapM entryFromTerm terms
-        myTrace $ "Entries:\n" ++ show entries ++ "\n"
+       -- myTrace $ "Entries:\n" ++ show entries ++ "\n"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-        let env' = env -- MkTyEnv (Map.take 1 $ Map.drop 2 (unTyEnv env))
+        let env' = MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
         traceM $ "Env:\n" ++ show env' ++ "\n"
         return $ execState squashLocal (SquashConfig (MkAliasEnv IntMap.empty) env' 0)
     Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
@@ -118,6 +118,7 @@ instance Show TyEnv where
 
 -- todo: binary/bitrstring
 -- float/integer --> num?
+-- none? any?
 combine :: ErlType -> ErlType -> ErlType
 combine EUnknown t = t
 combine t EUnknown = t
@@ -156,11 +157,42 @@ combines :: [ErlType] -> ErlType
 combines [] = EUnknown
 combines (t:ts) = foldl combine t ts
 
+-- Function used to tame too large types, collaping them.
+-- Not sure if the handling of Unknown values here is correct
+-- should it be promoted to any or unknown or ignored?
+-- float/integer --> num?
+lub :: ErlType -> ErlType -> ErlType
+lub ENone t2 = t2
+lub t1 ENone = t1
+lub EUnknown _ = EAny
+lub _ EUnknown = EAny
+lub t1 t2 | t1 == t2 = t1
+lub EBitString EBinary = EBitString
+lub EBinary EBitString = EBitString
+lub t1 t2 
+    | t1 `elem` [EBoolean, ENamedAtom "true", ENamedAtom "false"] && 
+      t2 `elem` [EBoolean, ENamedAtom "true", ENamedAtom "false"] = EBoolean
+lub (ETuple ts1) (ETuple ts2)| length ts1 == length ts2 =
+    ETuple $ zipWith lub ts1 ts2
+lub (EList t1) (EList t2) = EList $ t1 `lub` t2
+-- TODO: actual lub for maps
+lub (EMap _) (EMap _) =
+    EMap $ Map.singleton EAny EAny
+-- TODO: is there a need for greatest lower bound here?
+-- what exactly is the type hierarchy
+lub (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
+    EFun (replicate (length argts1) ENone) (lub t1 t2)
+lub _ _ = EAny
+
+
+-- Maybe instead of returning any() on too large unions, jut combine all of the entries
+-- This should be good in cases like {'atom', {integer(), integer()}, <a bunch of atom literals>}
 flattenUnions :: Set ErlType -> Set ErlType
-flattenUnions s = if Set.size newUnion > 20 then Set.singleton EAny else newUnion where 
-    newUnion = Set.fold go Set.empty s
+flattenUnions s = if Set.size flatUnion > 20 then compactedUnion else flatUnion where 
+    flatUnion = Set.fold go Set.empty s
     go (EUnion ts) set = ts <> set
     go t set = Set.insert t set
+    compactedUnion = Set.singleton (Set.fold lub ENone flatUnion)
 
 makeArgs :: ErlType -> Int -> Int -> [ErlType]
 makeArgs t index size =
@@ -171,6 +203,10 @@ makeArgs t index size =
 update :: ErlType -> Path -> TyEnv -> TyEnv
 update ty (MkPath p) env =
     case p of
+        -- Not a record-like tuple, use first element's type
+        Rec EUnknown 1 size : p' ->
+            update (ETuple $ ty : replicate (size-1) EUnknown)
+                   (MkPath p') env
         Rec k index size : p' ->
             update (ETuple $ k : makeArgs ty (index-1) (size-1))
                    (MkPath p') env
@@ -297,12 +333,13 @@ aliasTuples :: ErlType -> State SquashConfig ErlType
 aliasTuples = postwalk f where
     f :: ErlType -> State SquashConfig ErlType
     f t@(ETuple (ENamedAtom _ : _)) = reg t
-    f (EUnion ts) =
-        if any (\case { EAliasMeta _ -> True; _ -> False}) ts then do
-            ts' <- traverse resolveUnions (Set.toList ts)
-            reg $ EUnion $ flattenUnions $ Set.fromList ts'
-        else
-            return $ EUnion $ flattenUnions ts
+    -- take 1 drop 14 takes a long time
+    -- f (EUnion ts) =
+    --     if any (\case { EAliasMeta _ -> True; _ -> False}) ts then do
+    --         ts' <- traverse resolveUnions (Set.toList ts)
+    --         reg $ EUnion $ flattenUnions $ Set.fromList ts'
+    --     else
+    --         return $ EUnion $ flattenUnions ts
     f t = return t
 
 pruneAliases :: State SquashConfig ()
@@ -386,9 +423,9 @@ squashLocal = do
         h :: (FunName, ErlType) -> State SquashConfig ()
         h (x, t) = do
             t' <- aliasTuples t
-            myTrace $ "aliased type:\n" ++ show t' ++ "\n"
+            traceM $ "aliased type:\n" ++ show t' ++ "\n"
             oldAliases <- gets aliases
-            myTrace $ "show aliases:\n" ++ show oldAliases ++ "\n"
+            traceM $ "show aliases:\n" ++ show oldAliases ++ "\n"
             squashAll t'
             SquashConfig{..} <- get
             modify (\conf -> conf{functions=MkTyEnv $ Map.insert x t' (unTyEnv functions)})
