@@ -204,7 +204,7 @@ update :: ErlType -> Path -> TyEnv -> TyEnv
 update ty (MkPath p) env =
     case p of
         -- Not a record-like tuple, use first element's type
-        Rec EUnknown 1 size : p' ->
+        Rec _ 1 size : p' ->
             update (ETuple $ ty : replicate (size-1) EUnknown)
                    (MkPath p') env
         Rec k index size : p' ->
@@ -370,7 +370,7 @@ mergeAliases ai@(a1:as) = do
     ts <- traverse
         (\i -> do
             t <- erase <$> resolve (EAliasMeta i)
-            return $ substTy [a1] (EAliasMeta i) t
+            return $ substTy [i] (EAliasMeta a1) t
         ) ai
     let sigma = combines ts
     mapAliasesTo as (EAliasMeta a1)
