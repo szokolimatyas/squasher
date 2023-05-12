@@ -39,26 +39,29 @@ stop_erlang_trace(Pid) ->
     erlang:trace(all, false, [call]),
     Pid ! stop,
     Traces = get_traces(),
-    file:write_file("out.bin", term_to_binary(Traces)).
-
+    file:write_file("out.bin", term_to_binary(lists:uniq(Traces))).
 
 collect_loop() -> 
     receive
         stop ->
             ok;
         {trace, _Pid, return_from, {_Module, Function, Arity}, ReturnValue} ->
-            % Handle function call return message
-            track(ReturnValue, [{rng, Arity}, {name, io_lib:print(Function), Arity}]),
+            case atom_to_list(Function) of
+                [$-|_] -> ok;
+                _ ->
+                    track(ReturnValue, [{rng, Arity}, {name, io_lib:print(Function), Arity}])
+            end,
             collect_loop();
-         %   io:format("Function ~p:~p/~p returned ~p in process ~p~n", [Module, Function, Arity, ReturnValue, Pid]);
         {trace, _Pid, call, {_Module, Function, Arguments}} ->
             Arity = length(Arguments),
-            % Handle a call trace message
-            %io:format("Function ~p:~p invoked with arguments ~p in process ~p~n", [Module, Function, Arguments, Pid]);
-            map_with_index(
-                fun(V, I) ->
-                    track(V, [{dom, I, Arity}, {name, io_lib:print(Function), Arity}]) 
-                end, Arguments),
+            case atom_to_list(Function) of
+                [$-|_] -> ok;
+                _ ->
+                    map_with_index(
+                        fun(V, I) ->
+                            track(V, [{dom, I, Arity}, {name, io_lib:print(Function), Arity}]) 
+                        end, Arguments)
+            end,
             collect_loop();
         _Other ->
             collect_loop()

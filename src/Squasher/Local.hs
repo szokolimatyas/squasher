@@ -100,8 +100,9 @@ runner bs = case res of
         entries <- mapM entryFromTerm terms
         myTrace $ "Entries:\n" ++ show entries ++ "\n"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-        traceM $ "Env:\n" ++ show env ++ "\n"
-        return $ execState squashLocal (SquashConfig (MkAliasEnv IntMap.empty) env 0)
+        let env' = env -- MkTyEnv (Map.take 1 $ Map.drop 2 (unTyEnv env))
+        traceM $ "Env:\n" ++ show env' ++ "\n"
+        return $ execState squashLocal (SquashConfig (MkAliasEnv IntMap.empty) env' 0)
     Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
     Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
   where
@@ -126,6 +127,11 @@ combine EBinary EBitString = EBitString
 combine (ENamedAtom a1) (ENamedAtom a2) 
     | a1 `elem` ["true", "false"] && 
       a2 `elem` ["true", "false"] = EBoolean
+-- not sure
+combine (ETuple (EUnknown : ts1)) (ETuple (t2 : ts2)) | length ts1 == length ts2 =
+    ETuple $ t2 : zipWith combine ts1 ts2
+combine (ETuple (t1 : ts1)) (ETuple (EUnknown : ts2)) | length ts1 == length ts2 =
+    ETuple $ t1 : zipWith combine ts1 ts2
 combine (ETuple (ENamedAtom a1 : ts1)) (ETuple (ENamedAtom a2 : ts2)) | a1 == a2 && length ts1 == length ts2 =
     ETuple $ ENamedAtom a1 : zipWith combine ts1 ts2
 combine (EList t1) (EList t2) = EList $ t1 `combine` t2
@@ -151,7 +157,8 @@ combines [] = EUnknown
 combines (t:ts) = foldl combine t ts
 
 flattenUnions :: Set ErlType -> Set ErlType
-flattenUnions = Set.fold go Set.empty where
+flattenUnions s = if Set.size newUnion > 20 then Set.singleton EAny else newUnion where 
+    newUnion = Set.fold go Set.empty s
     go (EUnion ts) set = ts <> set
     go t set = Set.insert t set
 
@@ -269,9 +276,12 @@ aliasesInTy = para visit where
 -- | All aliases in a type, and the aliases in the aliases, etc...
 aliasesInTyRec :: IntSet -> ErlType -> SquashConfig -> IntSet
 aliasesInTyRec is t s = case t of
-    ETuple ts -> IntSet.unions $ is : map (\t' -> aliasesInTyRec is t' s) ts
-    EUnion ts -> IntSet.unions $ is : map (\t' -> aliasesInTyRec is t' s) (Set.toList ts)
-    EFun argts rest ->  IntSet.unions $ is : aliasesInTyRec is rest s : map (\t' -> aliasesInTyRec is t' s) argts
+    ETuple ts -> IntSet.unions $ map (\t' -> aliasesInTyRec is t' s) ts
+    EUnion ts -> IntSet.unions $ map (\t' -> aliasesInTyRec is t' s) (Set.toList ts)
+    EFun argts rest ->  IntSet.unions $ aliasesInTyRec is rest s : map (\t' -> aliasesInTyRec is t' s) argts
+    EList t' -> aliasesInTyRec is t' s
+    EMap m -> 
+        IntSet.unions $ map (\(t1, t2) -> IntSet.union (aliasesInTyRec is t1 s) (aliasesInTyRec is t2 s)) $ Map.toList m
     EAliasMeta i -> 
         if IntSet.member i is
         then is

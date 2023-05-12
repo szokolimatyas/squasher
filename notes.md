@@ -61,3 +61,10 @@ map_tree/1 -> fun((fun(integer() -> integer()), $4) -> $11)
 erlc -I
 
 erlc -I erlang\include\ erlang\src\collect.erl
+
+
+Pid = collect:start_erlang_trace(erl_lint).
+cd("erlang/src").
+c(bead).
+collect:stop_erlang_trace(Pid).
+{ok, B} = file:read_file("out.bin"), file:write_file("out.erlterm", io_lib:print(binary_to_term(B))).    
