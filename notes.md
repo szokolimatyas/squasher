@@ -419,3 +419,23 @@ compiler_options/1 -> fun(list(any() | $0 | $10 | $20 | $32 | $166 | $292 | $399
 why are the second elements missing??
 why are there so many records that could me merged? are they not "local"?
 1237 aliases --> ~400 aliases
+
+
+should they get merged?:
+$0 -> {'function', ?, 'pany', ?, ?}
+$10 -> {'function', ?, 'pany', ?, list($3)}
+compiler_options/1 -> fun(list(any() | $0 | $10...))
+check the algo!
+seems like merging is not done across unions, is this ok?
+maybe try to wait out the "original" implementation to see how it does
+the global section may be O(n^2), so the number of aliases should be as small as possible before it!
+
+STRefs?
+- check SPJ paper about higher rank type inference for pointers
+Tobin-Hochstadt paper about high performance typechecking
+the any()-s are from the flattend unions --> should there something be done about this?
+combine could be simplified to use subtyping:
+- if EUnknown is present, handle that in combine
+- handle parameterized types in combine
+- simple types, we take their least upper bound?
+extend the type hierarchy so we have tuple(), and a lot of the any() will be tuple() instead

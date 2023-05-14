@@ -75,11 +75,7 @@ instance FromTerm PathPart where
 
 instance FromTerm Path where
     fromTerm t = case t of
-        List elems _ ->
-            let
-                parts =  mapM fromTerm elems
-            in
-                MkPath <$> parts
+        List elems _ -> MkPath <$> mapM fromTerm elems
         _ -> Nothing
 
 
@@ -101,7 +97,7 @@ runner bs = case res of
        -- myTrace $ "Entries:\n" ++ show entries ++ "\n"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
         let env' = MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
-        traceM $ "Env:\n" ++ show env' ++ "\n"
+        myTrace $ "Env:\n" ++ show env' ++ "\n"
         return $ execState squashLocal (SquashConfig (MkAliasEnv IntMap.empty) env' 0)
     Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
     Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
@@ -231,15 +227,6 @@ instance Show AliasEnv where
     show (MkAliasEnv imap) =
         intercalate "\n" (map (\(i, t) -> "$" ++ show i ++ " -> " ++ show t) $ IntMap.toList imap) ++
         "\n"
-
--- TODO: nice alias for unions as well
--- EUnion [ENamedAtom "undefined", ETuple [ENamedAtom "node", ...]] -->
--- undefined_node_13()
-showAlias :: Int -> ErlType -> Text
-showAlias i t = case t of
-    ETuple (ENamedAtom a : _) ->
-        Text.pack $ "#" ++ show a ++ "_" ++ show i ++ "{}"
-    _ -> Text.pack $ "t_" ++ show i ++ "()"
 
 addAlias :: Int -> ErlType -> AliasEnv -> AliasEnv
 addAlias i t (MkAliasEnv im) = MkAliasEnv $ IntMap.insert i t im
