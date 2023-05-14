@@ -349,6 +349,23 @@ pruneAliases = do
     let usedAliases = IntSet.unions $ map (\t -> aliasesInTyRec IntSet.empty t s) tys
     put s{aliases = MkAliasEnv (IntMap.restrictKeys (unAliasEnv $ aliases s) usedAliases)}
 
+-- | Remove "proxy" aliases like $1 in: $1 -> $2 -> {'rec', integer()}
+removeProxyAliases ::  State SquashConfig ()
+removeProxyAliases = do
+    SquashConfig{aliases = MkAliasEnv as, functions = MkTyEnv funs} <- get
+    newAliases <- traverse remove as
+    newFuns <- traverse remove funs
+    modify (\conf -> conf{aliases = MkAliasEnv newAliases, functions = MkTyEnv newFuns})
+    return () where
+        remove = transformM resolveProxy 
+
+        resolveProxy (EAliasMeta i) = do
+            t <- gets (lookupAlias i . aliases)
+            case t of
+                EAliasMeta _ -> resolveProxy t
+                _ -> return $ EAliasMeta i
+        resolveProxy t = return t
+
 -- should this rather be a maybeMerge?
 shouldMerge :: [ErlType] -> Bool
 shouldMerge (ETuple (ENamedAtom n : elems) : ts) =
@@ -375,7 +392,7 @@ mergeAliases ai@(a1:as) = do
     let sigma = combines ts
     mapAliasesTo as (EAliasMeta a1)
     -- not sure about this one
-    substInAliases as (EAliasMeta a1)
+    substInAliases ai (EAliasMeta a1)
     mapAliasesTo [a1] sigma
     return () where
         erase :: ErlType -> ErlType
@@ -416,6 +433,7 @@ squashLocal :: State SquashConfig ()
 squashLocal = do
     (MkTyEnv e) <- gets functions
     mapM_ h (Map.toList e)
+    removeProxyAliases
     pruneAliases 
     s <- get
     myTrace $ "Result:\n" ++ show s ++ "\n"
