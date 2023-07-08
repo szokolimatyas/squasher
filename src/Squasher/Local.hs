@@ -22,16 +22,13 @@ import Data.Generics.Uniplate.Data
 import qualified Data.IntMap.Strict as IntMap
 import qualified Data.Maybe
 import Data.List (nub, intercalate, (\\), delete)
-import Control.Monad (when)
+import Control.Monad (when, foldM)
 import Data.Binary (decodeOrFail)
 import Data.Binary.Get (ByteOffset)
-import Control.Monad.Trans.Except (Except, throwE, except) 
+import Control.Monad.Trans.Except (Except, throwE, except)
 import Data.Foldable (traverse_)
 import Foreign.Erlang.Term
 import Debug.Trace
-
-myTrace _ = return ()
---myTrace = Debug.traceM
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -64,7 +61,7 @@ instance FromTerm PathPart where
        -- Tuple [Atom _ "tuple_index", Tuple [Atom _ "atom", Atom _ key], Integer i, Integer j] ->
        --     Just $ Rec (Just key) (fromInteger i) (fromInteger j)
         Atom _ "list_element" -> Just ListElement
-        Tuple [Atom _ "map_element", key] -> 
+        Tuple [Atom _ "map_element", key] ->
             MapElement <$> fromTerm key
         -- TODO: what about when the tuple index is not an atom?
         -- Tuple [Atom _ "rec", Atom _ "undefined", Integer i, Integer j] ->
@@ -94,10 +91,9 @@ runner :: ByteString -> Except String SquashConfig
 runner bs = case res of
     Right (_, _, MkExternalTerm (List terms Nil)) -> do
         entries <- mapM entryFromTerm terms
-       -- myTrace $ "Entries:\n" ++ show entries ++ "\n"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-        let env' = MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
-        myTrace $ "Env:\n" ++ show env' ++ "\n"
+        let env' = env -- MkTyEnv (Map.take 14 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
+     --   traceM $ "Env:\n" ++ show env' ++ "\n"
         return $ execState squashLocal (SquashConfig (MkAliasEnv IntMap.empty) env' 0)
     Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
     Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
@@ -121,8 +117,8 @@ combine t EUnknown = t
 combine t1 t2 | t1 == t2 = t1
 combine EBitString EBinary = EBitString
 combine EBinary EBitString = EBitString
-combine (ENamedAtom a1) (ENamedAtom a2) 
-    | a1 `elem` ["true", "false"] && 
+combine (ENamedAtom a1) (ENamedAtom a2)
+    | a1 `elem` ["true", "false"] &&
       a2 `elem` ["true", "false"] = EBoolean
 -- not sure
 combine (ETuple (EUnknown : ts1)) (ETuple (t2 : ts2)) | length ts1 == length ts2 =
@@ -137,7 +133,7 @@ combine (EList t1) (EList t2) = EList $ t1 `combine` t2
 combine (EMap m1) (EMap m2) =
     -- TODO: magic number
     -- collapse large maps
-    if Map.size m1 + Map.size m2 < 5 
+    if Map.size m1 + Map.size m2 < 5
     then EMap $ Map.unionWith combine m1 m2
     else EMap $ uncurry Map.singleton (combineMap $ Map.union m1 m2)
 combine (EUnion ts) t1 = EUnion $ flattenUnions $ Set.map (`combine` t1) ts
@@ -165,8 +161,8 @@ lub _ EUnknown = EAny
 lub t1 t2 | t1 == t2 = t1
 lub EBitString EBinary = EBitString
 lub EBinary EBitString = EBitString
-lub t1 t2 
-    | t1 `elem` [EBoolean, ENamedAtom "true", ENamedAtom "false"] && 
+lub t1 t2
+    | t1 `elem` [EBoolean, ENamedAtom "true", ENamedAtom "false"] &&
       t2 `elem` [EBoolean, ENamedAtom "true", ENamedAtom "false"] = EBoolean
 lub (ETuple ts1) (ETuple ts2)| length ts1 == length ts2 =
     ETuple $ zipWith lub ts1 ts2
@@ -184,7 +180,7 @@ lub _ _ = EAny
 -- Maybe instead of returning any() on too large unions, jut combine all of the entries
 -- This should be good in cases like {'atom', {integer(), integer()}, <a bunch of atom literals>}
 flattenUnions :: Set ErlType -> Set ErlType
-flattenUnions s = if Set.size flatUnion > 20 then compactedUnion else flatUnion where 
+flattenUnions s = if Set.size flatUnion > 40 then compactedUnion else flatUnion where
     flatUnion = Set.fold go Set.empty s
     go (EUnion ts) set = ts <> set
     go t set = Set.insert t set
@@ -303,13 +299,13 @@ aliasesInTyRec is t s = case t of
     EUnion ts -> IntSet.unions $ map (\t' -> aliasesInTyRec is t' s) (Set.toList ts)
     EFun argts rest ->  IntSet.unions $ aliasesInTyRec is rest s : map (\t' -> aliasesInTyRec is t' s) argts
     EList t' -> aliasesInTyRec is t' s
-    EMap m -> 
+    EMap m ->
         IntSet.unions $ map (\(t1, t2) -> IntSet.union (aliasesInTyRec is t1 s) (aliasesInTyRec is t2 s)) $ Map.toList m
-    EAliasMeta i -> 
+    EAliasMeta i ->
         if IntSet.member i is
         then is
-        else 
-            let t' = lookupAlias i (aliases s) 
+        else
+            let t' = lookupAlias i (aliases s)
                 is' = aliasesInTyRec (IntSet.insert i is) t' s
             in is'
     _ -> is
@@ -320,13 +316,13 @@ aliasTuples :: ErlType -> State SquashConfig ErlType
 aliasTuples = postwalk f where
     f :: ErlType -> State SquashConfig ErlType
     f t@(ETuple (ENamedAtom _ : _)) = reg t
-    -- take 1 drop 14 takes a long time
+  --  take 1 drop 14 takes a long time
     -- f (EUnion ts) =
     --     if any (\case { EAliasMeta _ -> True; _ -> False}) ts then do
-    --         ts' <- traverse resolveUnions (Set.toList ts)
-    --         reg $ EUnion $ flattenUnions $ Set.fromList ts'
+    --         ts' <- traverse resolve (Set.toList ts)
+    --         reg $ EUnion $ Set.fromList ts'
     --     else
-    --         return $ EUnion $ flattenUnions ts
+    --         return $ EUnion ts
     f t = return t
 
 pruneAliases :: State SquashConfig ()
@@ -344,7 +340,7 @@ removeProxyAliases = do
     newFuns <- traverse remove funs
     modify (\conf -> conf{aliases = MkAliasEnv newAliases, functions = MkTyEnv newFuns})
     return () where
-        remove = transformM resolveProxy 
+        remove = transformM resolveProxy
 
         resolveProxy (EAliasMeta i) = do
             t <- gets (lookupAlias i . aliases)
@@ -387,6 +383,23 @@ mergeAliases ai@(a1:as) = do
         erase (EUnion ts) = EUnion $ flattenUnions $ Set.map erase ts
         erase t = t
 
+tryMergeAliases :: Int -> Int -> State SquashConfig ()
+tryMergeAliases a1 a2 = do
+    t1 <- resolve $ EAliasMeta a1
+    t2 <- resolve $ EAliasMeta a2
+    let b = shouldMerge [t1, t2]
+    when b $ do
+        let t1' = substTy [a2] (EAliasMeta a1) (erase t1)
+        let t2' = substTy [a2] (EAliasMeta a1) (erase t2)
+        let sigma = t1' `combine` t2'
+        mapAliasesTo [a2] (EAliasMeta a1)
+        mapAliasesTo [a1] sigma
+    where
+        erase :: ErlType -> ErlType
+        erase (EAliasMeta a') | a' `elem` [a1, a2] = EUnion Set.empty
+        erase (EUnion ts) = EUnion $ Set.map erase ts
+        erase t = t
+
 -- IntSets?
 -- bad recursion scheme
 squash :: [Int] -> IntSet -> State SquashConfig ()
@@ -395,43 +408,77 @@ squash (a1 : worklist) done = do
     SquashConfig{..} <- get
     let as = aliasesInTy (lookupAlias a1 aliases) IntSet.\\ done
     let ap = IntSet.delete a1 done
-    when (IntSet.notMember a1 done) (reduceM_ f (IntSet.union ap as))
+    when (IntSet.notMember a1 done) (traverse_ f (IntSet.toList $ IntSet.union ap as))
     squash (worklist ++ IntSet.toList as) (IntSet.insert a1 done)
     where
-        f a2 = do
-            ts <- mapM (resolve . EAliasMeta) [a1, a2]
-            myTrace $ "squash? " ++ show a1 ++ ", " ++ show a2 ++ "\n" ++
-                     "values:\n" ++ show ts ++ "\n"
-            when (shouldMerge ts) (do
-                myTrace $ "merging "  ++ show a1 ++ ", " ++ show a2 ++ "\n" ++
-                         "values:\n" ++ show ts ++ "\n"
-                mergeAliases [a1, a2])
+        f a2 = tryMergeAliases a1 a2
 
-reduceM_ :: (Int -> State SquashConfig ()) -> IntSet -> State SquashConfig ()
-reduceM_ f is = do
+
+-- keep track of "done" variable, or variables we visited
+-- group the aliases by tags (direct subalias, parent/done aliases)
+-- merge the groups
+-- -- postorder
+-- mySquash :: Int -> State SquashConfig ()
+-- mySquash alias = do
+--     SquashConfig{..} <- get
+--     let as = aliasesInTy (lookupAlias alias aliases) 
+--     when (not $ IntSet.null as) $ do
+
+--         _
+
+-- this means that aliases that are under a common alias, on the same level,
+-- get merged
+data Tag = RecordTag Text Int | SingleAtom Text
+    deriving (Eq, Ord, Show)
+
+groupByRecordTag :: [Int] -> State SquashConfig (Map Tag [Int])
+groupByRecordTag = foldM visit Map.empty where
+    visit :: Map Tag [Int] -> Int -> State SquashConfig (Map Tag [Int])
+    visit acc i = do
+        SquashConfig{..} <- get
+        let t = lookupAlias i aliases
+        case t of
+            ETuple (ENamedAtom name : fs) ->
+                return $ Map.alter (\case Just is -> Just (i : is); _ -> Just [i]) (RecordTag name (length fs)) acc
+                --return $ Map.insert (RecordTag name (length fs)) i acc
+            ENamedAtom name ->
+                return $ Map.alter (\case Just is -> Just (i : is); _ -> Just [i]) (SingleAtom name) acc
+            _ -> return acc
+
+mySquashAll :: ErlType -> State SquashConfig ()
+mySquashAll t = do
     s <- get
-    let res = IntSet.foldl (\conf key -> execState (f key) conf) s is
-    put res
+    let aliasesInT = IntSet.toList $ aliasesInTyRec IntSet.empty t s
+    groups <- groupByRecordTag aliasesInT
+    --traceM $ show
+    traverse_ mergeAliases groups
+
 
 squashAll :: ErlType -> State SquashConfig ()
-squashAll t =  reduceM_ (\a -> squash [a] IntSet.empty) (aliasesInTy t)
+squashAll t =  traverse_ (\a -> squash [a] IntSet.empty) (IntSet.toList $ aliasesInTy t)
 
 squashLocal :: State SquashConfig ()
 squashLocal = do
     (MkTyEnv e) <- gets functions
     mapM_ h (Map.toList e)
     removeProxyAliases
-    pruneAliases 
-    s <- get
-    myTrace $ "Result:\n" ++ show s ++ "\n"
+    pruneAliases
+    SquashConfig{..} <- get
+    groups <- groupByRecordTag $ IntMap.keys $ unAliasEnv aliases
+    --traceM $ show
+    traverse_ mergeAliases groups 
+    removeProxyAliases
+    pruneAliases
+  --  s <- get
+   -- myTrace $ "Result:\n" ++ show s ++ "\n"
     where
         h :: (FunName, ErlType) -> State SquashConfig ()
         h (x, t) = do
             t' <- aliasTuples t
-            traceM $ "aliased type:\n" ++ show t' ++ "\n"
-            oldAliases <- gets aliases
-            traceM $ "show aliases:\n" ++ show oldAliases ++ "\n"
-            squashAll t'
+          --  traceM $ "aliased type:\n" ++ show t' ++ "\n"
+         --   oldAliases <- gets aliases
+        --    traceM $ "show aliases:\n" ++ show oldAliases ++ "\n"
+            mySquashAll t'
             SquashConfig{..} <- get
             modify (\conf -> conf{functions=MkTyEnv $ Map.insert x t' (unTyEnv functions)})
 
@@ -458,8 +505,8 @@ aliasSingleRec :: State SquashConfig ()
 aliasSingleRec = do
     s@SquashConfig{..} <- get
     traverse_ (uncurry singleRec') (Map.toList $ unTyEnv functions)
-    aliases' <- traverse f (unAliasEnv aliases) 
-    put s{aliases=MkAliasEnv aliases'} 
+    aliases' <- traverse f (unAliasEnv aliases)
+    put s{aliases=MkAliasEnv aliases'}
     where
         f (EUnion ts) = do
             ts' <- traverse singleRec $ Set.toList ts

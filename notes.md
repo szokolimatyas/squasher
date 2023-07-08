@@ -439,3 +439,112 @@ combine could be simplified to use subtyping:
 - handle parameterized types in combine
 - simple types, we take their least upper bound?
 extend the type hierarchy so we have tuple(), and a lot of the any() will be tuple() instead
+
+
+merge aliases: [2,7],resolved: [{'leaf', integer()},{'leaf', integer()} | {'node', $2, $5}], sigma: {'leaf', integer()} | {'node', $2, $5}
+
+
+
+$0 -> {'leaf', integer()} 
+$1 -> {'leaf', integer()} 
+$2 -> {'leaf', integer()}
+$3 -> {'leaf', integer()}
+$4 -> {'leaf', integer()}
+$5 -> {'node', $3, $4}
+$6 -> {'node', $2, $5}
+$7 -> {'leaf', integer()}
+$8 -> {'leaf', integer()}
+$9 -> {'leaf', integer()}
+$10 -> {'node', $8, $9}
+$11 -> {'leaf', integer()}
+$12 -> {'node', ?, $11}
+$13 -> {'node', $1 | $6, $7 | $10 | $12}
+
+
+
+digraph G {
+
+ // start -> a0;
+ // start -> b0;
+ // a1 -> b3;
+ // b2 -> a3;
+ // a3 -> a0;
+ // a3 -> end;
+ // b3 -> end;
+
+
+
+ //n0 -> {'leaf', integer()} 
+ //n1 -> {'leaf', integer()} 
+ //n2 -> {'leaf', integer()}
+ //n3 -> {'leaf', integer()}
+ //n4 -> {'leaf', integer()}
+ //n5 -> {'node', $3, $4}
+ n5 -> n3;
+ n5 -> n4;
+ //n6 -> {'node', $2, $5}
+ n6 -> n2;
+ n6 -> n5;
+ //n7 -> {'leaf', integer()}
+ //n8 -> {'leaf', integer()}
+ //n9 -> {'leaf', integer()}
+ //n10 -> {'node', $8, $9}
+ n10 -> n8;
+ n10 -> n9;
+ //n11 -> {'leaf', integer()}
+ //n12 -> {'node', ?, $11}
+ n10 -> n11;
+ //n13 -> {'node', $1 | $6, $7 | $10 | $12}
+  n13 -> n1;
+  n13 -> n6;
+  n13 -> n7;
+  n13 -> n10;
+  n13 -> n12;
+
+  n13 [shape=Mdiamond];
+//  end [shape=Msquare];
+}
+
+
+digraph G {
+
+ // start -> a0;
+ // start -> b0;
+ // a1 -> b3;
+ // b2 -> a3;
+ // a3 -> a0;
+ // a3 -> end;
+ // b3 -> end;
+
+
+
+ //n0 -> {'leaf', integer()} 
+ //n1 -> {'leaf', integer()} 
+ //n2 -> {'leaf', integer()}
+ //n3 -> {'leaf', integer()}
+ //n4 -> {'leaf', integer()}
+ //n5 -> {'node', $3, $4}
+ n5 -> l3;
+ n5 -> l4;
+ //n6 -> {'node', $2, $5}
+ n6 -> l2;
+ n6 -> n5;
+ //n7 -> {'leaf', integer()}
+ //n8 -> {'leaf', integer()}
+ //n9 -> {'leaf', integer()}
+ //n10 -> {'node', $8, $9}
+ n10 -> l8;
+ n10 -> l9;
+ //n11 -> {'leaf', integer()}
+ //n12 -> {'node', ?, $11}
+ n10 -> l11;
+ //n13 -> {'node', $1 | $6, $7 | $10 | $12}
+  n13 -> l1;
+  n13 -> n6;
+  n13 -> l7;
+  n13 -> n10;
+  n13 -> n12;
+
+  n13 [shape=Mdiamond];
+//  end [shape=Msquare];
+}
