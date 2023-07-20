@@ -92,7 +92,7 @@ runner bs = case res of
     Right (_, _, MkExternalTerm (List terms Nil)) -> do
         entries <- mapM entryFromTerm terms
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-        let env' = env -- MkTyEnv (Map.take 14 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
+        let env' = MkTyEnv (Map.take 20 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
      --   traceM $ "Env:\n" ++ show env' ++ "\n"
         return $ execState squashLocal (SquashConfig (MkAliasEnv IntMap.empty) env' 0)
     Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
@@ -180,7 +180,7 @@ lub _ _ = EAny
 -- Maybe instead of returning any() on too large unions, jut combine all of the entries
 -- This should be good in cases like {'atom', {integer(), integer()}, <a bunch of atom literals>}
 flattenUnions :: Set ErlType -> Set ErlType
-flattenUnions s = if Set.size flatUnion > 40 then compactedUnion else flatUnion where
+flattenUnions s = if Set.size flatUnion > 20 then compactedUnion else flatUnion where
     flatUnion = Set.fold go Set.empty s
     go (EUnion ts) set = ts <> set
     go t set = Set.insert t set
@@ -319,7 +319,7 @@ aliasTuples = postwalk f where
   --  take 1 drop 14 takes a long time
     -- f (EUnion ts) =
     --     if any (\case { EAliasMeta _ -> True; _ -> False}) ts then do
-    --         ts' <- traverse resolve (Set.toList ts)
+    --         ts' <- traverse resolveUnions (Set.toList ts)
     --         reg $ EUnion $ Set.fromList ts'
     --     else
     --         return $ EUnion ts
