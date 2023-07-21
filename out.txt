@@ -1,0 +1,29 @@
+Aliases:
+$0 -> {'leaf', integer()}
+$1 -> {'leaf', integer()}
+$2 -> $9
+$3 -> $4
+$4 -> {'leaf', integer()}
+$5 -> {'node', $3, $4}
+$6 -> {'node', $2, $5}
+$7 -> {'leaf', integer()} | {'node', $2, $5}
+$8 -> {'leaf', integer()}
+$9 -> $10
+$10 -> $12
+$11 -> {'node', $9, $10}
+$12 -> $3
+$13 -> {'node', ?, $12}
+$14 -> {'leaf', integer()} | {'node', $9, $10} | {'node', ?, $12}
+$15 -> {'node', $7, $14}
+$16 -> {'leaf', integer()} | {'node', $7, $14}
+$17 -> {'leaf', integer()}
+$18 -> {'leaf', integer()}
+$19 -> {'leaf', integer()}
+$20 -> {'node', $18, $19}
+$21 -> $23
+$22 -> {'leaf', integer()}
+$23 -> {'node', $17 | $23, $20 | $22}
+
+Functions:
+node_num/1 -> fun($16 -> integer())
+t1/0 -> fun(() -> $23)

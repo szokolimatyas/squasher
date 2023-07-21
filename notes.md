@@ -548,3 +548,8 @@ digraph G {
   n13 [shape=Mdiamond];
 //  end [shape=Msquare];
 }
+
+
+oh noes:
+
+$4444 -> $4444
