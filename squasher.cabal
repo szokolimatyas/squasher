@@ -39,6 +39,7 @@ library
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
+    , equivalence >=0.4.1
     , text >=1.2.5.0
     , transformers >=0.5.6
     , uniplate >=1.6.13
@@ -56,6 +57,7 @@ executable squasher-exe
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
+    , equivalence >=0.4.1
     , optparse-applicative
     , squasher
     , text >=1.2.5.0
@@ -76,6 +78,7 @@ test-suite squasher-test
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
+    , equivalence >=0.4.1
     , squasher
     , text >=1.2.5.0
     , transformers >=0.5.6

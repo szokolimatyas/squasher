@@ -554,5 +554,63 @@ oh noes:
 
 $4444 -> $4444
 
+(fromList [RecordTag "E" 1],[5020]),
+(fromList [RecordTag "E" 1,RecordTag "F" 1,RecordTag "Pid" 1],[290]),
+(fromList [RecordTag "F" 1],[5021]),
+(fromList [RecordTag "FinishedNum" 1],[2165]),
+(fromList [RecordTag "MainPid" 1],[2179]),
+(fromList [RecordTag "MaxNum" 1],[2193]),
+(fromList [RecordTag "Pid" 1],[5022]),
+(fromList [RecordTag "atom" 2],[5087]),
+(fromList [RecordTag "atom" 2,RecordTag "string" 2],[95,69]),
+(fromList [RecordTag "atom" 2,RecordTag "tuple" 2],[4922,3531,1986,128]),
+(fromList [RecordTag "atom" 2,RecordTag "var" 2],[126,120,110]),
+(fromList [RecordTag "bound" 2],[2206]),
+(fromList [RecordTag "c" 1],[5004]),
+(fromList [RecordTag "c" 1,RecordTag "cd" 1],[179]),
+(fromList [RecordTag "call" 3],[5079]),
+(fromList [RecordTag "call" 3,RecordTag "lc" 3],[3597,3572]),
+(fromList [RecordTag "case" 3],[5081]),
+(fromList [RecordTag "case" 3,RecordTag "match" 3],[3599]),
+(fromList [RecordTag "case" 3,RecordTag "receive" 2],[628,457]),
+(fromList [RecordTag "cd" 1],[5005]),
+(fromList [RecordTag "clause" 4],[4853]),
+(fromList [RecordTag "clauses" 1],[4854]),
+(fromList [RecordTag "collector" 1],[5070]),
+(fromList [RecordTag "file" 1],[5052]),
+(fromList [RecordTag "file" 1,RecordTag "location" 1],[2009,243,215,100,93,88,78,74,33]),
+(fromList [RecordTag "fun" 2],[4855]),
+(fromList [RecordTag "function" 4],[5091,4941,3602,3550,2005]),
+(fromList [RecordTag "if" 2],[625]),
+(fromList [RecordTag "lc" 3],[5080]),
+(fromList [RecordTag "lint" 37],[4952]),
+(fromList [RecordTag "location" 1],[5054]),
+(fromList [RecordTag "match" 3],[5083]),
+(fromList [RecordTag "module_info" 1],[4949]),
+(fromList [RecordTag "op" 4],[3577]),
+(fromList [RecordTag "outdir" 1],[5092]),
+(fromList [RecordTag "outdir" 1,SingleAtom "binary_comprehension",SingleAtom "bitlevel_binaries",SingleAtom "export_all",SingleAtom "report_errors",SingleAtom "report_warnings"],[211]),
+(fromList [RecordTag "outdir" 1,SingleAtom "export_all",SingleAtom "report_errors",SingleAtom "report_warnings"],[167,3]),
+(fromList [RecordTag "pany" 1],[2141]),
+(fromList [RecordTag "receive" 2],[5042]),
+(fromList [RecordTag "record_info" 1],[4950]),
+(fromList [RecordTag "string" 2],[4979]),
+(fromList [RecordTag "test" 1],[2140]),
+(fromList [RecordTag "tuple" 2],[5088]),
+(fromList [RecordTag "usage" 4],[4951]),
+(fromList [RecordTag "var" 2],[4994]),
+(fromList [RecordTag "worker" 1],[5071])
+
+https://github.com/pa-ba/equivalence/blob/master/testsuite/tests/Data/Equivalence/Monad_Test.hs
+Seems like a union find problem?
+
+RecordTags+SingleAtom form an equivalence relation??
+Might be too agressive?
+Two tags are equivalent when they are in the same set?
+
+This can lead to problems when atoms are used inconsistently!
+We need some kind of sanity check for this.
 
 
+there could be for instance two different options proplists,
+but both have the {file, _} tuple. We should not unify them in that case.
