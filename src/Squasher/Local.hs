@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Squasher.Local where
 
@@ -28,6 +29,8 @@ import Control.Monad.Trans.Except (Except, throwE, except)
 import Foreign.Erlang.Term
 import Debug.Trace
 import Data.Tuple(swap)
+import qualified Data.Equivalence.Monad(MonadEquiv, EquivM)
+import qualified Data.Equivalence.Monad as Equiv
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -475,7 +478,9 @@ squashHorizontally :: SquashConfig -> SquashConfig
 squashHorizontally conf = Map.foldl mergeAliases conf (groupSimilarRecs conf) 
 
 squashHorizontallyMulti :: SquashConfig -> SquashConfig
-squashHorizontallyMulti conf = Debug.Trace.trace (show $ groupSimilarRecsMulti conf) conf --Map.foldl mergeAliases conf (groupSimilarRecsMulti conf)
+squashHorizontallyMulti conf = Debug.Trace.trace (show $ getEq (aliasesToTags conf) conf) conf --Map.foldl mergeAliases conf (groupSimilarRecsMulti conf)
+--squashHorizontallyMulti conf = foldl mergeAliases conf (getEq (aliasesToTags conf) conf) --Map.foldl mergeAliases conf (groupSimilarRecsMulti conf)
+
 
 tagMulti :: SquashConfig -> ErlType -> Set Tag
 tagMulti conf ty = case resolve conf ty of
@@ -509,7 +514,59 @@ groupSimilarRecsMulti conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
     --     extend tags' as' = 
     --         if Set.isProperSubsetOf tags tags' then as ++ as' else as'
 
+type TagEq s a = Equiv.EquivM s (Set Tag) Int a
 
+-- Might be better if the tags were precomputed?
+-- also, what happens with the Set.null tagged aliases?
+runEq :: SquashConfig -> (forall s. TagEq s a) -> a
+runEq conf = Equiv.runEquivM (tagMulti conf . EAliasMeta) Set.union
+
+getEq :: Map Tag [Int] -> SquashConfig -> [[Int]]
+getEq tagMap conf = runEq conf $ do
+    mapM_ visit tagMap
+    clss <- Equiv.classes
+    traverse classesToAliases clss where
+        -- seem like you cannot just make up classes from nothing
+      --  visit :: Set Tag -> TagEq s ()
+        visit :: [Int] -> TagEq s ()
+        visit =
+            Equiv.equateAll
+
+        classesToAliases cl = do
+            tags <- Equiv.desc cl
+            -- (as >>= resolveTopLevelUnions conf)
+            let l = foldl (\as tg -> Map.findWithDefault [] tg tagMap ++ as) [] tags
+            return $ Data.List.nub l
+
+
+aliasesToTags :: SquashConfig -> Map Tag [Int]
+aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} = 
+    Map.map Data.List.nub groups where
+
+    groups = IntMap.foldlWithKey visit Map.empty aliasMap
+
+    visit acc alias _ = 
+        Set.fold (addTag alias) acc (tagMulti conf (EAliasMeta alias))
+
+    addTag alias = Map.alter (\case Just is -> Just (alias : is); _ -> Just [alias])
+
+-- rework this, have a go function that recurses down an flattens all unions?
+resolveTopLevelUnions :: SquashConfig -> Int -> [Int]
+resolveTopLevelUnions conf a =
+    case resolve conf (EAliasMeta a) of
+        -- recursive unions? EUnion [EUnion ..., EUnion ...]
+        EUnion ts -> 
+            -- merge these two into one loop
+            if all (\case EAliasMeta _ -> True; _ -> False) ts
+            then Data.Maybe.mapMaybe (\case EAliasMeta a' -> Just a'; _ -> Nothing) $ Set.toList ts
+            else [a]
+        _ -> [a]
+-- mergeAliasesAndUnions :: SquashConfig -> [Int] -> SquashConfig
+-- mergeAliasesAndUnions conf as = 
+--     mergeAliases conf $ Data.List.nub $ as >>= (unUnion . EAliasMeta) where
+--         unUnion t = case resolve conf t of
+--             EUnion ts -> Set.toList ts >>= unUnion
+--             _ -> []
 
 squashGlobal :: SquashConfig -> SquashConfig
 squashGlobal =  pruneAliases . removeProxyAliases . squashHorizontallyMulti . 
