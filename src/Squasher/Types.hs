@@ -83,7 +83,7 @@ instance Show ErlType where
         ETuple ts -> "{" ++ intercalate ", " (map show ts) ++ "}"
         EAny -> "any()"
         ENone -> "none()"
-        EUnion ts -> intercalate " | " (map show $ Set.toList ts)
+        EUnion ts -> "<" ++ intercalate " | " (map show $ Set.toList ts) ++ ">"
         EFun [t1] t2 -> "fun(" ++ show t1 ++ " -> " ++ show t2 ++ ")"
         EFun ts t -> "fun((" ++ intercalate ", " (map show ts) ++ ") -> " ++ show t ++ ")"
         EAliasMeta i -> "$" ++ show i

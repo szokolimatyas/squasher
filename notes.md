@@ -678,3 +678,24 @@ but both have the {file, _} tuple. We should not unify them in that case.
 (SingleAtom "export_all",[211,167,3]),
 (SingleAtom "report_errors",[211,167,3]),
 (SingleAtom "report_warnings",[211,167,3])
+
+
+lot of unnecessary unions:
+
+{'if', ?, list(<$12198>)}
+
+$12198 should not be in a union!
+
+
+upcast unions like this?:
+
+$13736 -> <{'E', $6510} | {'F', $6510} | {'FinishedNum', $6510} | {'MainPid', $6510} | {'MaxNum', $6510} | {'Pid', $6510}>
+
+{ 'E' | 'F' | 'FinishedNum' | 'MainPid' | 'MaxNum' | 'Pid', $6510 }
+or
+{ atom(), $6510 }
+
+
+for sure we want to combine things like this:
+
+<{integer(), integer()} | {integer(), ?}>

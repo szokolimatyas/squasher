@@ -139,11 +139,13 @@ combine (EMap m1) (EMap m2) =
     if Map.size m1 + Map.size m2 < 5
     then EMap $ Map.unionWith combine m1 m2
     else EMap $ uncurry Map.singleton (combineMap $ Map.union m1 m2)
-combine (EUnion ts) t1 = EUnion $ flattenUnions $ Set.map (`combine` t1) ts
-combine t1 (EUnion ts) = EUnion $ flattenUnions $ Set.map (`combine` t1) ts
+combine (EUnion ts) t1 | Set.null ts = t1
+combine t1 (EUnion ts) | Set.null ts = t1
+combine (EUnion ts) t1 = mkFlatUnion $ Set.map (`combine` t1) ts
+combine t1 (EUnion ts) = mkFlatUnion $ Set.map (`combine` t1) ts
 combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
     EFun (zipWith combine argts1 argts2) (combine t1 t2)
-combine t1 t2 = EUnion $ flattenUnions $ Set.fromList [t1, t2]
+combine t1 t2 = mkFlatUnion $ Set.fromList [t1, t2]
 
 combineMap :: Map ErlType ErlType -> (ErlType, ErlType)
 combineMap = Map.foldrWithKey (\k' v' (k, v) -> (k `combine` k', v `combine` v')) (EUnknown, EUnknown)
@@ -183,12 +185,30 @@ lub _ _ = EAny
 -- Maybe instead of returning any() on too large unions, jut combine all of the entries
 -- This should be good in cases like {'atom', {integer(), integer()}, <a bunch of atom literals>}
 -- there needs to be some extra flattening here!
-flattenUnions :: Set ErlType -> Set ErlType
-flattenUnions s = if Set.size flatUnion > 20 then compactedUnion else flatUnion where
-    flatUnion = Set.fold go Set.empty s
+
+-- todo: fuse these functions in a nice way
+--mkFlatUnion :: Set ErlType -> ErlType
+--mkFlatUnion ts = if Set.size ts == 1 then Set.findMin ts else EUnion $ flattenUnions ts
+mkFlatUnion :: Set ErlType -> ErlType
+mkFlatUnion ts | Set.size ts == 0 = EUnion Set.empty
+               | Set.size flatUnion == 1 = Set.findMin flatUnion
+               | Set.size flatUnion > 60 = Set.fold lub ENone flatUnion
+               | otherwise = EUnion flatUnion where
+-- if Set.size ts == 1 then Set.findMin ts else EUnion $ flattenUnions ts
+    flatUnion = getElements (flattenUnions (EUnion ts))
+
+    getElements (EUnion ts') = ts'
+    getElements t = Set.singleton t
+
+flattenUnions :: ErlType -> ErlType
+flattenUnions = transform visit where 
+    visit :: ErlType -> ErlType
+    visit (EUnion ts) | Set.size ts == 1 = Set.findMin ts
+    visit (EUnion ts) = EUnion $ Set.fold go Set.empty ts
+    visit t = t
+
     go (EUnion ts) set = ts <> set
     go t set = Set.insert t set
-    compactedUnion = Set.singleton (Set.fold lub ENone flatUnion)
 
 makeArgs :: ErlType -> Int -> Int -> [ErlType]
 makeArgs t index size =
@@ -288,6 +308,7 @@ shouldMerge _ = False
 
 mergeAliases :: SquashConfig -> [Int] -> SquashConfig
 mergeAliases conf [] = conf
+mergeAliases conf [_] = conf
 mergeAliases conf as@(a1:rest) = 
     mapAliasesTo (mapAliasesTo conf rest (EAliasMeta a1)) [a1] sigma where
         sigma = foldl1 combine $ map process as
@@ -297,7 +318,7 @@ mergeAliases conf as@(a1:rest) =
             substTy rest (EAliasMeta a1) (erase (resolve conf (EAliasMeta ai)))
         -- remove top-level aliases to avoid infinite types
         erase (EAliasMeta a') | a' `elem` as = EUnion Set.empty
-        erase (EUnion ts) = EUnion $ flattenUnions $ Set.map erase ts
+        erase (EUnion ts) = mkFlatUnion $ Set.map erase ts
         erase t = t
 
 -- -- | Change all occurences of aliases to newT in a type
@@ -361,6 +382,12 @@ postwalk :: (ErlType -> State a ErlType) ->
             ErlType ->
             State a ErlType
 postwalk = transformM
+
+removeSingleUnions :: SquashConfig -> SquashConfig
+removeSingleUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs} =
+    conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
+        newAliasMap = IntMap.map flattenUnions aliasMap
+        newFuns = Map.map flattenUnions funs
 
 -- | Remove "proxy" aliases like $1 in: $1 -> $2 -> {'rec', integer()}
 removeProxyAliases :: SquashConfig -> SquashConfig
@@ -478,9 +505,9 @@ squashHorizontally :: SquashConfig -> SquashConfig
 squashHorizontally conf = Map.foldl mergeAliases conf (groupSimilarRecs conf) 
 
 squashHorizontallyMulti :: SquashConfig -> SquashConfig
-squashHorizontallyMulti conf = Debug.Trace.trace (show $ getEq (aliasesToTags conf) conf) conf --Map.foldl mergeAliases conf (groupSimilarRecsMulti conf)
---squashHorizontallyMulti conf = foldl mergeAliases conf (getEq (aliasesToTags conf) conf) --Map.foldl mergeAliases conf (groupSimilarRecsMulti conf)
-
+--squashHorizontallyMulti conf = Debug.Trace.trace (show $ getEq (aliasesToTags conf) conf) conf --Map.foldl mergeAliases conf (groupSimilarRecsMulti conf)
+squashHorizontallyMulti conf = foldl mergeAliases conf (getEq (aliasesToTags conf) conf)
+-- foldl mergeAliases conf (getEq (aliasesToTags conf) conf)
 
 tagMulti :: SquashConfig -> ErlType -> Set Tag
 tagMulti conf ty = case resolve conf ty of
@@ -535,7 +562,7 @@ getEq tagMap conf = runEq conf $ do
         classesToAliases cl = do
             tags <- Equiv.desc cl
             -- (as >>= resolveTopLevelUnions conf)
-            let l = foldl (\as tg -> Map.findWithDefault [] tg tagMap ++ as) [] tags
+            let l = foldl (\as tg -> Map.findWithDefault [] tg tagMap ++ (as >>= resolveTopLevelUnions conf)) [] tags
             return $ Data.List.nub l
 
 
@@ -568,6 +595,7 @@ resolveTopLevelUnions conf a =
 --             EUnion ts -> Set.toList ts >>= unUnion
 --             _ -> []
 
+-- somehow empty aliases are created by the merge... how does that happen??
 squashGlobal :: SquashConfig -> SquashConfig
-squashGlobal =  pruneAliases . removeProxyAliases . squashHorizontallyMulti . 
-                pruneAliases . removeProxyAliases . squashHorizontally . aliasSingleRec
+squashGlobal =  pruneAliases . removeProxyAliases. removeSingleUnions . pruneAliases . removeProxyAliases . removeSingleUnions . squashHorizontallyMulti . 
+                removeSingleUnions . pruneAliases . removeProxyAliases . removeSingleUnions . squashHorizontally . removeSingleUnions . aliasSingleRec
