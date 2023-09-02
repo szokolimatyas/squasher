@@ -699,3 +699,12 @@ or
 for sure we want to combine things like this:
 
 <{integer(), integer()} | {integer(), ?}>
+
+we can also try to avoid generating traces like this, but how?
+
+the problem is here as expected:
+
+$13797 -> <{'attribute', ?, 'compile', ?} | {'function', list($13713), <'pany' | 'worker'>, integer(), list($13350)} | any()>
+attribute_state/2 -> fun(($13797, $11883) -> $11883)
+
+most likely attribute_state only works on attributes, but according to the spec it also works on functions!

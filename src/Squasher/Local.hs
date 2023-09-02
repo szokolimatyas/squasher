@@ -93,6 +93,7 @@ runner :: ByteString -> Except String (SquashConfig, SquashConfig)
 runner bs = case res of
     Right (_, _, MkExternalTerm (List terms Nil)) -> do
         entries <- mapM entryFromTerm terms
+        traceM "Start update\n"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
         let env' = MkTyEnv (Map.take 20 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
         traceM $ "Env:\n" ++ show (Map.size $ unTyEnv env')
@@ -130,6 +131,11 @@ combine (ETuple (t1 : ts1)) (ETuple (EUnknown : ts2)) | length ts1 == length ts2
     ETuple $ t1 : zipWith combine ts1 ts2
 combine (ETuple (ENamedAtom a1 : ts1)) (ETuple (ENamedAtom a2 : ts2)) | a1 == a2 && length ts1 == length ts2 =
     ETuple $ ENamedAtom a1 : zipWith combine ts1 ts2
+-- combine (ETuple ts1) (ETuple ts2) | length ts1 == length ts2 =
+--     let zipped = zip ts1 ts2 in
+--     if all matchingElement zipped 
+--     then ETuple $ map (uncurry combine) zipped 
+--     else EUnion $ Set.fromList [ETuple ts1, ETuple ts2]
 combine (EList t1) (EList t2) = EList $ t1 `combine` t2
 -- no support for shapemaps!
 -- this is not the best, there could be too many different key types
@@ -146,6 +152,10 @@ combine t1 (EUnion ts) = mkFlatUnion $ Set.map (`combine` t1) ts
 combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
     EFun (zipWith combine argts1 argts2) (combine t1 t2)
 combine t1 t2 = mkFlatUnion $ Set.fromList [t1, t2]
+
+-- this is not recursive, could it be a problem?
+-- if yes, then we could do a transformation stage
+-- because of this and lub, we should just define a subtyping relation...
 
 combineMap :: Map ErlType ErlType -> (ErlType, ErlType)
 combineMap = Map.foldrWithKey (\k' v' (k, v) -> (k `combine` k', v `combine` v')) (EUnknown, EUnknown)

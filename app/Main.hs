@@ -9,6 +9,7 @@ main :: IO ()
 main = do
     args <- getArgs
     bytes <- BS.readFile (head args)
+    print "Started..."
     case runExcept (runner bytes) of
         Left err -> error err
         Right (res, resNew) -> do
