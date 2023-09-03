@@ -96,3 +96,22 @@ instance Show ErlType where
         EBoolean -> "boolean()"
         EMap ts -> "#{" ++ intercalate ", " (map (\(t1, t2) -> show t1 ++ " => " ++ show t2) (Map.toList ts)) ++ "}"
         EList t -> "list(" ++ show t ++ ")" 
+
+-- Subtyping, without handling unknowns?
+-- no map handling, function handling
+(<:) :: ErlType -> ErlType -> Bool
+t1 <: t2 | t1 == t2 = True
+--EInt <: EFloat = True
+(ENamedAtom _) <: EAnyAtom = True
+EBoolean <: EAnyAtom = True
+(ENamedAtom "true") <: EBoolean = True
+(ENamedAtom "false") <: EBoolean = True
+ENone <: _ = True
+_ <: EAny = True
+EBitString <: EBinary = True
+(EUnion ts) <: t = all (<: t) ts
+t <: (EUnion ts) = any (t <: ) ts
+(EList t1) <: (EList t2) = t1 <: t2
+_ <: _ = False
+
+

@@ -708,3 +708,18 @@ $13797 -> <{'attribute', ?, 'compile', ?} | {'function', list($13713), <'pany' |
 attribute_state/2 -> fun(($13797, $11883) -> $11883)
 
 most likely attribute_state only works on attributes, but according to the spec it also works on functions!
+
+Next todo:
+
+add a subtypeOf :: ErlType -> ErlType -> Bool
+lub, glb use it
+also make combine use it?
+combine should accept more tuples that have elements that are compatible
+or somehow do structural squashing for non-recordlike tuples ---> this is pretty necessary!!
+also investigate the union size, improvements of it --> kindof done
+and why the hell the start of the program slowed down so much ---> combine
+
+LARGE: rethink the combine operation on unions!! from the ground up!
+global squash a still a bit slow ---> perf and code quality improvements are needed!
+
+ALSO: there are still one element unions in some places
