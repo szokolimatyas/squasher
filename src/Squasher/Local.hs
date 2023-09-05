@@ -125,11 +125,21 @@ combine (EList t1) (EList t2) = EList $ t1 `combine` t2
 combine (EMap m1) (EMap m2) = EMap $ Map.unionWith combine m1 m2
 combine (EUnion ts) t1 | Set.null ts = t1
 combine t1 (EUnion ts) | Set.null ts = t1
-combine (EUnion ts) t1 = mkFlatUnion $ Set.map (`combine` t1) ts
-combine t1 (EUnion ts) = mkFlatUnion $ Set.map (`combine` t1) ts
+combine (EUnion ts) t1 = mkFlatUnion $ combineUnion ts t1
+combine t1 (EUnion ts) = mkFlatUnion $ combineUnion ts t1
 combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
     EFun (zipWith combine argts1 argts2) (combine t1 t2)
 combine t1 t2 = mkFlatUnion $ Set.fromList [t1, t2]
+
+-- todo: better performance??
+combineUnion :: Set ErlType -> ErlType -> Set ErlType
+combineUnion ts t = if didEquate then newTs else Set.map (`combine` t) ts where
+    (newTs, didEquate) = Set.fold go (Set.empty, False) ts 
+
+    go t' (ts', combined') = 
+        case equate t t' of
+            Just t'' -> (Set.insert t'' ts', True)
+            Nothing -> (Set.insert t' ts', combined') 
 
 -- Combine, returns Nothing instead of toplevel unions or upcasts
 equate :: ErlType -> ErlType -> Maybe ErlType

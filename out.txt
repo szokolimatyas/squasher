@@ -80,597 +80,482 @@ $147 -> {'record_info', integer()}
 $148 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
 $149 -> {'lint', 'start', '', list(?), {integer(), {$146, {$146, 'nil', 'nil'}, 'nil'}}, list(?), list(<'binary_comprehension' | 'bitlevel_binaries'>), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$146, {$146, 'nil', 'nil'}, {$147, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$146, integer()} | {$147, ?}>), 'undefined', $148, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
 $152 -> <{'c', integer()} | {'cd', integer()}>
-$154 -> {'location', {integer(), integer()}}
-$157 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$162 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$174 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
-$179 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$181 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($179)}>
-$182 -> {'op', {integer(), integer()}, '!', $203, $181}
-$189 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
-$190 -> {'remote', {integer(), integer()}, <$189>, <$189>}
-$195 -> <{'call', {integer(), integer()}, $190, list($203)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
-$203 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
-$204 -> {'call', {integer(), integer()}, <$189 | $203>, list(<$195 | $203 | $207 | $243>)}
-$205 -> {'clause', {integer(), integer()}, list(<$174 | $203 | $220>), list(list($226)), list(<$182 | $204 | $237 | $259 | $263>)}
-$206 -> {'clauses', list(<$205>)}
-$207 -> {'fun', {integer(), integer()}, <$206>}
-$213 -> <{'call', {integer(), integer()}, $189, list($207)} | {'lc', {integer(), integer()}, $204, list($247)}>
-$218 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
-$220 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($218)}>
-$226 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $203, $203}>
-$229 -> {'integer', {integer(), integer()}, integer()}
-$232 -> <{'op', {integer(), integer()}, '+', $203, $229} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
-$237 -> <{'call', {integer(), integer()}, $189, list($232)} | {'op', {integer(), integer()}, '!', $203, $189}>
-$243 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
-$247 -> {'generate', {integer(), integer()}, <$203>, <$203>}
-$252 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$253 -> {'tuple', {integer(), integer()}, list($252)}
-$257 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
-$259 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($205)} | {'lc', {integer(), integer()}, $204, list($247)} | {'op', {integer(), integer()}, '!', $203, $253} | {'tuple', {integer(), integer()}, list($257)}>
-$263 -> <{'call', {integer(), integer()}, $190, list($203)} | {'case', {integer(), integer()}, $204, list($205)} | {'match', {integer(), integer()}, $203, $213} | {'receive', {integer(), integer()}, list($205)} | {'var', {integer(), integer()}, 'Collector'}>
-$266 -> <{'attribute', <{integer(), integer()} | list($154) | list($157)>, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', list($162), <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($205)}>
-$270 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$271 -> {'test', integer()}
-$272 -> {'pany', integer()}
-$273 -> {'collector', integer()}
-$274 -> {'worker', integer()}
-$278 -> {'module_info', integer()}
-$279 -> {'record_info', integer()}
-$280 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$281 -> {'lint', 'start', '', list(?), {integer(), {$278, {$278, 'nil', 'nil'}, 'nil'}}, list(?), list($270), #{}, {integer(), {$271, {$272, {$273, 'nil', 'nil'}, 'nil'}, {$274, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$278, {$278, 'nil', 'nil'}, {$279, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$278, integer()} | {$279, ?}>), 'undefined', $280, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$285 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$286 -> {'test', integer()}
-$287 -> {'pany', integer()}
-$288 -> {'collector', integer()}
-$289 -> {'worker', integer()}
-$293 -> {'module_info', integer()}
-$294 -> {'record_info', integer()}
-$295 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$296 -> {'lint', 'start', '', list(?), {integer(), {$293, {$293, 'nil', 'nil'}, 'nil'}}, list(?), list($285), #{}, {integer(), {$286, {$287, {$288, 'nil', 'nil'}, 'nil'}, {$289, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$293, {$293, 'nil', 'nil'}, {$294, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$293, integer()} | {$294, ?}>), 'undefined', $295, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$298 -> <'binary_comprehension' | 'bitlevel_binaries' | 'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$301 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$307 -> {'module_info', integer()}
-$308 -> {'record_info', integer()}
-$309 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$310 -> {'lint', 'start', '', list(?), {integer(), {$307, {$307, 'nil', 'nil'}, 'nil'}}, list(?), list(<'binary_comprehension' | 'bitlevel_binaries'>), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$307, {$307, 'nil', 'nil'}, {$308, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$307, integer()} | {$308, ?}>), 'undefined', $309, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$316 -> {'c', integer()}
-$317 -> {'cd', integer()}
-$318 -> {'file', list(integer())}
-$322 -> {'module_info', integer()}
-$323 -> {'location', {integer(), integer()}}
-$325 -> {'record_info', integer()}
-$326 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$327 -> {'lint', 'start', '', list(?), {integer(), {$322, {$322, 'nil', 'nil'}, 'nil'}}, list(?), list(<'binary_comprehension' | 'bitlevel_binaries'>), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$322, {$322, 'nil', 'nil'}, {$325, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$316, ?} | {$317, list($318)} | {$322, integer()} | {$322, list($323)} | {$325, integer()} | {$325, ?}>), 'undefined', $326, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$330 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$334 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$335 -> {'test', integer()}
-$336 -> {'pany', integer()}
-$337 -> {'collector', integer()}
-$338 -> {'worker', integer()}
-$342 -> {'module_info', integer()}
-$343 -> {'record_info', integer()}
-$344 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$345 -> {'lint', 'attribute', 'bead', list(?), {integer(), {$342, {$342, 'nil', 'nil'}, 'nil'}}, list(?), list($334), #{}, {integer(), {$335, {$336, {$337, 'nil', 'nil'}, 'nil'}, {$338, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$342, {$342, 'nil', 'nil'}, {$343, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$342, integer()} | {$343, ?}>), 'undefined', $344, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$349 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$350 -> {'test', integer()}
-$351 -> {'pany', integer()}
-$352 -> {'collector', integer()}
-$353 -> {'worker', integer()}
-$357 -> {'module_info', integer()}
-$358 -> {'record_info', integer()}
-$359 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$360 -> {'lint', 'attribute', 'bead', list(?), {integer(), {$357, {$357, 'nil', 'nil'}, 'nil'}}, list(?), list($349), #{}, {integer(), {$350, {$351, {$352, 'nil', 'nil'}, 'nil'}, {$353, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$357, {$357, 'nil', 'nil'}, {$358, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$357, integer()} | {$358, ?}>), 'undefined', $359, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$365 -> {'bound', 'used', list({integer(), integer()})}
-$367 -> <{'E', $365} | {'F', $365} | {'Pid', $365}>
-$371 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$372 -> {'test', integer()}
-$373 -> {'pany', integer()}
-$374 -> {'collector', integer()}
-$380 -> {'worker', integer()}
-$381 -> {'module_info', integer()}
-$382 -> {'record_info', integer()}
-$383 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$384 -> {'lint', 'function', 'bead', list(?), {integer(), {$381, {$381, 'nil', 'nil'}, 'nil'}}, list(?), list($371), #{}, {integer(), {$372, {$373, {$374, 'nil', 'nil'}, 'nil'}, {$380, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$381, {$381, 'nil', 'nil'}, {$382, 'nil', {$380, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $380, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$381, integer()} | {$382, ?}>), 'undefined', $383, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$385 -> {'bound', 'used', ?}
-$386 -> {'E', $385}
-$387 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$388 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $387, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$389 -> {'bound', 'used', list({integer(), integer()})}
-$390 -> {'E', $389}
-$394 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$395 -> {'test', integer()}
-$396 -> {'pany', integer()}
-$397 -> {'collector', integer()}
-$403 -> {'worker', integer()}
-$404 -> {'module_info', integer()}
-$405 -> {'record_info', integer()}
-$406 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$407 -> {'lint', 'function', 'bead', list(?), {integer(), {$404, {$404, 'nil', 'nil'}, 'nil'}}, list(?), list($394), #{}, {integer(), {$395, {$396, {$397, 'nil', 'nil'}, 'nil'}, {$403, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$404, {$404, 'nil', 'nil'}, {$405, 'nil', {$403, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $403, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$404, integer()} | {$405, ?}>), 'undefined', $406, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$408 -> {'bound', 'used', ?}
-$409 -> {'F', $408}
-$410 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$411 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $410, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$412 -> {'bound', 'used', list({integer(), integer()})}
-$413 -> {'F', $412}
-$417 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$418 -> {'test', integer()}
-$419 -> {'pany', integer()}
-$420 -> {'collector', integer()}
-$426 -> {'worker', integer()}
-$427 -> {'module_info', integer()}
-$428 -> {'record_info', integer()}
-$429 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$430 -> {'lint', 'function', 'bead', list(?), {integer(), {$427, {$427, 'nil', 'nil'}, 'nil'}}, list(?), list($417), #{}, {integer(), {$418, {$419, {$420, 'nil', 'nil'}, 'nil'}, {$426, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$427, {$427, 'nil', 'nil'}, {$428, 'nil', {$426, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $426, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$427, integer()} | {$428, ?}>), 'undefined', $429, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$431 -> {'bound', 'used', list({?, integer()})}
-$432 -> {'F', $431}
-$436 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$437 -> {'test', integer()}
-$438 -> {'pany', integer()}
-$439 -> {'collector', integer()}
-$445 -> {'worker', integer()}
-$446 -> {'module_info', integer()}
-$447 -> {'record_info', integer()}
-$448 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$449 -> {'lint', 'function', 'bead', list(?), {integer(), {$446, {$446, 'nil', 'nil'}, 'nil'}}, list(?), list($436), #{}, {integer(), {$437, {$438, {$439, 'nil', 'nil'}, 'nil'}, {$445, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$446, {$446, 'nil', 'nil'}, {$447, 'nil', {$445, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $445, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$446, integer()} | {$447, ?}>), 'undefined', $448, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$450 -> {'bound', 'used', ?}
-$451 -> {'Pid', $450}
-$452 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$453 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $452, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$454 -> {'bound', 'used', list({integer(), integer()})}
-$455 -> {'Pid', $454}
-$459 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$460 -> {'test', integer()}
-$461 -> {'pany', integer()}
-$462 -> {'collector', integer()}
-$468 -> {'worker', integer()}
-$469 -> {'module_info', integer()}
-$470 -> {'record_info', integer()}
-$471 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$472 -> {'lint', 'function', 'bead', list(?), {integer(), {$469, {$469, 'nil', 'nil'}, 'nil'}}, list(?), list($459), #{}, {integer(), {$460, {$461, {$462, 'nil', 'nil'}, 'nil'}, {$468, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$469, {$469, 'nil', 'nil'}, {$470, 'nil', {$468, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $468, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$469, integer()} | {$470, ?}>), 'undefined', $471, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$473 -> {'bound', 'used', list({?, integer()})}
-$474 -> {'Pid', $473}
-$478 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$479 -> {'test', integer()}
-$480 -> {'pany', integer()}
-$481 -> {'collector', integer()}
-$487 -> {'worker', integer()}
-$488 -> {'module_info', integer()}
-$489 -> {'record_info', integer()}
-$490 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$491 -> {'lint', 'function', 'bead', list(?), {integer(), {$488, {$488, 'nil', 'nil'}, 'nil'}}, list(?), list($478), #{}, {integer(), {$479, {$480, {$481, 'nil', 'nil'}, 'nil'}, {$487, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$488, {$488, 'nil', 'nil'}, {$489, 'nil', {$487, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $487, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$488, integer()} | {$489, ?}>), 'undefined', $490, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$495 -> {'call', {integer(), integer()}, $521, list($521)}
-$498 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
-$503 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$505 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($503)}>
-$506 -> {'op', {integer(), integer()}, '!', $521, $505}
-$512 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$514 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($512)}>
-$519 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $521, $521}>
-$521 -> {'var', {integer(), integer()}, <'E' | 'F' | 'FinishedNum' | 'MainPid' | 'MaxNum' | 'Pid'>}
-$522 -> {'integer', {integer(), integer()}, integer()}
-$525 -> <{'op', {integer(), integer()}, '+', $521, $522} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
-$528 -> {'atom', {integer(), integer()}, <'collector' | 'false'>}
-$530 -> <{'call', {integer(), integer()}, $528, list($525)} | {'op', {integer(), integer()}, '!', $521, $528}>
-$531 -> {'clause', {integer(), integer()}, list(<$498 | $514 | $521>), list(list($519)), list(<$506 | $530 | $539 | $542>)}
-$536 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$537 -> {'tuple', {integer(), integer()}, list($536)}
-$539 -> <{'if', {integer(), integer()}, list($531)} | {'op', {integer(), integer()}, '!', $521, $537}>
-$542 -> <{'case', {integer(), integer()}, $495, list($531)} | {'receive', {integer(), integer()}, list($531)}>
-$547 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$548 -> {'test', integer()}
-$549 -> {'pany', integer()}
-$554 -> {'collector', integer()}
-$556 -> {'worker', integer()}
-$559 -> <{'collector', integer()} | {'worker', integer()}>
-$560 -> {'module_info', integer()}
-$561 -> {'record_info', integer()}
-$562 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$563 -> {'lint', 'function', 'bead', list(?), {integer(), {$560, {$560, 'nil', 'nil'}, 'nil'}}, list(?), list($547), #{}, {integer(), {$548, {$549, {$554, 'nil', 'nil'}, 'nil'}, {$556, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$560, {$560, {$554, 'nil', 'nil'}, 'nil'}, {$561, 'nil', {$556, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $559, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$560, integer()} | {$561, ?}>), 'undefined', $562, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$564 -> {'bound', 'used', ?}
-$565 -> {'E', $564}
-$566 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$567 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $566, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$568 -> {'bound', 'used', list({integer(), integer()})}
-$569 -> {'E', $568}
-$573 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$574 -> {'test', integer()}
-$575 -> {'pany', integer()}
-$576 -> {'collector', integer()}
-$582 -> {'worker', integer()}
-$583 -> {'module_info', integer()}
-$584 -> {'record_info', integer()}
-$585 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$586 -> {'lint', 'function', 'bead', list(?), {integer(), {$583, {$583, 'nil', 'nil'}, 'nil'}}, list(?), list($573), #{}, {integer(), {$574, {$575, {$576, 'nil', 'nil'}, 'nil'}, {$582, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$583, {$583, 'nil', 'nil'}, {$584, 'nil', {$582, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $582, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$583, integer()} | {$584, ?}>), 'undefined', $585, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$587 -> {'bound', 'used', ?}
-$588 -> {'F', $587}
-$589 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$590 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $589, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$591 -> {'bound', 'used', list({integer(), integer()})}
-$592 -> {'F', $591}
-$596 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$597 -> {'test', integer()}
-$598 -> {'pany', integer()}
-$599 -> {'collector', integer()}
-$605 -> {'worker', integer()}
-$606 -> {'module_info', integer()}
-$607 -> {'record_info', integer()}
-$608 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$609 -> {'lint', 'function', 'bead', list(?), {integer(), {$606, {$606, 'nil', 'nil'}, 'nil'}}, list(?), list($596), #{}, {integer(), {$597, {$598, {$599, 'nil', 'nil'}, 'nil'}, {$605, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$606, {$606, 'nil', 'nil'}, {$607, 'nil', {$605, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $605, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$606, integer()} | {$607, ?}>), 'undefined', $608, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$610 -> {'bound', 'used', list({?, integer()})}
-$611 -> {'F', $610}
-$615 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$616 -> {'test', integer()}
-$617 -> {'pany', integer()}
-$618 -> {'collector', integer()}
-$624 -> {'worker', integer()}
-$625 -> {'module_info', integer()}
-$626 -> {'record_info', integer()}
-$627 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$628 -> {'lint', 'function', 'bead', list(?), {integer(), {$625, {$625, 'nil', 'nil'}, 'nil'}}, list(?), list($615), #{}, {integer(), {$616, {$617, {$618, 'nil', 'nil'}, 'nil'}, {$624, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$625, {$625, 'nil', 'nil'}, {$626, 'nil', {$624, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $624, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$625, integer()} | {$626, ?}>), 'undefined', $627, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$629 -> {'bound', 'used', ?}
-$630 -> {'Pid', $629}
-$631 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$632 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $631, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$633 -> {'bound', 'used', list({integer(), integer()})}
-$634 -> {'Pid', $633}
-$638 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$639 -> {'test', integer()}
-$640 -> {'pany', integer()}
-$641 -> {'collector', integer()}
-$647 -> {'worker', integer()}
-$648 -> {'module_info', integer()}
-$649 -> {'record_info', integer()}
-$650 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$651 -> {'lint', 'function', 'bead', list(?), {integer(), {$648, {$648, 'nil', 'nil'}, 'nil'}}, list(?), list($638), #{}, {integer(), {$639, {$640, {$641, 'nil', 'nil'}, 'nil'}, {$647, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$648, {$648, 'nil', 'nil'}, {$649, 'nil', {$647, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $647, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$648, integer()} | {$649, ?}>), 'undefined', $650, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$652 -> {'bound', 'used', list({?, integer()})}
-$653 -> {'Pid', $652}
-$657 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$658 -> {'test', integer()}
-$659 -> {'pany', integer()}
-$660 -> {'collector', integer()}
-$666 -> {'worker', integer()}
-$667 -> {'module_info', integer()}
-$668 -> {'record_info', integer()}
-$669 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$670 -> {'lint', 'function', 'bead', list(?), {integer(), {$667, {$667, 'nil', 'nil'}, 'nil'}}, list(?), list($657), #{}, {integer(), {$658, {$659, {$660, 'nil', 'nil'}, 'nil'}, {$666, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$667, {$667, 'nil', 'nil'}, {$668, 'nil', {$666, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $666, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$667, integer()} | {$668, ?}>), 'undefined', $669, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$674 -> {'call', {integer(), integer()}, $700, list($700)}
-$677 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
-$682 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$684 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($682)}>
-$685 -> {'op', {integer(), integer()}, '!', $700, $684}
-$691 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$693 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($691)}>
-$698 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $700, $700}>
-$700 -> {'var', {integer(), integer()}, <'E' | 'F' | 'FinishedNum' | 'MainPid' | 'MaxNum' | 'Pid'>}
-$701 -> {'integer', {integer(), integer()}, integer()}
-$704 -> <{'op', {integer(), integer()}, '+', $700, $701} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
-$707 -> {'atom', {integer(), integer()}, <'collector' | 'false'>}
-$709 -> <{'call', {integer(), integer()}, $707, list($704)} | {'op', {integer(), integer()}, '!', $700, $707}>
-$710 -> {'clause', {integer(), integer()}, list(<$677 | $693 | $700>), list(list($698)), list(<$685 | $709 | $718 | $721>)}
-$715 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$716 -> {'tuple', {integer(), integer()}, list($715)}
-$718 -> <{'if', {integer(), integer()}, list($710)} | {'op', {integer(), integer()}, '!', $700, $716}>
-$721 -> <{'case', {integer(), integer()}, $674, list($710)} | {'receive', {integer(), integer()}, list($710)}>
-$726 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$727 -> {'test', integer()}
-$728 -> {'pany', integer()}
-$733 -> {'collector', integer()}
-$735 -> {'worker', integer()}
-$738 -> <{'collector', integer()} | {'worker', integer()}>
-$739 -> {'module_info', integer()}
-$740 -> {'record_info', integer()}
-$741 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$742 -> {'lint', 'function', 'bead', list(?), {integer(), {$739, {$739, 'nil', 'nil'}, 'nil'}}, list(?), list($726), #{}, {integer(), {$727, {$728, {$733, 'nil', 'nil'}, 'nil'}, {$735, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$739, {$739, {$733, 'nil', 'nil'}, 'nil'}, {$740, 'nil', {$735, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $738, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$739, integer()} | {$740, ?}>), 'undefined', $741, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$746 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$747 -> {'test', integer()}
-$748 -> {'pany', integer()}
-$749 -> {'collector', integer()}
-$755 -> {'worker', integer()}
-$756 -> {'module_info', integer()}
-$757 -> {'record_info', integer()}
-$758 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$759 -> {'lint', 'function', 'bead', list(?), {integer(), {$756, {$756, 'nil', 'nil'}, 'nil'}}, list(?), list($746), #{}, {integer(), {$747, {$748, {$749, 'nil', 'nil'}, 'nil'}, {$755, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$756, {$756, 'nil', 'nil'}, {$757, 'nil', {$755, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $755, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$756, integer()} | {$757, ?}>), 'undefined', $758, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$773 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
-$778 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$780 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($778)}>
-$781 -> {'op', {integer(), integer()}, '!', $802, $780}
-$788 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
-$789 -> {'remote', {integer(), integer()}, <$788>, <$788>}
-$794 -> <{'call', {integer(), integer()}, $789, list($802)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
-$802 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
-$803 -> {'call', {integer(), integer()}, <$788 | $802>, list(<$794 | $802 | $806 | $842>)}
-$804 -> {'clause', {integer(), integer()}, list(<$773 | $802 | $819>), list(list($825)), list(<$781 | $803 | $836 | $858 | $862>)}
-$805 -> {'clauses', list(<$804>)}
-$806 -> {'fun', {integer(), integer()}, <$805>}
-$812 -> <{'call', {integer(), integer()}, $788, list($806)} | {'lc', {integer(), integer()}, $803, list($846)}>
-$817 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
-$819 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($817)}>
-$825 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $802, $802}>
-$828 -> {'integer', {integer(), integer()}, integer()}
-$831 -> <{'op', {integer(), integer()}, '+', $802, $828} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
-$836 -> <{'call', {integer(), integer()}, $788, list($831)} | {'op', {integer(), integer()}, '!', $802, $788}>
-$842 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
-$846 -> {'generate', {integer(), integer()}, <$802>, <$802>}
-$851 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$852 -> {'tuple', {integer(), integer()}, list($851)}
-$856 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
-$858 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($804)} | {'lc', {integer(), integer()}, $803, list($846)} | {'op', {integer(), integer()}, '!', $802, $852} | {'tuple', {integer(), integer()}, list($856)}>
-$862 -> <{'call', {integer(), integer()}, $789, list($802)} | {'case', {integer(), integer()}, $803, list($804)} | {'match', {integer(), integer()}, $802, $812} | {'receive', {integer(), integer()}, list($804)} | {'var', {integer(), integer()}, 'Collector'}>
-$865 -> <{'attribute', {integer(), integer()}, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', {integer(), integer()}, <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($804)}>
-$868 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$872 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$873 -> {'test', integer()}
-$874 -> {'pany', integer()}
-$875 -> {'collector', integer()}
-$880 -> {'worker', integer()}
-$883 -> <{'collector', integer()} | {'worker', integer()}>
-$884 -> {'module_info', integer()}
-$885 -> {'record_info', integer()}
-$886 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$887 -> {'lint', 'function', 'bead', list(?), {integer(), {$884, {$884, 'nil', 'nil'}, 'nil'}}, list(?), list($872), #{}, {integer(), {$873, {$874, {$875, 'nil', 'nil'}, 'nil'}, {$880, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$884, {$884, 'nil', 'nil'}, {$885, 'nil', {$880, 'nil', 'nil'}}}} | {?, {?, ?, {?, ?, 'nil'}}} | {?, {?, ?, {?, ?, {?, 'nil', 'nil'}}}} | {?, {?, ?, {?, ?, {?, ?, 'nil'}}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $883, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$884, integer()} | {$885, ?}>), 'undefined', $886, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$891 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$892 -> {'test', integer()}
-$893 -> {'pany', integer()}
-$898 -> {'collector', integer()}
-$900 -> {'worker', integer()}
-$903 -> <{'collector', integer()} | {'worker', integer()}>
-$904 -> {'module_info', integer()}
-$905 -> {'record_info', integer()}
-$906 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$907 -> {'lint', 'function', 'bead', list(?), {integer(), {$904, {$904, 'nil', 'nil'}, 'nil'}}, list(?), list($891), #{}, {integer(), {$892, {$893, {$898, 'nil', 'nil'}, 'nil'}, {$900, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$904, {$904, {$898, 'nil', 'nil'}, 'nil'}, {$905, 'nil', {$900, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $903, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$904, integer()} | {$905, ?}>), 'undefined', $906, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$909 -> {'location', {integer(), integer()}}
-$912 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$917 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$929 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
-$934 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$936 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($934)}>
-$937 -> {'op', {integer(), integer()}, '!', $958, $936}
-$944 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
-$945 -> {'remote', {integer(), integer()}, <$944>, <$944>}
-$950 -> <{'call', {integer(), integer()}, $945, list($958)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
-$958 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
-$959 -> {'call', {integer(), integer()}, <$944 | $958>, list(<$950 | $958 | $962 | $998>)}
-$960 -> {'clause', {integer(), integer()}, list(<$929 | $958 | $975>), list(list($981)), list(<$937 | $959 | $992 | $1014 | $1018>)}
-$961 -> {'clauses', list(<$960>)}
-$962 -> {'fun', {integer(), integer()}, <$961>}
-$968 -> <{'call', {integer(), integer()}, $944, list($962)} | {'lc', {integer(), integer()}, $959, list($1002)}>
-$973 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
-$975 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($973)}>
-$981 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $958, $958}>
-$984 -> {'integer', {integer(), integer()}, integer()}
-$987 -> <{'op', {integer(), integer()}, '+', $958, $984} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
-$992 -> <{'call', {integer(), integer()}, $944, list($987)} | {'op', {integer(), integer()}, '!', $958, $944}>
-$998 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
-$1002 -> {'generate', {integer(), integer()}, <$958>, <$958>}
-$1007 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$1008 -> {'tuple', {integer(), integer()}, list($1007)}
-$1012 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
-$1014 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($960)} | {'lc', {integer(), integer()}, $959, list($1002)} | {'op', {integer(), integer()}, '!', $958, $1008} | {'tuple', {integer(), integer()}, list($1012)}>
-$1018 -> <{'call', {integer(), integer()}, $945, list($958)} | {'case', {integer(), integer()}, $959, list($960)} | {'match', {integer(), integer()}, $958, $968} | {'receive', {integer(), integer()}, list($960)} | {'var', {integer(), integer()}, 'Collector'}>
-$1021 -> <{'attribute', <{integer(), integer()} | list($909) | list($912)>, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', list($917), <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($960)}>
-$1025 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$1029 -> {'module_info', integer()}
-$1030 -> {'record_info', integer()}
-$1031 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$1032 -> {'lint', 'start', '', list(?), {integer(), {$1029, {$1029, 'nil', 'nil'}, 'nil'}}, list(?), list($1025), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$1029, {$1029, 'nil', 'nil'}, {$1030, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$1029, integer()} | {$1030, ?}>), 'undefined', $1031, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$1036 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$1040 -> {'module_info', integer()}
-$1041 -> {'record_info', integer()}
-$1042 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$1043 -> {'lint', 'start', '', list(?), {integer(), {$1040, {$1040, 'nil', 'nil'}, 'nil'}}, list(?), list($1036), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$1040, {$1040, 'nil', 'nil'}, {$1041, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$1040, integer()} | {$1041, ?}>), 'undefined', $1042, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$1054 -> {'bound', <'unused' | 'used'>, list({integer(), integer()})}
-$1056 -> <{'E', $1054} | {'F', $1054} | {'FinishedNum', $1054} | {'MainPid', $1054} | {'MaxNum', $1054} | {'Pid', $1054}>
-$1060 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$1061 -> {'test', integer()}
-$1062 -> {'pany', integer()}
-$1067 -> {'collector', integer()}
-$1069 -> {'worker', integer()}
-$1072 -> <{'collector', integer()} | {'worker', integer()}>
-$1073 -> {'module_info', integer()}
-$1074 -> {'record_info', integer()}
-$1075 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$1076 -> {'lint', 'function', 'bead', list(?), {integer(), {$1073, {$1073, 'nil', 'nil'}, 'nil'}}, list(?), list($1060), #{}, {integer(), {$1061, {$1062, {$1067, 'nil', 'nil'}, 'nil'}, {$1069, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$1073, {$1073, {$1067, 'nil', 'nil'}, 'nil'}, {$1074, 'nil', {$1069, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $1072, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$1073, integer()} | {$1074, ?}>), 'undefined', $1075, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$1077 -> {'bound', 'used', ?}
-$1078 -> {'E', $1077}
-$1079 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$1080 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $1079, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$1081 -> {'bound', 'used', list({integer(), integer()})}
-$1082 -> {'E', $1081}
-$1084 -> {'collector', integer()}
-$1085 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1086 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {$1084, 'nil', 'nil'}, 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, $1084, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1085, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1087 -> {'bound', 'used', list({?, integer()})}
-$1088 -> {'E', $1087}
-$1090 -> {'collector', integer()}
-$1091 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1092 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {$1090, 'nil', 'nil'}, 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, $1090, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1091, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1093 -> {'bound', 'used', ?}
-$1094 -> {'F', $1093}
-$1095 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$1096 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $1095, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$1097 -> {'bound', 'used', list({integer(), integer()})}
-$1098 -> {'F', $1097}
-$1102 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$1103 -> {'test', integer()}
-$1104 -> {'pany', integer()}
-$1109 -> {'collector', integer()}
-$1111 -> {'worker', integer()}
-$1114 -> <{'collector', integer()} | {'worker', integer()}>
-$1115 -> {'module_info', integer()}
-$1116 -> {'record_info', integer()}
-$1117 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$1118 -> {'lint', 'function', 'bead', list(?), {integer(), {$1115, {$1115, 'nil', 'nil'}, 'nil'}}, list(?), list($1102), #{}, {integer(), {$1103, {$1104, {$1109, 'nil', 'nil'}, 'nil'}, {$1111, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$1115, {$1115, {$1109, 'nil', 'nil'}, 'nil'}, {$1116, 'nil', {$1111, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $1114, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$1115, integer()} | {$1116, ?}>), 'undefined', $1117, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$1119 -> {'bound', 'used', ?}
-$1120 -> {'FinishedNum', $1119}
-$1121 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$1122 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $1121, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$1123 -> {'bound', 'used', list({integer(), integer()})}
-$1124 -> {'FinishedNum', $1123}
-$1125 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1126 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1125, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1127 -> {'bound', 'used', list({?, integer()})}
-$1128 -> {'FinishedNum', $1127}
-$1129 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1130 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1129, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1131 -> {'bound', 'used', ?}
-$1132 -> {'MainPid', $1131}
-$1133 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$1134 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $1133, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$1135 -> {'bound', 'used', list({integer(), integer()})}
-$1136 -> {'MainPid', $1135}
-$1138 -> {'collector', integer()}
-$1139 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1140 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {$1138, 'nil', 'nil'}, 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, $1138, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1139, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1141 -> {'bound', 'used', list({?, integer()})}
-$1142 -> {'MainPid', $1141}
-$1144 -> {'collector', integer()}
-$1145 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1146 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {$1144, 'nil', 'nil'}, 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, $1144, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1145, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1147 -> {'bound', 'used', ?}
-$1148 -> {'MaxNum', $1147}
-$1149 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$1150 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $1149, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$1151 -> {'bound', 'used', list({integer(), integer()})}
-$1152 -> {'MaxNum', $1151}
-$1153 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1154 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1153, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1155 -> {'bound', 'used', list({?, integer()})}
-$1156 -> {'MaxNum', $1155}
-$1157 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1158 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1157, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1159 -> {'bound', 'used', ?}
-$1160 -> {'Pid', $1159}
-$1161 -> {'usage', ?, list(?), {?, 'nil'}, ?}
-$1162 -> {'lint', ?, ?, list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), ?, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, ?, $1161, ?, ?, ?, ?, {?, 'nil'}, ?, 'none', ?, 'false'}
-$1163 -> {'bound', 'used', list({integer(), integer()})}
-$1164 -> {'Pid', $1163}
-$1166 -> {'collector', integer()}
-$1167 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1168 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {$1166, 'nil', 'nil'}, 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, $1166, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1167, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1169 -> {'bound', 'used', list({?, integer()})}
-$1170 -> {'Pid', $1169}
-$1172 -> {'collector', integer()}
-$1173 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
-$1174 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {$1172, 'nil', 'nil'}, 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}} | {?, {?, {?, {?, ?, 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, $1172, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1173, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
-$1188 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
-$1193 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$1195 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1193)}>
-$1196 -> {'op', {integer(), integer()}, '!', $1217, $1195}
-$1203 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
-$1204 -> {'remote', {integer(), integer()}, <$1203>, <$1203>}
-$1209 -> <{'call', {integer(), integer()}, $1204, list($1217)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
-$1217 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
-$1218 -> {'call', {integer(), integer()}, <$1203 | $1217>, list(<$1209 | $1217 | $1221 | $1257>)}
-$1219 -> {'clause', {integer(), integer()}, list(<$1188 | $1217 | $1234>), list(list($1240)), list(<$1196 | $1218 | $1251 | $1273 | $1277>)}
-$1220 -> {'clauses', list(<$1219>)}
-$1221 -> {'fun', {integer(), integer()}, <$1220>}
-$1227 -> <{'call', {integer(), integer()}, $1203, list($1221)} | {'lc', {integer(), integer()}, $1218, list($1261)}>
-$1232 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
-$1234 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1232)}>
-$1240 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $1217, $1217}>
-$1243 -> {'integer', {integer(), integer()}, integer()}
-$1246 -> <{'op', {integer(), integer()}, '+', $1217, $1243} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
-$1251 -> <{'call', {integer(), integer()}, $1203, list($1246)} | {'op', {integer(), integer()}, '!', $1217, $1203}>
-$1257 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
-$1261 -> {'generate', {integer(), integer()}, <$1217>, <$1217>}
-$1266 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$1267 -> {'tuple', {integer(), integer()}, list($1266)}
-$1271 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
-$1273 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($1219)} | {'lc', {integer(), integer()}, $1218, list($1261)} | {'op', {integer(), integer()}, '!', $1217, $1267} | {'tuple', {integer(), integer()}, list($1271)}>
-$1277 -> <{'call', {integer(), integer()}, $1204, list($1217)} | {'case', {integer(), integer()}, $1218, list($1219)} | {'match', {integer(), integer()}, $1217, $1227} | {'receive', {integer(), integer()}, list($1219)} | {'var', {integer(), integer()}, 'Collector'}>
-$1280 -> <{'attribute', {integer(), integer()}, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', {integer(), integer()}, <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($1219)}>
-$1283 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$1288 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$1300 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
-$1305 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$1307 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1305)}>
-$1308 -> {'op', {integer(), integer()}, '!', $1329, $1307}
-$1315 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
-$1316 -> {'remote', {integer(), integer()}, <$1315>, <$1315>}
-$1321 -> <{'call', {integer(), integer()}, $1316, list($1329)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
-$1329 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
-$1330 -> {'call', {integer(), integer()}, <$1315 | $1329>, list(<$1321 | $1329 | $1333 | $1369>)}
-$1331 -> {'clause', {integer(), integer()}, list(<$1300 | $1329 | $1346>), list(list($1352)), list(<$1308 | $1330 | $1363 | $1385 | $1389>)}
-$1332 -> {'clauses', list(<$1331>)}
-$1333 -> {'fun', {integer(), integer()}, <$1332>}
-$1339 -> <{'call', {integer(), integer()}, $1315, list($1333)} | {'lc', {integer(), integer()}, $1330, list($1373)}>
-$1344 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
-$1346 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1344)}>
-$1352 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $1329, $1329}>
-$1355 -> {'integer', {integer(), integer()}, integer()}
-$1358 -> <{'op', {integer(), integer()}, '+', $1329, $1355} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
-$1363 -> <{'call', {integer(), integer()}, $1315, list($1358)} | {'op', {integer(), integer()}, '!', $1329, $1315}>
-$1369 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
-$1373 -> {'generate', {integer(), integer()}, <$1329>, <$1329>}
-$1378 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$1379 -> {'tuple', {integer(), integer()}, list($1378)}
-$1383 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
-$1385 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($1331)} | {'lc', {integer(), integer()}, $1330, list($1373)} | {'op', {integer(), integer()}, '!', $1329, $1379} | {'tuple', {integer(), integer()}, list($1383)}>
-$1389 -> <{'call', {integer(), integer()}, $1316, list($1329)} | {'case', {integer(), integer()}, $1330, list($1331)} | {'match', {integer(), integer()}, $1329, $1339} | {'receive', {integer(), integer()}, list($1331)} | {'var', {integer(), integer()}, 'Collector'}>
-$1392 -> <{'attribute', <{integer(), integer()} | {?, integer()} | list($1283)>, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', list($1288), <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($1331)}>
-$1406 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
-$1411 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$1413 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1411)}>
-$1414 -> {'op', {integer(), integer()}, '!', $1435, $1413}
-$1421 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
-$1422 -> {'remote', {integer(), integer()}, <$1421>, <$1421>}
-$1427 -> <{'call', {integer(), integer()}, $1422, list($1435)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
-$1435 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
-$1436 -> {'call', {integer(), integer()}, <$1421 | $1435>, list(<$1427 | $1435 | $1439 | $1475>)}
-$1437 -> {'clause', {integer(), integer()}, list(<$1406 | $1435 | $1452>), list(list($1458)), list(<$1414 | $1436 | $1469 | $1491 | $1495>)}
-$1438 -> {'clauses', list(<$1437>)}
-$1439 -> {'fun', {integer(), integer()}, <$1438>}
-$1445 -> <{'call', {integer(), integer()}, $1421, list($1439)} | {'lc', {integer(), integer()}, $1436, list($1479)}>
-$1450 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
-$1452 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1450)}>
-$1458 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $1435, $1435}>
-$1461 -> {'integer', {integer(), integer()}, integer()}
-$1464 -> <{'op', {integer(), integer()}, '+', $1435, $1461} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
-$1469 -> <{'call', {integer(), integer()}, $1421, list($1464)} | {'op', {integer(), integer()}, '!', $1435, $1421}>
-$1475 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
-$1479 -> {'generate', {integer(), integer()}, <$1435>, <$1435>}
-$1484 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$1485 -> {'tuple', {integer(), integer()}, list($1484)}
-$1489 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
-$1491 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($1437)} | {'lc', {integer(), integer()}, $1436, list($1479)} | {'op', {integer(), integer()}, '!', $1435, $1485} | {'tuple', {integer(), integer()}, list($1489)}>
-$1495 -> <{'call', {integer(), integer()}, $1422, list($1435)} | {'case', {integer(), integer()}, $1436, list($1437)} | {'match', {integer(), integer()}, $1435, $1445} | {'receive', {integer(), integer()}, list($1437)} | {'var', {integer(), integer()}, 'Collector'}>
-$1498 -> <{'attribute', {integer(), integer()}, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', {integer(), integer()}, <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($1437)}>
-$1502 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
-$1506 -> {'module_info', integer()}
-$1507 -> {'record_info', integer()}
-$1508 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$1509 -> {'lint', 'start', '', list(?), {integer(), {$1506, {$1506, 'nil', 'nil'}, 'nil'}}, list(?), list($1502), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$1506, {$1506, 'nil', 'nil'}, {$1507, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$1506, integer()} | {$1507, ?}>), 'undefined', $1508, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$1511 -> {'location', {integer(), integer()}}
-$1514 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$1519 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
-$1531 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
-$1536 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$1538 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1536)}>
-$1539 -> {'op', {integer(), integer()}, '!', $1560, $1538}
-$1546 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
-$1547 -> {'remote', {integer(), integer()}, <$1546>, <$1546>}
-$1552 -> <{'call', {integer(), integer()}, $1547, list($1560)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
-$1560 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
-$1561 -> {'call', {integer(), integer()}, <$1546 | $1560>, list(<$1552 | $1560 | $1564 | $1600>)}
-$1562 -> {'clause', {integer(), integer()}, list(<$1531 | $1560 | $1577>), list(list($1583)), list(<$1539 | $1561 | $1594 | $1616 | $1620>)}
-$1563 -> {'clauses', list(<$1562>)}
-$1564 -> {'fun', {integer(), integer()}, <$1563>}
-$1570 -> <{'call', {integer(), integer()}, $1546, list($1564)} | {'lc', {integer(), integer()}, $1561, list($1604)}>
-$1575 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
-$1577 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1575)}>
-$1583 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $1560, $1560}>
-$1586 -> {'integer', {integer(), integer()}, integer()}
-$1589 -> <{'op', {integer(), integer()}, '+', $1560, $1586} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
-$1594 -> <{'call', {integer(), integer()}, $1546, list($1589)} | {'op', {integer(), integer()}, '!', $1560, $1546}>
-$1600 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
-$1604 -> {'generate', {integer(), integer()}, <$1560>, <$1560>}
-$1609 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
-$1610 -> {'tuple', {integer(), integer()}, list($1609)}
-$1614 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
-$1616 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($1562)} | {'lc', {integer(), integer()}, $1561, list($1604)} | {'op', {integer(), integer()}, '!', $1560, $1610} | {'tuple', {integer(), integer()}, list($1614)}>
-$1620 -> <{'call', {integer(), integer()}, $1547, list($1560)} | {'case', {integer(), integer()}, $1561, list($1562)} | {'match', {integer(), integer()}, $1560, $1570} | {'receive', {integer(), integer()}, list($1562)} | {'var', {integer(), integer()}, 'Collector'}>
-$1623 -> <{'attribute', <{integer(), integer()} | list($1511) | list($1514)>, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', list($1519), <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($1562)}>
+$153 -> {'location', {integer(), integer()}}
+$156 -> <{'file', list(integer())} | {'location', {integer(), ?}}>
+$161 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
+$173 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
+$178 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$180 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($178)}>
+$181 -> {'op', {integer(), integer()}, '!', $202, $180}
+$188 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
+$189 -> {'remote', {integer(), integer()}, <$188>, <$188>}
+$194 -> <{'call', {integer(), integer()}, $189, list($202)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
+$202 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
+$203 -> {'call', {integer(), integer()}, <$188 | $202>, list(<$194 | $202 | $206 | $242>)}
+$204 -> {'clause', {integer(), integer()}, list(<$173 | $202 | $219>), list(list($225)), list(<$181 | $203 | $236 | $258 | $262>)}
+$205 -> {'clauses', list(<$204>)}
+$206 -> {'fun', {integer(), integer()}, <$205>}
+$212 -> <{'call', {integer(), integer()}, $188, list($206)} | {'lc', {integer(), integer()}, $203, list($246)}>
+$217 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
+$219 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($217)}>
+$225 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $202, $202}>
+$228 -> {'integer', {integer(), integer()}, integer()}
+$231 -> <{'op', {integer(), integer()}, '+', $202, $228} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
+$236 -> <{'call', {integer(), integer()}, $188, list($231)} | {'op', {integer(), integer()}, '!', $202, $188}>
+$242 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
+$246 -> {'generate', {integer(), integer()}, <$202>, <$202>}
+$251 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$252 -> {'tuple', {integer(), integer()}, list($251)}
+$256 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
+$258 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($204)} | {'lc', {integer(), integer()}, $203, list($246)} | {'op', {integer(), integer()}, '!', $202, $252} | {'tuple', {integer(), integer()}, list($256)}>
+$262 -> <{'call', {integer(), integer()}, $189, list($202)} | {'case', {integer(), integer()}, $203, list($204)} | {'match', {integer(), integer()}, $202, $212} | {'receive', {integer(), integer()}, list($204)} | {'var', {integer(), integer()}, 'Collector'}>
+$265 -> <{'attribute', <{integer(), integer()} | list($153) | list($156)>, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', list($161), <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($204)}>
+$269 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$270 -> {'test', integer()}
+$271 -> {'pany', integer()}
+$272 -> {'collector', integer()}
+$273 -> {'worker', integer()}
+$277 -> {'module_info', integer()}
+$278 -> {'record_info', integer()}
+$279 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$280 -> {'lint', 'start', '', list(?), {integer(), {$277, {$277, 'nil', 'nil'}, 'nil'}}, list(?), list($269), #{}, {integer(), {$270, {$271, {$272, 'nil', 'nil'}, 'nil'}, {$273, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$277, {$277, 'nil', 'nil'}, {$278, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$277, integer()} | {$278, ?}>), 'undefined', $279, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$284 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$285 -> {'test', integer()}
+$286 -> {'pany', integer()}
+$287 -> {'collector', integer()}
+$288 -> {'worker', integer()}
+$292 -> {'module_info', integer()}
+$293 -> {'record_info', integer()}
+$294 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$295 -> {'lint', 'start', '', list(?), {integer(), {$292, {$292, 'nil', 'nil'}, 'nil'}}, list(?), list($284), #{}, {integer(), {$285, {$286, {$287, 'nil', 'nil'}, 'nil'}, {$288, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$292, {$292, 'nil', 'nil'}, {$293, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$292, integer()} | {$293, ?}>), 'undefined', $294, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$297 -> <'binary_comprehension' | 'bitlevel_binaries' | 'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$300 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
+$306 -> {'module_info', integer()}
+$307 -> {'record_info', integer()}
+$308 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$309 -> {'lint', 'start', '', list(?), {integer(), {$306, {$306, 'nil', 'nil'}, 'nil'}}, list(?), list(<'binary_comprehension' | 'bitlevel_binaries'>), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$306, {$306, 'nil', 'nil'}, {$307, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$306, integer()} | {$307, ?}>), 'undefined', $308, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$315 -> {'c', integer()}
+$316 -> {'cd', integer()}
+$317 -> {'file', list(integer())}
+$318 -> {'module_info', integer()}
+$319 -> {'location', {integer(), integer()}}
+$320 -> {'record_info', integer()}
+$321 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$322 -> {'lint', 'start', '', list(?), {integer(), {$318, {$318, 'nil', 'nil'}, 'nil'}}, list(?), list(<'binary_comprehension' | 'bitlevel_binaries'>), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$318, {$318, 'nil', 'nil'}, {$320, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$315, ?} | {$316, list($317)} | {$318, list($319)} | {$320, integer()}>), 'undefined', $321, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$325 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
+$329 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$330 -> {'test', integer()}
+$331 -> {'pany', integer()}
+$332 -> {'collector', integer()}
+$333 -> {'worker', integer()}
+$337 -> {'module_info', integer()}
+$338 -> {'record_info', integer()}
+$339 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$340 -> {'lint', 'attribute', 'bead', list(?), {integer(), {$337, {$337, 'nil', 'nil'}, 'nil'}}, list(?), list($329), #{}, {integer(), {$330, {$331, {$332, 'nil', 'nil'}, 'nil'}, {$333, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$337, {$337, 'nil', 'nil'}, {$338, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$337, integer()} | {$338, ?}>), 'undefined', $339, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$344 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$345 -> {'test', integer()}
+$346 -> {'pany', integer()}
+$347 -> {'collector', integer()}
+$348 -> {'worker', integer()}
+$352 -> {'module_info', integer()}
+$353 -> {'record_info', integer()}
+$354 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$355 -> {'lint', 'attribute', 'bead', list(?), {integer(), {$352, {$352, 'nil', 'nil'}, 'nil'}}, list(?), list($344), #{}, {integer(), {$345, {$346, {$347, 'nil', 'nil'}, 'nil'}, {$348, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$352, {$352, 'nil', 'nil'}, {$353, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$352, integer()} | {$353, ?}>), 'undefined', $354, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$360 -> {'bound', 'used', list({integer(), integer()})}
+$362 -> <{'E', $360} | {'F', $360} | {'Pid', $360}>
+$366 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$367 -> {'test', integer()}
+$368 -> {'pany', integer()}
+$369 -> {'collector', integer()}
+$375 -> {'worker', integer()}
+$376 -> {'module_info', integer()}
+$377 -> {'record_info', integer()}
+$378 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$379 -> {'lint', 'function', 'bead', list(?), {integer(), {$376, {$376, 'nil', 'nil'}, 'nil'}}, list(?), list($366), #{}, {integer(), {$367, {$368, {$369, 'nil', 'nil'}, 'nil'}, {$375, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$376, {$376, 'nil', 'nil'}, {$377, 'nil', {$375, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $375, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$376, integer()} | {$377, ?}>), 'undefined', $378, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$380 -> {'bound', 'used', list({integer(), integer()})}
+$381 -> {'E', $380}
+$385 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$386 -> {'test', integer()}
+$387 -> {'pany', integer()}
+$388 -> {'collector', integer()}
+$394 -> {'worker', integer()}
+$395 -> {'module_info', integer()}
+$396 -> {'record_info', integer()}
+$397 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$398 -> {'lint', 'function', 'bead', list(?), {integer(), {$395, {$395, 'nil', 'nil'}, 'nil'}}, list(?), list($385), #{}, {integer(), {$386, {$387, {$388, 'nil', 'nil'}, 'nil'}, {$394, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$395, {$395, 'nil', 'nil'}, {$396, 'nil', {$394, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $394, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$395, integer()} | {$396, ?}>), 'undefined', $397, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$399 -> {'bound', 'used', list({integer(), integer()})}
+$400 -> {'F', $399}
+$404 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$405 -> {'test', integer()}
+$406 -> {'pany', integer()}
+$407 -> {'collector', integer()}
+$413 -> {'worker', integer()}
+$414 -> {'module_info', integer()}
+$415 -> {'record_info', integer()}
+$416 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$417 -> {'lint', 'function', 'bead', list(?), {integer(), {$414, {$414, 'nil', 'nil'}, 'nil'}}, list(?), list($404), #{}, {integer(), {$405, {$406, {$407, 'nil', 'nil'}, 'nil'}, {$413, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$414, {$414, 'nil', 'nil'}, {$415, 'nil', {$413, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $413, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$414, integer()} | {$415, ?}>), 'undefined', $416, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$418 -> {'bound', 'used', list({integer(), integer()})}
+$419 -> {'Pid', $418}
+$423 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$424 -> {'test', integer()}
+$425 -> {'pany', integer()}
+$426 -> {'collector', integer()}
+$432 -> {'worker', integer()}
+$433 -> {'module_info', integer()}
+$434 -> {'record_info', integer()}
+$435 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$436 -> {'lint', 'function', 'bead', list(?), {integer(), {$433, {$433, 'nil', 'nil'}, 'nil'}}, list(?), list($423), #{}, {integer(), {$424, {$425, {$426, 'nil', 'nil'}, 'nil'}, {$432, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$433, {$433, 'nil', 'nil'}, {$434, 'nil', {$432, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $432, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$433, integer()} | {$434, ?}>), 'undefined', $435, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$440 -> {'call', {integer(), integer()}, $466, list($466)}
+$443 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
+$448 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$450 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($448)}>
+$451 -> {'op', {integer(), integer()}, '!', $466, $450}
+$457 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$459 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($457)}>
+$464 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $466, $466}>
+$466 -> {'var', {integer(), integer()}, <'E' | 'F' | 'FinishedNum' | 'MainPid' | 'MaxNum' | 'Pid'>}
+$467 -> {'integer', {integer(), integer()}, integer()}
+$470 -> <{'op', {integer(), integer()}, '+', $466, $467} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
+$473 -> {'atom', {integer(), integer()}, <'collector' | 'false'>}
+$475 -> <{'call', {integer(), integer()}, $473, list($470)} | {'op', {integer(), integer()}, '!', $466, $473}>
+$476 -> {'clause', {integer(), integer()}, list(<$443 | $459 | $466>), list(list($464)), list(<$451 | $475 | $484 | $487>)}
+$481 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$482 -> {'tuple', {integer(), integer()}, list($481)}
+$484 -> <{'if', {integer(), integer()}, list($476)} | {'op', {integer(), integer()}, '!', $466, $482}>
+$487 -> <{'case', {integer(), integer()}, $440, list($476)} | {'receive', {integer(), integer()}, list($476)}>
+$492 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$493 -> {'test', integer()}
+$494 -> {'pany', integer()}
+$499 -> {'collector', integer()}
+$501 -> {'worker', integer()}
+$504 -> <{'collector', integer()} | {'worker', integer()}>
+$505 -> {'module_info', integer()}
+$506 -> {'record_info', integer()}
+$507 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$508 -> {'lint', 'function', 'bead', list(?), {integer(), {$505, {$505, 'nil', 'nil'}, 'nil'}}, list(?), list($492), #{}, {integer(), {$493, {$494, {$499, 'nil', 'nil'}, 'nil'}, {$501, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$505, {$505, {$499, 'nil', 'nil'}, 'nil'}, {$506, 'nil', {$501, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $504, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$505, integer()} | {$506, ?}>), 'undefined', $507, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$509 -> {'bound', 'used', list({integer(), integer()})}
+$510 -> {'E', $509}
+$514 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$515 -> {'test', integer()}
+$516 -> {'pany', integer()}
+$517 -> {'collector', integer()}
+$523 -> {'worker', integer()}
+$524 -> {'module_info', integer()}
+$525 -> {'record_info', integer()}
+$526 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$527 -> {'lint', 'function', 'bead', list(?), {integer(), {$524, {$524, 'nil', 'nil'}, 'nil'}}, list(?), list($514), #{}, {integer(), {$515, {$516, {$517, 'nil', 'nil'}, 'nil'}, {$523, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$524, {$524, 'nil', 'nil'}, {$525, 'nil', {$523, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $523, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$524, integer()} | {$525, ?}>), 'undefined', $526, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$528 -> {'bound', 'used', list({integer(), integer()})}
+$529 -> {'F', $528}
+$533 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$534 -> {'test', integer()}
+$535 -> {'pany', integer()}
+$536 -> {'collector', integer()}
+$542 -> {'worker', integer()}
+$543 -> {'module_info', integer()}
+$544 -> {'record_info', integer()}
+$545 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$546 -> {'lint', 'function', 'bead', list(?), {integer(), {$543, {$543, 'nil', 'nil'}, 'nil'}}, list(?), list($533), #{}, {integer(), {$534, {$535, {$536, 'nil', 'nil'}, 'nil'}, {$542, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$543, {$543, 'nil', 'nil'}, {$544, 'nil', {$542, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $542, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$543, integer()} | {$544, ?}>), 'undefined', $545, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$547 -> {'bound', 'used', list({integer(), integer()})}
+$548 -> {'Pid', $547}
+$552 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$553 -> {'test', integer()}
+$554 -> {'pany', integer()}
+$555 -> {'collector', integer()}
+$561 -> {'worker', integer()}
+$562 -> {'module_info', integer()}
+$563 -> {'record_info', integer()}
+$564 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$565 -> {'lint', 'function', 'bead', list(?), {integer(), {$562, {$562, 'nil', 'nil'}, 'nil'}}, list(?), list($552), #{}, {integer(), {$553, {$554, {$555, 'nil', 'nil'}, 'nil'}, {$561, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$562, {$562, 'nil', 'nil'}, {$563, 'nil', {$561, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $561, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$562, integer()} | {$563, ?}>), 'undefined', $564, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$569 -> {'call', {integer(), integer()}, $595, list($595)}
+$572 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
+$577 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$579 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($577)}>
+$580 -> {'op', {integer(), integer()}, '!', $595, $579}
+$586 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$588 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($586)}>
+$593 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $595, $595}>
+$595 -> {'var', {integer(), integer()}, <'E' | 'F' | 'FinishedNum' | 'MainPid' | 'MaxNum' | 'Pid'>}
+$596 -> {'integer', {integer(), integer()}, integer()}
+$599 -> <{'op', {integer(), integer()}, '+', $595, $596} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
+$602 -> {'atom', {integer(), integer()}, <'collector' | 'false'>}
+$604 -> <{'call', {integer(), integer()}, $602, list($599)} | {'op', {integer(), integer()}, '!', $595, $602}>
+$605 -> {'clause', {integer(), integer()}, list(<$572 | $588 | $595>), list(list($593)), list(<$580 | $604 | $613 | $616>)}
+$610 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$611 -> {'tuple', {integer(), integer()}, list($610)}
+$613 -> <{'if', {integer(), integer()}, list($605)} | {'op', {integer(), integer()}, '!', $595, $611}>
+$616 -> <{'case', {integer(), integer()}, $569, list($605)} | {'receive', {integer(), integer()}, list($605)}>
+$621 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$622 -> {'test', integer()}
+$623 -> {'pany', integer()}
+$628 -> {'collector', integer()}
+$630 -> {'worker', integer()}
+$633 -> <{'collector', integer()} | {'worker', integer()}>
+$634 -> {'module_info', integer()}
+$635 -> {'record_info', integer()}
+$636 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$637 -> {'lint', 'function', 'bead', list(?), {integer(), {$634, {$634, 'nil', 'nil'}, 'nil'}}, list(?), list($621), #{}, {integer(), {$622, {$623, {$628, 'nil', 'nil'}, 'nil'}, {$630, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$634, {$634, {$628, 'nil', 'nil'}, 'nil'}, {$635, 'nil', {$630, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $633, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$634, integer()} | {$635, ?}>), 'undefined', $636, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$641 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$642 -> {'test', integer()}
+$643 -> {'pany', integer()}
+$644 -> {'collector', integer()}
+$650 -> {'worker', integer()}
+$651 -> {'module_info', integer()}
+$652 -> {'record_info', integer()}
+$653 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$654 -> {'lint', 'function', 'bead', list(?), {integer(), {$651, {$651, 'nil', 'nil'}, 'nil'}}, list(?), list($641), #{}, {integer(), {$642, {$643, {$644, 'nil', 'nil'}, 'nil'}, {$650, 'nil', 'nil'}}}, {integer(), 'nil'}, {integer(), {$651, {$651, 'nil', 'nil'}, {$652, 'nil', {$650, 'nil', 'nil'}}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $650, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$651, integer()} | {$652, ?}>), 'undefined', $653, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$668 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
+$673 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$675 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($673)}>
+$676 -> {'op', {integer(), integer()}, '!', $697, $675}
+$683 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
+$684 -> {'remote', {integer(), integer()}, <$683>, <$683>}
+$689 -> <{'call', {integer(), integer()}, $684, list($697)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
+$697 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
+$698 -> {'call', {integer(), integer()}, <$683 | $697>, list(<$689 | $697 | $701 | $737>)}
+$699 -> {'clause', {integer(), integer()}, list(<$668 | $697 | $714>), list(list($720)), list(<$676 | $698 | $731 | $753 | $757>)}
+$700 -> {'clauses', list(<$699>)}
+$701 -> {'fun', {integer(), integer()}, <$700>}
+$707 -> <{'call', {integer(), integer()}, $683, list($701)} | {'lc', {integer(), integer()}, $698, list($741)}>
+$712 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
+$714 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($712)}>
+$720 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $697, $697}>
+$723 -> {'integer', {integer(), integer()}, integer()}
+$726 -> <{'op', {integer(), integer()}, '+', $697, $723} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
+$731 -> <{'call', {integer(), integer()}, $683, list($726)} | {'op', {integer(), integer()}, '!', $697, $683}>
+$737 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
+$741 -> {'generate', {integer(), integer()}, <$697>, <$697>}
+$746 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$747 -> {'tuple', {integer(), integer()}, list($746)}
+$751 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
+$753 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($699)} | {'lc', {integer(), integer()}, $698, list($741)} | {'op', {integer(), integer()}, '!', $697, $747} | {'tuple', {integer(), integer()}, list($751)}>
+$757 -> <{'call', {integer(), integer()}, $684, list($697)} | {'case', {integer(), integer()}, $698, list($699)} | {'match', {integer(), integer()}, $697, $707} | {'receive', {integer(), integer()}, list($699)} | {'var', {integer(), integer()}, 'Collector'}>
+$760 -> <{'attribute', {integer(), integer()}, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', {integer(), integer()}, <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($699)}>
+$763 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
+$767 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$768 -> {'test', integer()}
+$769 -> {'pany', integer()}
+$770 -> {'collector', integer()}
+$775 -> {'worker', integer()}
+$778 -> <{'collector', integer()} | {'worker', integer()}>
+$779 -> {'module_info', integer()}
+$780 -> {'record_info', integer()}
+$781 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$782 -> {'lint', 'function', 'bead', list(?), {integer(), {$779, {$779, 'nil', 'nil'}, 'nil'}}, list(?), list($767), #{}, {integer(), {$768, {$769, {$770, 'nil', 'nil'}, 'nil'}, {$775, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$779, {$779, 'nil', 'nil'}, {$780, 'nil', {$775, 'nil', 'nil'}}}} | {?, {?, ?, {?, ?, 'nil'}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $778, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$779, integer()} | {$780, ?}>), 'undefined', $781, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$786 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$787 -> {'test', integer()}
+$788 -> {'pany', integer()}
+$793 -> {'collector', integer()}
+$795 -> {'worker', integer()}
+$798 -> <{'collector', integer()} | {'worker', integer()}>
+$799 -> {'module_info', integer()}
+$800 -> {'record_info', integer()}
+$801 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$802 -> {'lint', 'function', 'bead', list(?), {integer(), {$799, {$799, 'nil', 'nil'}, 'nil'}}, list(?), list($786), #{}, {integer(), {$787, {$788, {$793, 'nil', 'nil'}, 'nil'}, {$795, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$799, {$799, {$793, 'nil', 'nil'}, 'nil'}, {$800, 'nil', {$795, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $798, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$799, integer()} | {$800, ?}>), 'undefined', $801, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$803 -> {'location', {integer(), integer()}}
+$806 -> <{'file', list(integer())} | {'location', {integer(), ?}}>
+$811 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
+$823 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
+$828 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$830 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($828)}>
+$831 -> {'op', {integer(), integer()}, '!', $852, $830}
+$838 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
+$839 -> {'remote', {integer(), integer()}, <$838>, <$838>}
+$844 -> <{'call', {integer(), integer()}, $839, list($852)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
+$852 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
+$853 -> {'call', {integer(), integer()}, <$838 | $852>, list(<$844 | $852 | $856 | $892>)}
+$854 -> {'clause', {integer(), integer()}, list(<$823 | $852 | $869>), list(list($875)), list(<$831 | $853 | $886 | $908 | $912>)}
+$855 -> {'clauses', list(<$854>)}
+$856 -> {'fun', {integer(), integer()}, <$855>}
+$862 -> <{'call', {integer(), integer()}, $838, list($856)} | {'lc', {integer(), integer()}, $853, list($896)}>
+$867 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
+$869 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($867)}>
+$875 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $852, $852}>
+$878 -> {'integer', {integer(), integer()}, integer()}
+$881 -> <{'op', {integer(), integer()}, '+', $852, $878} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
+$886 -> <{'call', {integer(), integer()}, $838, list($881)} | {'op', {integer(), integer()}, '!', $852, $838}>
+$892 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
+$896 -> {'generate', {integer(), integer()}, <$852>, <$852>}
+$901 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$902 -> {'tuple', {integer(), integer()}, list($901)}
+$906 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
+$908 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($854)} | {'lc', {integer(), integer()}, $853, list($896)} | {'op', {integer(), integer()}, '!', $852, $902} | {'tuple', {integer(), integer()}, list($906)}>
+$912 -> <{'call', {integer(), integer()}, $839, list($852)} | {'case', {integer(), integer()}, $853, list($854)} | {'match', {integer(), integer()}, $852, $862} | {'receive', {integer(), integer()}, list($854)} | {'var', {integer(), integer()}, 'Collector'}>
+$915 -> <{'attribute', <{integer(), integer()} | list($803) | list($806)>, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', list($811), <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($854)}>
+$919 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$923 -> {'module_info', integer()}
+$924 -> {'record_info', integer()}
+$925 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$926 -> {'lint', 'start', '', list(?), {integer(), {$923, {$923, 'nil', 'nil'}, 'nil'}}, list(?), list($919), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$923, {$923, 'nil', 'nil'}, {$924, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$923, integer()} | {$924, ?}>), 'undefined', $925, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$930 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$934 -> {'module_info', integer()}
+$935 -> {'record_info', integer()}
+$936 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$937 -> {'lint', 'start', '', list(?), {integer(), {$934, {$934, 'nil', 'nil'}, 'nil'}}, list(?), list($930), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$934, {$934, 'nil', 'nil'}, {$935, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$934, integer()} | {$935, ?}>), 'undefined', $936, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$948 -> {'bound', <'unused' | 'used'>, list({integer(), integer()})}
+$950 -> <{'E', $948} | {'F', $948} | {'FinishedNum', $948} | {'MainPid', $948} | {'MaxNum', $948} | {'Pid', $948}>
+$954 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$955 -> {'test', integer()}
+$956 -> {'pany', integer()}
+$961 -> {'collector', integer()}
+$963 -> {'worker', integer()}
+$966 -> <{'collector', integer()} | {'worker', integer()}>
+$967 -> {'module_info', integer()}
+$968 -> {'record_info', integer()}
+$969 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$970 -> {'lint', 'function', 'bead', list(?), {integer(), {$967, {$967, 'nil', 'nil'}, 'nil'}}, list(?), list($954), #{}, {integer(), {$955, {$956, {$961, 'nil', 'nil'}, 'nil'}, {$963, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$967, {$967, {$961, 'nil', 'nil'}, 'nil'}, {$968, 'nil', {$963, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $966, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$967, integer()} | {$968, ?}>), 'undefined', $969, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$971 -> {'bound', 'used', list({integer(), integer()})}
+$972 -> {'E', $971}
+$974 -> {'collector', integer()}
+$975 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
+$976 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {$974, 'nil', 'nil'}, 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}>, list(?), ?, list(?), list(?), {?, 'nil'}, $974, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $975, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
+$977 -> {'bound', 'used', list({integer(), integer()})}
+$978 -> {'F', $977}
+$982 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$983 -> {'test', integer()}
+$984 -> {'pany', integer()}
+$989 -> {'collector', integer()}
+$991 -> {'worker', integer()}
+$994 -> <{'collector', integer()} | {'worker', integer()}>
+$995 -> {'module_info', integer()}
+$996 -> {'record_info', integer()}
+$997 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$998 -> {'lint', 'function', 'bead', list(?), {integer(), {$995, {$995, 'nil', 'nil'}, 'nil'}}, list(?), list($982), #{}, {integer(), {$983, {$984, {$989, 'nil', 'nil'}, 'nil'}, {$991, 'nil', 'nil'}}}, {integer(), 'nil'}, <{integer(), {$995, {$995, {$989, 'nil', 'nil'}, 'nil'}, {$996, 'nil', {$991, 'nil', 'nil'}}}} | {?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $994, list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list(<{$995, integer()} | {$996, ?}>), 'undefined', $997, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$999 -> {'bound', 'used', list({integer(), integer()})}
+$1000 -> {'FinishedNum', $999}
+$1001 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
+$1002 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1001, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
+$1003 -> {'bound', 'used', list({integer(), integer()})}
+$1004 -> {'MainPid', $1003}
+$1006 -> {'collector', integer()}
+$1007 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
+$1008 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {$1006, 'nil', 'nil'}, 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}>, list(?), ?, list(?), list(?), {?, 'nil'}, $1006, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1007, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
+$1009 -> {'bound', 'used', list({integer(), integer()})}
+$1010 -> {'MaxNum', $1009}
+$1011 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
+$1012 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {?, 'nil', 'nil'}, ?}, ?}}>, list(?), ?, list(?), list(?), {?, 'nil'}, ?, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1011, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
+$1013 -> {'bound', 'used', list({integer(), integer()})}
+$1014 -> {'Pid', $1013}
+$1016 -> {'collector', integer()}
+$1017 -> {'usage', #{}, list(?), {?, 'nil'}, #{}}
+$1018 -> {'lint', 'function', 'bead', list(?), {?, {?, {?, 'nil', 'nil'}, 'nil'}}, list(?), list(<'export_all' | 'report_errors' | 'report_warnings'>), #{}, {?, {?, {?, {?, 'nil', 'nil'}, 'nil'}, {?, 'nil', 'nil'}}}, {?, 'nil'}, <{?, {?, {?, 'nil', 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}} | {?, {?, {?, {$1016, 'nil', 'nil'}, 'nil'}, {?, 'nil', {?, 'nil', 'nil'}}}}>, list(?), ?, list(?), list(?), {?, 'nil'}, $1016, list(?), ?, list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list({?, {?, 'erl_lint', 'export_all'}}), ?, 'false', 'false', ?, 'undefined', $1017, #{}, #{}, #{}, #{}, {?, 'nil'}, #{}, 'none', 'guard', 'false'}
+$1032 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
+$1037 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$1039 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1037)}>
+$1040 -> {'op', {integer(), integer()}, '!', $1061, $1039}
+$1047 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
+$1048 -> {'remote', {integer(), integer()}, <$1047>, <$1047>}
+$1053 -> <{'call', {integer(), integer()}, $1048, list($1061)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
+$1061 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
+$1062 -> {'call', {integer(), integer()}, <$1047 | $1061>, list(<$1053 | $1061 | $1065 | $1101>)}
+$1063 -> {'clause', {integer(), integer()}, list(<$1032 | $1061 | $1078>), list(list($1084)), list(<$1040 | $1062 | $1095 | $1117 | $1121>)}
+$1064 -> {'clauses', list(<$1063>)}
+$1065 -> {'fun', {integer(), integer()}, <$1064>}
+$1071 -> <{'call', {integer(), integer()}, $1047, list($1065)} | {'lc', {integer(), integer()}, $1062, list($1105)}>
+$1076 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
+$1078 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1076)}>
+$1084 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $1061, $1061}>
+$1087 -> {'integer', {integer(), integer()}, integer()}
+$1090 -> <{'op', {integer(), integer()}, '+', $1061, $1087} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
+$1095 -> <{'call', {integer(), integer()}, $1047, list($1090)} | {'op', {integer(), integer()}, '!', $1061, $1047}>
+$1101 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
+$1105 -> {'generate', {integer(), integer()}, <$1061>, <$1061>}
+$1110 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$1111 -> {'tuple', {integer(), integer()}, list($1110)}
+$1115 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
+$1117 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($1063)} | {'lc', {integer(), integer()}, $1062, list($1105)} | {'op', {integer(), integer()}, '!', $1061, $1111} | {'tuple', {integer(), integer()}, list($1115)}>
+$1121 -> <{'call', {integer(), integer()}, $1048, list($1061)} | {'case', {integer(), integer()}, $1062, list($1063)} | {'match', {integer(), integer()}, $1061, $1071} | {'receive', {integer(), integer()}, list($1063)} | {'var', {integer(), integer()}, 'Collector'}>
+$1124 -> <{'attribute', {integer(), integer()}, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', {integer(), integer()}, <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($1063)}>
+$1127 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
+$1132 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
+$1144 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
+$1149 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$1151 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1149)}>
+$1152 -> {'op', {integer(), integer()}, '!', $1173, $1151}
+$1159 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
+$1160 -> {'remote', {integer(), integer()}, <$1159>, <$1159>}
+$1165 -> <{'call', {integer(), integer()}, $1160, list($1173)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
+$1173 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
+$1174 -> {'call', {integer(), integer()}, <$1159 | $1173>, list(<$1165 | $1173 | $1177 | $1213>)}
+$1175 -> {'clause', {integer(), integer()}, list(<$1144 | $1173 | $1190>), list(list($1196)), list(<$1152 | $1174 | $1207 | $1229 | $1233>)}
+$1176 -> {'clauses', list(<$1175>)}
+$1177 -> {'fun', {integer(), integer()}, <$1176>}
+$1183 -> <{'call', {integer(), integer()}, $1159, list($1177)} | {'lc', {integer(), integer()}, $1174, list($1217)}>
+$1188 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
+$1190 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1188)}>
+$1196 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $1173, $1173}>
+$1199 -> {'integer', {integer(), integer()}, integer()}
+$1202 -> <{'op', {integer(), integer()}, '+', $1173, $1199} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
+$1207 -> <{'call', {integer(), integer()}, $1159, list($1202)} | {'op', {integer(), integer()}, '!', $1173, $1159}>
+$1213 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
+$1217 -> {'generate', {integer(), integer()}, <$1173>, <$1173>}
+$1222 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$1223 -> {'tuple', {integer(), integer()}, list($1222)}
+$1227 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
+$1229 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($1175)} | {'lc', {integer(), integer()}, $1174, list($1217)} | {'op', {integer(), integer()}, '!', $1173, $1223} | {'tuple', {integer(), integer()}, list($1227)}>
+$1233 -> <{'call', {integer(), integer()}, $1160, list($1173)} | {'case', {integer(), integer()}, $1174, list($1175)} | {'match', {integer(), integer()}, $1173, $1183} | {'receive', {integer(), integer()}, list($1175)} | {'var', {integer(), integer()}, 'Collector'}>
+$1236 -> <{'attribute', <{integer(), integer()} | list($1127)>, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', list($1132), <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($1175)}>
+$1250 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
+$1255 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$1257 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1255)}>
+$1258 -> {'op', {integer(), integer()}, '!', $1279, $1257}
+$1265 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
+$1266 -> {'remote', {integer(), integer()}, <$1265>, <$1265>}
+$1271 -> <{'call', {integer(), integer()}, $1266, list($1279)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
+$1279 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
+$1280 -> {'call', {integer(), integer()}, <$1265 | $1279>, list(<$1271 | $1279 | $1283 | $1319>)}
+$1281 -> {'clause', {integer(), integer()}, list(<$1250 | $1279 | $1296>), list(list($1302)), list(<$1258 | $1280 | $1313 | $1335 | $1339>)}
+$1282 -> {'clauses', list(<$1281>)}
+$1283 -> {'fun', {integer(), integer()}, <$1282>}
+$1289 -> <{'call', {integer(), integer()}, $1265, list($1283)} | {'lc', {integer(), integer()}, $1280, list($1323)}>
+$1294 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
+$1296 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1294)}>
+$1302 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $1279, $1279}>
+$1305 -> {'integer', {integer(), integer()}, integer()}
+$1308 -> <{'op', {integer(), integer()}, '+', $1279, $1305} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
+$1313 -> <{'call', {integer(), integer()}, $1265, list($1308)} | {'op', {integer(), integer()}, '!', $1279, $1265}>
+$1319 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
+$1323 -> {'generate', {integer(), integer()}, <$1279>, <$1279>}
+$1328 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$1329 -> {'tuple', {integer(), integer()}, list($1328)}
+$1333 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
+$1335 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($1281)} | {'lc', {integer(), integer()}, $1280, list($1323)} | {'op', {integer(), integer()}, '!', $1279, $1329} | {'tuple', {integer(), integer()}, list($1333)}>
+$1339 -> <{'call', {integer(), integer()}, $1266, list($1279)} | {'case', {integer(), integer()}, $1280, list($1281)} | {'match', {integer(), integer()}, $1279, $1289} | {'receive', {integer(), integer()}, list($1281)} | {'var', {integer(), integer()}, 'Collector'}>
+$1342 -> <{'attribute', {integer(), integer()}, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', {integer(), integer()}, <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($1281)}>
+$1346 -> <'export_all' | 'report_errors' | 'report_warnings' | {'outdir', list(integer())}>
+$1350 -> {'module_info', integer()}
+$1351 -> {'record_info', integer()}
+$1352 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
+$1353 -> {'lint', 'start', '', list(?), {integer(), {$1350, {$1350, 'nil', 'nil'}, 'nil'}}, list(?), list($1346), #{}, {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$1350, {$1350, 'nil', 'nil'}, {$1351, 'nil', 'nil'}}}, list(?), integer(), list(?), list(?), {integer(), 'nil'}, list(?), list(?), integer(), list(<'bif_clash' | 'deprecated_function' | 'deprecated_type' | 'export_all' | 'nif_inline' | 'obsolete_guard' | 'removed' | 'shadow_vars' | 'underscore_match' | 'unused_function' | 'unused_record' | 'unused_type' | 'unused_vars'>), list(?), list(?), list(?), list(integer()), 'false', 'false', list(<{$1350, integer()} | {$1351, ?}>), 'undefined', $1352, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$1354 -> {'location', {integer(), integer()}}
+$1357 -> <{'file', list(integer())} | {'location', {integer(), ?}}>
+$1362 -> <{'file', list(integer())} | {'location', {integer(), integer()}}>
+$1374 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, '_'}>
+$1379 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$1381 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1379)}>
+$1382 -> {'op', {integer(), integer()}, '!', $1403, $1381}
+$1389 -> {'atom', {integer(), integer()}, <'collector' | 'exit' | 'false' | 'flatlength' | 'lists' | 'self' | 'sort' | 'spawn' | 'worker'>}
+$1390 -> {'remote', {integer(), integer()}, <$1389>, <$1389>}
+$1395 -> <{'call', {integer(), integer()}, $1390, list($1403)} | {'integer', {integer(), integer()}, integer()} | {'var', {integer(), integer()}, 'MyPid'}>
+$1403 -> {'var', {integer(), integer()}, <'Collector' | 'E' | 'F' | 'FinishedNum' | 'L' | 'MainPid' | 'MaxNum' | 'MyPid' | 'P' | 'Pid' | 'Pids'>}
+$1404 -> {'call', {integer(), integer()}, <$1389 | $1403>, list(<$1395 | $1403 | $1407 | $1443>)}
+$1405 -> {'clause', {integer(), integer()}, list(<$1374 | $1403 | $1420>), list(list($1426)), list(<$1382 | $1404 | $1437 | $1459 | $1463>)}
+$1406 -> {'clauses', list(<$1405>)}
+$1407 -> {'fun', {integer(), integer()}, <$1406>}
+$1413 -> <{'call', {integer(), integer()}, $1389, list($1407)} | {'lc', {integer(), integer()}, $1404, list($1447)}>
+$1418 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, <'E' | 'Res'>}>
+$1420 -> <{'atom', {integer(), integer()}, 'false'} | {'tuple', {integer(), integer()}, list($1418)}>
+$1426 -> <{'atom', {integer(), integer()}, 'true'} | {'op', {integer(), integer()}, '>=', $1403, $1403}>
+$1429 -> {'integer', {integer(), integer()}, integer()}
+$1432 -> <{'op', {integer(), integer()}, '+', $1403, $1429} | {'var', {integer(), integer()}, <'MainPid' | 'MaxNum'>}>
+$1437 -> <{'call', {integer(), integer()}, $1389, list($1432)} | {'op', {integer(), integer()}, '!', $1403, $1389}>
+$1443 -> <{'atom', {integer(), integer()}, 'normal'} | {'var', {integer(), integer()}, 'P'}>
+$1447 -> {'generate', {integer(), integer()}, <$1403>, <$1403>}
+$1452 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'E'}>
+$1453 -> {'tuple', {integer(), integer()}, list($1452)}
+$1457 -> <{'atom', {integer(), integer()}, 'true'} | {'var', {integer(), integer()}, 'Res'}>
+$1459 -> <{'atom', {integer(), integer()}, 'false'} | {'if', {integer(), integer()}, list($1405)} | {'lc', {integer(), integer()}, $1404, list($1447)} | {'op', {integer(), integer()}, '!', $1403, $1453} | {'tuple', {integer(), integer()}, list($1457)}>
+$1463 -> <{'call', {integer(), integer()}, $1390, list($1403)} | {'case', {integer(), integer()}, $1404, list($1405)} | {'match', {integer(), integer()}, $1403, $1413} | {'receive', {integer(), integer()}, list($1405)} | {'var', {integer(), integer()}, 'Collector'}>
+$1466 -> <{'attribute', <{integer(), integer()} | list($1354) | list($1357)>, <'compile' | 'file' | 'module'>, <'bead' | 'export_all' | {list(integer()), integer()}>} | {'eof', {integer(), integer()}} | {'function', list($1362), <'collector' | 'pany' | 'test' | 'worker'>, integer(), list($1405)}>
 
 Functions:
 add_lint_warning/3 -> fun(({{integer(), integer()}, 'erl_lint', 'export_all'}, list(integer()), $14) -> $29)
@@ -680,16 +565,16 @@ any_control_characters/1 -> fun(list(integer()) -> 'false')
 attribute_state/2 -> fun(($106, $121) -> $138)
 auto_import_suppressed/1 -> fun(list($140) -> {integer(), 'nil'})
 bif_clash_specifically_disabled/2 -> fun(($149, $152) -> 'false')
-bif_clashes/2 -> fun((list($266), $281) -> $296)
-bool_option/4 -> fun((<'warn_bif_clash' | 'warn_deprecated_function' | 'warn_deprecated_type' | 'warn_export_all' | 'warn_export_vars' | 'warn_keywords' | 'warn_missing_spec' | 'warn_missing_spec_all' | 'warn_nif_inline' | 'warn_obsolete_guard' | 'warn_removed' | 'warn_shadow_vars' | 'warn_underscore_match' | 'warn_untyped_record' | 'warn_unused_function' | 'warn_unused_import' | 'warn_unused_record' | 'warn_unused_type' | 'warn_unused_vars'>, <'nowarn_bif_clash' | 'nowarn_deprecated_function' | 'nowarn_deprecated_type' | 'nowarn_export_all' | 'nowarn_export_vars' | 'nowarn_keywords' | 'nowarn_missing_spec' | 'nowarn_missing_spec_all' | 'nowarn_nif_inline' | 'nowarn_obsolete_guard' | 'nowarn_removed' | 'nowarn_shadow_vars' | 'nowarn_underscore_match' | 'nowarn_untyped_record' | 'nowarn_unused_function' | 'nowarn_unused_import' | 'nowarn_unused_record' | 'nowarn_unused_type' | 'nowarn_unused_vars'>, boolean(), list($298)) -> boolean())
-call_function/4 -> fun((list($301), <'c' | 'cd'>, integer(), $310) -> $327)
-check_module_name/3 -> fun(('bead', list($330), $345) -> $360)
-check_unused_vars/3 -> fun((list($367), list(?), $384) -> <{list($386), $388} | {list($390), $407} | {list($409), $411} | {list($413), $430} | {list($432), $449} | {list($451), $453} | {list($455), $472} | {list($474), $491}>)
-clause/2 -> fun(($531, $563) -> <{list($565), $567} | {list($569), $586} | {list($588), $590} | {list($592), $609} | {list($611), $628} | {list($630), $632} | {list($634), $651} | {list($653), $670}>)
-clauses/2 -> fun((list($710), $742) -> $759)
-compiler_options/1 -> fun(list($865) -> list('export_all'))
-define_function/4 -> fun((list($868), <'collector' | 'worker'>, integer(), $887) -> $907)
-disallowed_compile_flags/2 -> fun((list($1021), $1032) -> $1043)
-do_expr_var/4 -> fun((<'E' | 'F' | 'FinishedNum' | 'MainPid' | 'MaxNum' | 'Pid'>, {integer(), integer()}, list($1056), $1076) -> <{list($1078), $1080} | {list($1082), $1086} | {list($1088), $1092} | {list($1094), $1096} | {list($1098), $1118} | {list($1120), $1122} | {list($1124), $1126} | {list($1128), $1130} | {list($1132), $1134} | {list($1136), $1140} | {list($1142), $1146} | {list($1148), $1150} | {list($1152), $1154} | {list($1156), $1158} | {list($1160), $1162} | {list($1164), $1168} | {list($1170), $1174}>)
-eval_file_attr/2 -> fun((list($1280), list(integer())) -> list($1392))
-eval_file_attribute/2 -> fun((list($1498), $1509) -> list($1623))
+bif_clashes/2 -> fun((list($265), $280) -> $295)
+bool_option/4 -> fun((<'warn_bif_clash' | 'warn_deprecated_function' | 'warn_deprecated_type' | 'warn_export_all' | 'warn_export_vars' | 'warn_keywords' | 'warn_missing_spec' | 'warn_missing_spec_all' | 'warn_nif_inline' | 'warn_obsolete_guard' | 'warn_removed' | 'warn_shadow_vars' | 'warn_underscore_match' | 'warn_untyped_record' | 'warn_unused_function' | 'warn_unused_import' | 'warn_unused_record' | 'warn_unused_type' | 'warn_unused_vars'>, <'nowarn_bif_clash' | 'nowarn_deprecated_function' | 'nowarn_deprecated_type' | 'nowarn_export_all' | 'nowarn_export_vars' | 'nowarn_keywords' | 'nowarn_missing_spec' | 'nowarn_missing_spec_all' | 'nowarn_nif_inline' | 'nowarn_obsolete_guard' | 'nowarn_removed' | 'nowarn_shadow_vars' | 'nowarn_underscore_match' | 'nowarn_untyped_record' | 'nowarn_unused_function' | 'nowarn_unused_import' | 'nowarn_unused_record' | 'nowarn_unused_type' | 'nowarn_unused_vars'>, boolean(), list($297)) -> boolean())
+call_function/4 -> fun((list($300), <'c' | 'cd'>, integer(), $309) -> $322)
+check_module_name/3 -> fun(('bead', list($325), $340) -> $355)
+check_unused_vars/3 -> fun((list($362), list(?), $379) -> <{list($381), $398} | {list($400), $417} | {list($419), $436}>)
+clause/2 -> fun(($476, $508) -> <{list($510), $527} | {list($529), $546} | {list($548), $565}>)
+clauses/2 -> fun((list($605), $637) -> $654)
+compiler_options/1 -> fun(list($760) -> list('export_all'))
+define_function/4 -> fun((list($763), <'collector' | 'worker'>, integer(), $782) -> $802)
+disallowed_compile_flags/2 -> fun((list($915), $926) -> $937)
+do_expr_var/4 -> fun((<'E' | 'F' | 'FinishedNum' | 'MainPid' | 'MaxNum' | 'Pid'>, {integer(), integer()}, list($950), $970) -> <{list($972), $976} | {list($978), $998} | {list($1000), $1002} | {list($1004), $1008} | {list($1010), $1012} | {list($1014), $1018}>)
+eval_file_attr/2 -> fun((list($1124), list(integer())) -> list($1236))
+eval_file_attribute/2 -> fun((list($1342), $1353) -> list($1466))
