@@ -1,19 +1,19 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
 
-module Squasher.Types where
+module Squasher.Types(ErlType(..)) where
 
-import Data.Text(Text)
-import qualified Data.Text as Text
-import Data.Set(Set)
-import qualified Data.Set as Set
-import Data.Data
-import Data.Map(Map)
-import Data.List (intercalate)
-import qualified Data.Maybe as Maybe
-import Foreign.Erlang.Term
-import qualified Data.Map as Map
+import           Data.Data
+import           Data.List           (intercalate)
+import           Data.Map            (Map)
+import qualified Data.Map            as Map
+import qualified Data.Maybe          as Maybe
+import           Data.Set            (Set)
+import qualified Data.Set            as Set
+import           Data.Text           (Text)
+import qualified Data.Text           as Text
+import           Foreign.Erlang.Term
 
 
 data ErlType = EInt
@@ -26,7 +26,7 @@ data ErlType = EInt
              | ENone
              | EUnion (Set ErlType)
              | EFun [ErlType] ErlType
-            -- Meta alias, used by the algorithm 
+            -- Meta alias, used by the algorithm
              | EAliasMeta Int
              | EUnknown
             --
@@ -59,12 +59,12 @@ instance FromTerm ErlType where
         (Atom _ "unknown") -> Just EUnknown
         (Atom _ "binary") -> Just EBinary
         (Atom _ "bitstring") -> Just EBitString
-        (Tuple [Atom _ "list",  term]) -> 
+        (Tuple [Atom _ "list",  term]) ->
             EList <$> fromTerm term
-        (Tuple [Atom _ "map", Nil]) -> 
+        (Tuple [Atom _ "map", Nil]) ->
             Just $ EMap Map.empty
-        (Tuple [Atom _ "map", List terms Nil]) -> 
-            Just $ EMap $ Map.fromList $ Maybe.mapMaybe 
+        (Tuple [Atom _ "map", List terms Nil]) ->
+            Just $ EMap $ Map.fromList $ Maybe.mapMaybe
                 (\case { Tuple [t1,t2] -> (,) <$> fromTerm t1 <*> fromTerm t2; _ -> Nothing}) terms
         (Atom _ "pid") -> Just EPid
         (Atom _ "port") -> Just EPort
@@ -95,23 +95,23 @@ instance Show ErlType where
         ERef -> "reference()"
         EBoolean -> "boolean()"
         EMap ts -> "#{" ++ intercalate ", " (map (\(t1, t2) -> show t1 ++ " => " ++ show t2) (Map.toList ts)) ++ "}"
-        EList t -> "list(" ++ show t ++ ")" 
+        EList t -> "list(" ++ show t ++ ")"
 
--- Subtyping, without handling unknowns?
--- no map handling, function handling
-(<:) :: ErlType -> ErlType -> Bool
-t1 <: t2 | t1 == t2 = True
---EInt <: EFloat = True
-(ENamedAtom _) <: EAnyAtom = True
-EBoolean <: EAnyAtom = True
-(ENamedAtom "true") <: EBoolean = True
-(ENamedAtom "false") <: EBoolean = True
-ENone <: _ = True
-_ <: EAny = True
-EBitString <: EBinary = True
-(EUnion ts) <: t = all (<: t) ts
-t <: (EUnion ts) = any (t <: ) ts
-(EList t1) <: (EList t2) = t1 <: t2
-_ <: _ = False
+-- -- Subtyping, without handling unknowns?
+-- -- no map handling, function handling
+-- (<:) :: ErlType -> ErlType -> Bool
+-- t1 <: t2 | t1 == t2 = True
+-- --EInt <: EFloat = True
+-- (ENamedAtom _) <: EAnyAtom = True
+-- EBoolean <: EAnyAtom = True
+-- (ENamedAtom "true") <: EBoolean = True
+-- (ENamedAtom "false") <: EBoolean = True
+-- ENone <: _ = True
+-- _ <: EAny = True
+-- EBitString <: EBinary = True
+-- (EUnion ts) <: t = all (<: t) ts
+-- t <: (EUnion ts) = any (t <: ) ts
+-- (EList t1) <: (EList t2) = t1 <: t2
+-- _ <: _ = False
 
 

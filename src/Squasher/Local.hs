@@ -1,41 +1,42 @@
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Squasher.Local (runner, SquashConfig(..), AliasEnv(..), TyEnv(..)) where
 
-import Squasher.Types
-import Data.Text (Text)
-import qualified Data.Text as Text
-import Data.Map.Strict (Map)
-import Data.Set (Set)
-import Control.Monad.Trans.State.Strict
-import qualified Data.Set as Set
-import qualified Data.Map.Strict as Map
-import Data.ByteString.Lazy (ByteString)
-import Data.IntMap.Strict (IntMap)
-import Data.IntSet (IntSet)
-import qualified Data.IntSet as IntSet
+import           Control.Monad.Trans.State.Strict
+import           Data.ByteString.Lazy             (ByteString)
+import           Data.IntMap.Strict               (IntMap)
+import           Data.IntSet                      (IntSet)
+import qualified Data.IntSet                      as IntSet
+import           Data.Map.Strict                  (Map)
+import qualified Data.Map.Strict                  as Map
+import           Data.Set                         (Set)
+import qualified Data.Set                         as Set
+import           Data.Text                        (Text)
+import qualified Data.Text                        as Text
+import           Squasher.Types
 --import Data.Generics.Uniplate.Operations (transformM)
-import Data.Generics.Uniplate.Data
-import qualified Data.IntMap.Strict as IntMap
+import           Control.Monad                    (zipWithM)
+import           Control.Monad.Trans.Except       (Except, except, throwE)
+import           Data.Binary                      (decodeOrFail)
+import           Data.Binary.Get                  (ByteOffset)
+import qualified Data.Equivalence.Monad           as Equiv
+import           Data.Generics.Uniplate.Data
+import qualified Data.IntMap.Strict               as IntMap
+import           Data.List                        (delete, intercalate, nub,
+                                                   (\\))
 import qualified Data.Maybe
-import Data.List (nub, intercalate, (\\), delete)
-import Data.Binary (decodeOrFail)
-import Data.Binary.Get (ByteOffset)
-import Control.Monad.Trans.Except (Except, throwE, except)
-import Foreign.Erlang.Term
-import Debug.Trace
-import Data.Tuple(swap)
-import Control.Monad(zipWithM)
-import qualified Data.Equivalence.Monad as Equiv
+import           Data.Tuple                       (swap)
+import           Debug.Trace
+import           Foreign.Erlang.Term
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
 
-data FunName = MkFunName { funName :: Text
+data FunName = MkFunName { funName  :: Text
                          , funArity :: Int
                          } deriving(Eq, Ord)
 
@@ -75,7 +76,7 @@ instance FromTerm PathPart where
 instance FromTerm Path where
     fromTerm t = case t of
         List elems _ -> MkPath <$> mapM fromTerm elems
-        _ -> Nothing
+        _            -> Nothing
 
 
 entryFromTerm :: Term -> Except String (ErlType, Path)
@@ -87,7 +88,7 @@ entryFromTerm t = throwE $ "Not an entry: " ++ show t
 
 maybeToEither :: a -> Maybe b -> Either a b
 maybeToEither _def (Just val) = Right val
-maybeToEither def Nothing = Left def
+maybeToEither def Nothing     = Left def
 
 runner :: ByteString -> Except String (SquashConfig, SquashConfig)
 runner bs = case res of
@@ -190,7 +191,7 @@ mkFlatUnion ts | Set.size flatUnion > 60 = Set.fold lub ENone flatUnion
     flatUnion = squashUnionElements $ Set.fold go Set.empty ts
 
     go (EUnion ts') set = ts' <> set
-    go t' set = Set.insert t' set
+    go t' set           = Set.insert t' set
 
 makeArgs :: ErlType -> Int -> Int -> [ErlType]
 makeArgs t index size =
@@ -219,12 +220,12 @@ update ty (MkPath p) env =
         [FunN fn] -> let tenv = unTyEnv env in
             case Map.lookup fn tenv of
                 Just ty' -> MkTyEnv $ Map.insert fn (combine ty ty') tenv
-                Nothing -> MkTyEnv $ Map.insert fn ty tenv
+                Nothing  -> MkTyEnv $ Map.insert fn ty tenv
         _ -> error "Internal error"
 
 
-data AliasEnv = MkAliasEnv 
-    { aliasMap :: IntMap ErlType
+data AliasEnv = MkAliasEnv
+    { aliasMap  :: IntMap ErlType
     , nextIndex :: Int
     } deriving (Eq, Ord)
 
@@ -240,16 +241,16 @@ lookupAlias i MkAliasEnv{..} =
 
 data SquashConfig = SquashConfig
                   { aliasEnv :: AliasEnv
-                  , tyEnv :: TyEnv
+                  , tyEnv    :: TyEnv
                   } deriving(Show)
 
 addFunction :: FunName -> ErlType -> SquashConfig -> SquashConfig
 addFunction fn t SquashConfig{tyEnv = MkTyEnv{..},..} =
-    SquashConfig{tyEnv=MkTyEnv (Map.insert fn t unTyEnv), ..} 
+    SquashConfig{tyEnv=MkTyEnv (Map.insert fn t unTyEnv), ..}
 
 
 addAlias :: Int -> ErlType -> SquashConfig -> SquashConfig
-addAlias i t SquashConfig{aliasEnv=MkAliasEnv{..},..} = 
+addAlias i t SquashConfig{aliasEnv=MkAliasEnv{..},..} =
     SquashConfig{aliasEnv=MkAliasEnv (IntMap.insert i t aliasMap) nextIndex, ..}
 
 
@@ -259,13 +260,13 @@ reg SquashConfig{aliasEnv = MkAliasEnv{..}, ..} t =
 
 resolve :: SquashConfig -> ErlType -> ErlType
 resolve conf (EAliasMeta i) = lookupAlias i (aliasEnv conf)
-resolve _    t = t
+resolve _    t              = t
 
 aliases :: ErlType -> [Int]
 aliases t = Data.List.nub $ para visit t where
     visit :: ErlType -> [[Int]] -> [Int]
     visit (EAliasMeta i) is = i : concat is
-    visit _ is = concat is
+    visit _ is              = concat is
 
 shouldMerge :: [ErlType] -> Bool
 shouldMerge (ETuple (ENamedAtom n : elems) : ts) =
@@ -278,18 +279,18 @@ shouldMerge (ENamedAtom n : ts) =
     all filt ts where
         filt :: ErlType -> Bool
         filt (ENamedAtom n') = n == n'
-        filt _ = False
+        filt _               = False
 shouldMerge _ = False
 
 mergeAliases :: SquashConfig -> [Int] -> SquashConfig
 mergeAliases conf [] = conf
 mergeAliases conf [_] = conf
-mergeAliases conf as@(a1:rest) = 
+mergeAliases conf as@(a1:rest) =
     mapAliasesTo (mapAliasesTo conf rest (EAliasMeta a1)) [a1] sigma where
         sigma = foldl1 combine $ map process as
         -- resolve alias -> remove top-level aliases -> change a_2..a_n refs to a_1
         -- we subst with rest, just in case there are references between a_n and and a_m, n and m > 1
-        process ai = 
+        process ai =
             substTy rest (EAliasMeta a1) (erase (resolve conf (EAliasMeta ai)))
         -- remove top-level aliases to avoid infinite types
         erase (EAliasMeta a') | a' `elem` as = EUnion Set.empty
@@ -304,9 +305,9 @@ substTy as newT = transform go where
 
 mapAliasesTo :: SquashConfig -> [Int] -> ErlType -> SquashConfig
 mapAliasesTo SquashConfig{aliasEnv=MkAliasEnv{..},..} as newT =
-    SquashConfig{aliasEnv=MkAliasEnv{aliasMap=newAliases, ..}, ..} where 
+    SquashConfig{aliasEnv=MkAliasEnv{aliasMap=newAliases, ..}, ..} where
         newAliases :: IntMap ErlType
-        newAliases = 
+        newAliases =
             IntMap.mapWithKey
                 (\i t -> if i `elem` as then newT else t)
                 aliasMap
@@ -317,7 +318,7 @@ aliasTuple conf t = postwalk' conf t f where
     f conf' t'@(ETuple (ENamedAtom _ : _)) = reg conf' t'
     f conf' (EUnion ts) | any (\case { EAliasMeta _ -> True; _ -> False}) ts =
         reg conf' (EUnion $ Set.map (resolve conf') ts)
-    f conf' t' = (conf', t') 
+    f conf' t' = (conf', t')
 
 squash :: SquashConfig -> [Int] -> [Int] -> SquashConfig
 squash conf []     _d = conf
@@ -325,14 +326,14 @@ squash conf@SquashConfig{..} (a1:w) d  = squash conf' (w ++ as) (d ++ [a1]) wher
     as = aliases (lookupAlias a1 aliasEnv) Data.List.\\ d
     ap = Data.List.delete a1 d
     -- refers to ai, what is it???
-    f delta a2 = 
+    f delta a2 =
         if not (shouldMerge (map (resolve delta) [EAliasMeta a1, EAliasMeta a2]))
         then delta
         else mergeAliases delta [a1, a2] -- or include the whole worklist?
 
-    conf' = 
+    conf' =
         if a1 `elem` d then conf else foldl f conf (ap ++ as)
-    
+
 squashAll :: SquashConfig -> ErlType -> SquashConfig
 squashAll conf0 t = confn where
     as = aliases t
@@ -347,7 +348,7 @@ squashLocal tEnv = pruneAliases $ removeProxyAliases $ Map.foldlWithKey h initia
         conf2 = squashAll conf1 t1
 
 -- just until the debugging is done...
-postwalk' :: SquashConfig -> ErlType -> 
+postwalk' :: SquashConfig -> ErlType ->
              (SquashConfig -> ErlType -> (SquashConfig, ErlType)) ->
              (SquashConfig, ErlType)
 postwalk' conf t f = swap $ runState (postwalk f' t) conf where
@@ -374,29 +375,29 @@ removeSingleUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv 
         visit t = t
 
         go (EUnion ts) set = ts <> set
-        go t set = Set.insert t set
+        go t set           = Set.insert t set
 
 -- | Remove "proxy" aliases like $1 in: $1 -> $2 -> {'rec', integer()}
 removeProxyAliases :: SquashConfig -> SquashConfig
-removeProxyAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs} = 
+removeProxyAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
-        newAliasMap = IntMap.map (remove conf) aliasMap 
+        newAliasMap = IntMap.map (remove conf) aliasMap
         newFuns = Map.map (remove conf) funs
 
         remove conf' t = snd $ postwalk' conf' t resolveProxy
 
-        resolveProxy conf' (EAliasMeta i) = 
+        resolveProxy conf' (EAliasMeta i) =
             case lookupAlias i (aliasEnv conf') of
-                EAliasMeta j -> resolveProxy conf' (EAliasMeta j) 
-                _ -> (conf', EAliasMeta i)
+                EAliasMeta j -> resolveProxy conf' (EAliasMeta j)
+                _            -> (conf', EAliasMeta i)
         resolveProxy conf' t = (conf', t)
 
 
 -- | Remove mappings for unused aliases.
-pruneAliases :: SquashConfig -> SquashConfig 
-pruneAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} = 
+pruneAliases :: SquashConfig -> SquashConfig
+pruneAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex } where
-    
+
     tys = Map.elems funs
     usedAliases = IntSet.unions $ map (\t -> aliasesInTyRec IntSet.empty t conf) tys
     newAliasMap = IntMap.restrictKeys aliasMap usedAliases
@@ -430,15 +431,15 @@ singleRecFun conf fn t = addFunction fn t' conf' where
 
     --f co ty@(ENamedAtom _) = reg co ty
     f co ty@(ETuple (ENamedAtom _ : _)) = reg co ty
-    f co ty = (co, ty)
+    f co ty                             = (co, ty)
 
 singleRecAlias :: SquashConfig -> ErlType -> (SquashConfig, ErlType)
 singleRecAlias conf t = (conf', t') where
     (conf', t') = postwalk' conf t f
-    
+
     --f co ty@(ENamedAtom _) = reg co ty
     f co ty@(ETuple (ENamedAtom _ : _)) = reg co ty
-    f co ty = (co, ty)
+    f co ty                             = (co, ty)
 
 
 -- Bit weird
@@ -446,22 +447,22 @@ aliasSingleRec :: SquashConfig -> SquashConfig
 aliasSingleRec conf = IntMap.foldlWithKey f conf' (aliasMap $ aliasEnv conf') where
     conf' = Map.foldlWithKey singleRecFun conf (unTyEnv $ tyEnv conf)
 
-    f conf0 a (ETuple (ENamedAtom txt : ts)) = 
-        let 
-            (confn, ts') = foldChildren ts conf0 
+    f conf0 a (ETuple (ENamedAtom txt : ts)) =
+        let
+            (confn, ts') = foldChildren ts conf0
         in
             addAlias a (ETuple (ENamedAtom txt : ts')) confn
-    f conf0 a t = 
-        let 
-            (conf1, t1) = singleRecAlias conf0 t 
-        in 
+    f conf0 a t =
+        let
+            (conf1, t1) = singleRecAlias conf0 t
+        in
             addAlias a t1 conf1
 
 foldChildren :: [ErlType] -> SquashConfig -> (SquashConfig, [ErlType])
 foldChildren ts conf = (conf', reverse ts') where
     (conf', ts') = foldl visit (conf, []) ts
 
-    visit (c, acc) ty = 
+    visit (c, acc) ty =
         let (c1, ty1) = singleRecAlias c ty in
         (c1, ty1 : acc)
 
@@ -472,18 +473,18 @@ tag :: SquashConfig -> ErlType -> Maybe Tag
 tag conf ty = case resolve conf ty of
     (ETuple (ENamedAtom txt : ts)) -> Just $ RecordTag txt $ length ts
     ENamedAtom txt -> Just $ SingleAtom txt
-    EUnion ts -> 
+    EUnion ts ->
         case map (tag conf) $ Set.toList ts of
-            t':ts' -> 
+            t':ts' ->
                 if all (t'==) ts' then t' else Nothing
             _ -> Nothing
     _ -> Nothing
 
 groupSimilarRecs :: SquashConfig -> Map Tag [Int]
-groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} = 
+groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
     IntMap.foldlWithKey visit Map.empty aliasMap where
 
-    visit acc key _ = 
+    visit acc key _ =
         case tag conf (EAliasMeta key) of
             Just theTag ->
                 Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) theTag acc
@@ -493,7 +494,7 @@ squashUnionElements :: Set ErlType -> Set ErlType
 squashUnionElements ts = unTaggedSet <> Set.fromList (Map.elems tagMap) where
     (unTaggedSet, tagMap) = Set.foldl visit (Set.empty, Map.empty) ts
 
-    visit (unTagged, tagged) t = 
+    visit (unTagged, tagged) t =
         case immediateTag t of
             Just theTag ->
                 (unTagged, Map.alter (\case Just t' -> Just $ t `combine` t'; _ -> Just t) theTag tagged)
@@ -502,11 +503,11 @@ squashUnionElements ts = unTaggedSet <> Set.fromList (Map.elems tagMap) where
     immediateTag :: ErlType -> Maybe Tag
     immediateTag t = case t of
         (ETuple (ENamedAtom txt : rest)) -> Just $ RecordTag txt $ length rest
-        ENamedAtom txt -> Just $ SingleAtom txt
-        _ -> Nothing
+        ENamedAtom txt                   -> Just $ SingleAtom txt
+        _                                -> Nothing
 
 squashHorizontally :: SquashConfig -> SquashConfig
-squashHorizontally conf = Map.foldl mergeAliases conf (groupSimilarRecs conf) 
+squashHorizontally conf = Map.foldl mergeAliases conf (groupSimilarRecs conf)
 
 squashHorizontallyMulti :: SquashConfig -> SquashConfig
 squashHorizontallyMulti conf = foldl mergeAliases conf (getEq (aliasesToTags conf) conf)
@@ -514,18 +515,18 @@ squashHorizontallyMulti conf = foldl mergeAliases conf (getEq (aliasesToTags con
 tagMulti :: SquashConfig -> ErlType -> Set Tag
 tagMulti conf ty = case resolve conf ty of
     (ETuple (ENamedAtom txt : ts)) -> Set.singleton $ RecordTag txt $ length ts
-    ENamedAtom txt -> Set.singleton $ SingleAtom txt
-    EUnion ts -> Set.unions $ Set.map (tagMulti conf) ts
-    _ -> Set.empty
+    ENamedAtom txt                 -> Set.singleton $ SingleAtom txt
+    EUnion ts                      -> Set.unions $ Set.map (tagMulti conf) ts
+    _                              -> Set.empty
 
 -- groupSimilarRecsMulti :: SquashConfig -> Map (Set Tag) [Int]
--- groupSimilarRecsMulti conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} = 
+-- groupSimilarRecsMulti conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
 --     Map.map Data.List.nub groups where
 
 --     groups = IntMap.foldlWithKey visit Map.empty aliasMap
 
 --     visit acc key _ = let tags = tagMulti conf (EAliasMeta key) in
---         if not (Set.null tags) 
+--         if not (Set.null tags)
 --         then Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) tags acc
 --         else acc
 
@@ -551,12 +552,12 @@ getEq tagMap conf = runEq conf $ do
 
 
 aliasesToTags :: SquashConfig -> Map Tag [Int]
-aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} = 
+aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
     Map.map Data.List.nub groups where
 
     groups = IntMap.foldlWithKey visit Map.empty aliasMap
 
-    visit acc alias _ = 
+    visit acc alias _ =
         Set.fold (addTag alias) acc (tagMulti conf (EAliasMeta alias))
 
     addTag alias = Map.alter (\case Just is -> Just (alias : is); _ -> Just [alias])

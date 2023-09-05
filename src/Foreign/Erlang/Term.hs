@@ -1,29 +1,25 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE LambdaCase     #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
-module Foreign.Erlang.Term where
+module Foreign.Erlang.Term(ExternalTerm(..), Term(..), FromTerm(..)) where
 
-import Data.Text (Text)
-import qualified Data.Text as Text
-import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
-  ( foldr',
-    length, 
-    take,
-  )
-import Data.Binary
-import GHC.Generics
-import qualified Data.List as L
-import qualified Data.Bits()
-import Data.Int
-import Data.Binary.Put
-import Data.Binary.Get
-import Data.Bits
-import GHC.Stack (HasCallStack)
+import           Control.Monad      (replicateM)
+import           Data.Binary
+import           Data.Binary.Get
+import           Data.Binary.Put
+import           Data.Bits
+import qualified Data.Bits          ()
+import           Data.ByteString    (ByteString)
+import qualified Data.ByteString    as BS (foldr', length, take)
+import           Data.Int
+import qualified Data.List          as L
+import           Data.Text          (Text)
+import qualified Data.Text          as Text
 import qualified Data.Text.Encoding as Enc
-import Control.Monad (replicateM)
+import           GHC.Generics
+import           GHC.Stack          (HasCallStack)
 
 newtype ExternalTerm = MkExternalTerm {fromExternalTerm :: Term}
   deriving (Eq, Generic, Show)
@@ -61,10 +57,10 @@ data AtomType
   | AtomUtf8
   | SmallAtomUtf8
   deriving (Eq, Generic, Ord, Bounded, Enum, Show)
-    
+
 
 data MapEntry = MapEntry
-  { key :: Term,
+  { key   :: Term,
     value :: Term
   }
   deriving(Eq, Generic, Show)
@@ -80,7 +76,7 @@ magicVersion = 131
 
 smallIntegerExt,
   integerExt,
-  floatExt,
+--  floatExt,
   atomExt,
   referenceExt,
   newReferenceExt,
@@ -96,20 +92,20 @@ smallIntegerExt,
   stringExt,
   listExt,
   binaryExt,
-  newFunctionExt,
+  -- newFunctionExt,
   smallBigIntegerExt,
   largeBigIntegerExt,
   smallAtomExt,
-  functionExt,
-  exportExt,
-  bitBinaryExt,
+  -- functionExt,
+  -- exportExt,
+  -- bitBinaryExt,
   newFloatExt,
   atomUtf8Ext,
   smallAtomUtf8Ext ::
     Word8
 smallIntegerExt = 97
 integerExt = 98
-floatExt = 99
+-- floatExt = 99
 atomExt = 100
 smallAtomExt = 115
 atomUtf8Ext = 118
@@ -130,10 +126,10 @@ listExt = 108
 binaryExt = 109
 smallBigIntegerExt = 110
 largeBigIntegerExt = 111
-functionExt = 117
-newFunctionExt = 112
-exportExt = 113
-bitBinaryExt = 77
+-- functionExt = 117
+-- newFunctionExt = 112
+-- exportExt = 113
+-- bitBinaryExt = 77
 newFloatExt = 70
 
 
@@ -293,7 +289,7 @@ getNodeNameAtom :: Get (AtomType, Text)
 getNodeNameAtom =
   get >>= \case
     Atom nt nn -> return (nt, nn)
-    other -> fail ("expected a node name atom, but got: " ++ show other)
+    other      -> fail ("expected a node name atom, but got: " ++ show other)
 
 getList :: HasCallStack => Binary a => Int -> Get [a]
 getList len = replicateM len get
