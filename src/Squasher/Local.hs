@@ -125,16 +125,21 @@ combine (EList t1) (EList t2) = EList $ t1 `combine` t2
 combine (EMap m1) (EMap m2) = EMap $ Map.unionWith combine m1 m2
 combine (EUnion ts) t1 | Set.null ts = t1
 combine t1 (EUnion ts) | Set.null ts = t1
+combine (EUnion ts1) (EUnion ts2) = mkFlatUnion $ Set.fold (flip combineUnion) ts1 ts2
 combine (EUnion ts) t1 = mkFlatUnion $ combineUnion ts t1
 combine t1 (EUnion ts) = mkFlatUnion $ combineUnion ts t1
 combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
     EFun (zipWith combine argts1 argts2) (combine t1 t2)
+-- adding combineUnion here breaks stuff for some reason
 combine t1 t2 = mkFlatUnion $ Set.fromList [t1, t2]
 
 -- todo: better performance??
 combineUnion :: Set ErlType -> ErlType -> Set ErlType
 combineUnion ts t = if didEquate then newTs else Set.map (`combine` t) ts where
-    (newTs, didEquate) = Set.fold go (Set.empty, False) ts 
+    (newTs, didEquate) = Set.fold go (Set.empty, False) $ Set.fold elements Set.empty ts 
+
+    elements (EUnion ts') set = ts' <> set
+    elements t' set           = Set.insert t' set
 
     go t' (ts', combined') = 
         case equate t t' of
@@ -387,6 +392,35 @@ removeSingleUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv 
         go (EUnion ts) set = ts <> set
         go t set           = Set.insert t set
 
+-- | Remove single element unions, collapse nested unions
+-- Maybe we could leave only this, and don't use equate when combining things
+-- Mainly depends on performance impact I think
+
+-- And why do we even need this with the combine function already using equate for unions?
+tryRemoveUnknowns :: SquashConfig -> SquashConfig
+tryRemoveUnknowns conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs} =
+    conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
+        newAliasMap = IntMap.map equateElements aliasMap
+        newFuns = Map.map equateElements funs
+
+        equateElements :: ErlType -> ErlType
+        equateElements = transform visit
+
+        visit :: ErlType -> ErlType
+        visit (EUnion ts) = EUnion $ Set.fold doRemove Set.empty ts
+        visit t = t
+
+        doRemove :: ErlType -> Set ErlType -> Set ErlType
+        doRemove t ts = if didEquate then newTs else Set.insert t newTs where
+
+            (newTs, didEquate) = Set.fold go (Set.empty, False) ts
+
+            go t' (ts', combined') = 
+                case equate t t' of
+                    Just t'' -> (Set.insert t'' ts', True)
+                    Nothing -> (Set.insert t' ts', combined') 
+
+
 -- | Remove "proxy" aliases like $1 in: $1 -> $2 -> {'rec', integer()}
 removeProxyAliases :: SquashConfig -> SquashConfig
 removeProxyAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs} =
@@ -592,6 +626,7 @@ squashGlobal = compose [ aliasSingleRec
                        , removeProxyAliases
                        , pruneAliases
                        , removeSingleUnions
+                       , tryRemoveUnknowns
                        ]
 
 compose :: [a -> a] -> a -> a

@@ -41,6 +41,11 @@ data ErlType = EInt
              | EPort
              | ERef
              | EBoolean
+             --
+            --  | EArray -- 5 element tup
+            --  | ESet -- 9 element tup or map
+            --  | EDict -- 9 element tup
+            --  | EOrdDict -- weird
              deriving(Ord, Eq, Data, Typeable)
 
 instance FromTerm ErlType where
