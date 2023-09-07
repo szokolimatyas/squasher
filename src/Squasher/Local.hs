@@ -135,7 +135,7 @@ combine t1 t2 = mkFlatUnion $ Set.fromList [t1, t2]
 
 -- todo: better performance??
 combineUnion :: Set ErlType -> ErlType -> Set ErlType
-combineUnion ts t = if didEquate then newTs else Set.map (`combine` t) ts where
+combineUnion ts t = if didEquate then newTs else Set.insert t ts where
     (newTs, didEquate) = Set.fold go (Set.empty, False) $ Set.fold elements Set.empty ts 
 
     elements (EUnion ts') set = ts' <> set
@@ -407,18 +407,8 @@ tryRemoveUnknowns conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv f
         equateElements = transform visit
 
         visit :: ErlType -> ErlType
-        visit (EUnion ts) = EUnion $ Set.fold doRemove Set.empty ts
+        visit (EUnion ts) = EUnion $ Set.fold (flip combineUnion) Set.empty ts
         visit t = t
-
-        doRemove :: ErlType -> Set ErlType -> Set ErlType
-        doRemove t ts = if didEquate then newTs else Set.insert t newTs where
-
-            (newTs, didEquate) = Set.fold go (Set.empty, False) ts
-
-            go t' (ts', combined') = 
-                case equate t t' of
-                    Just t'' -> (Set.insert t'' ts', True)
-                    Nothing -> (Set.insert t' ts', combined') 
 
 
 -- | Remove "proxy" aliases like $1 in: $1 -> $2 -> {'rec', integer()}
