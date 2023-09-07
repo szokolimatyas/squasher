@@ -131,20 +131,21 @@ combine t1 (EUnion ts) = mkFlatUnion $ combineUnion ts t1
 combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
     EFun (zipWith combine argts1 argts2) (combine t1 t2)
 -- adding combineUnion here breaks stuff for some reason
-combine t1 t2 = mkFlatUnion $ Set.fromList [t1, t2]
+-- mkFlatUnion $ Set.fromList [t1, t2]
+combine t1 t2 = mkFlatUnion $ combineUnion (Set.singleton t1) t2
 
 -- todo: better performance??
 combineUnion :: Set ErlType -> ErlType -> Set ErlType
 combineUnion ts t = if didEquate then newTs else Set.insert t ts where
-    (newTs, didEquate) = Set.fold go (Set.empty, False) $ Set.fold elements Set.empty ts 
+    (newTs, didEquate) = Set.fold go (Set.empty, False) $ Set.fold elements Set.empty ts
 
     elements (EUnion ts') set = ts' <> set
     elements t' set           = Set.insert t' set
 
-    go t' (ts', combined') = 
+    go t' (ts', combined') =
         case equate t t' of
             Just t'' -> (Set.insert t'' ts', True)
-            Nothing -> (Set.insert t' ts', combined') 
+            Nothing  -> (Set.insert t' ts', combined')
 
 -- Combine, returns Nothing instead of toplevel unions or upcasts
 equate :: ErlType -> ErlType -> Maybe ErlType
@@ -203,7 +204,9 @@ lub _ _ = EAny
 mkFlatUnion :: Set ErlType -> ErlType
 mkFlatUnion ts | Set.size flatUnion > 60 = Set.fold lub ENone flatUnion
                | otherwise = EUnion flatUnion where
-    flatUnion = squashUnionElements $ Set.fold go Set.empty ts
+--    flatUnion = squashUnionElements $ Set.fold go Set.empty ts
+    flatUnion = Set.fold go Set.empty ts
+
 
     go (EUnion ts') set = ts' <> set
     go t' set           = Set.insert t' set
@@ -408,7 +411,7 @@ tryRemoveUnknowns conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv f
 
         visit :: ErlType -> ErlType
         visit (EUnion ts) = EUnion $ Set.fold (flip combineUnion) Set.empty ts
-        visit t = t
+        visit t           = t
 
 
 -- | Remove "proxy" aliases like $1 in: $1 -> $2 -> {'rec', integer()}
@@ -503,16 +506,21 @@ foldChildren ts conf = (conf', reverse ts') where
 data Tag = RecordTag Text Int | SingleAtom Text
     deriving (Eq, Ord, Show)
 
+-- we might even not need the EUnion case
+-- because same tag, different union elements are handled already in the union creation
 tag :: SquashConfig -> ErlType -> Maybe Tag
 tag conf ty = case resolve conf ty of
     (ETuple (ENamedAtom txt : ts)) -> Just $ RecordTag txt $ length ts
-    ENamedAtom txt -> Just $ SingleAtom txt
-    EUnion ts ->
-        case map (tag conf) $ Set.toList ts of
-            t':ts' ->
-                if all (t'==) ts' then t' else Nothing
-            _ -> Nothing
-    _ -> Nothing
+    ENamedAtom txt                 -> Just $ SingleAtom txt
+--    EUnion ts -> sameTagged $ Set.toList ts
+    _                              -> Nothing
+    -- where
+    --     sameTagged :: [ErlType] -> Maybe Tag
+    --     sameTagged [] = Nothing
+    --     sameTagged [t] = tag conf t
+    --     sameTagged (t:ts) = case sameTagged ts of
+    --         Just tag' | tag conf t == Just tag' -> Just tag'
+    --         _ -> Nothing
 
 groupSimilarRecs :: SquashConfig -> Map Tag [Int]
 groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
@@ -524,21 +532,21 @@ groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
                 Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) theTag acc
             _ -> acc
 
-squashUnionElements :: Set ErlType -> Set ErlType
-squashUnionElements ts = unTaggedSet <> Set.fromList (Map.elems tagMap) where
-    (unTaggedSet, tagMap) = Set.foldl visit (Set.empty, Map.empty) ts
+-- squashUnionElements :: Set ErlType -> Set ErlType
+-- squashUnionElements ts = unTaggedSet <> Set.fromList (Map.elems tagMap) where
+--     (unTaggedSet, tagMap) = Set.foldl visit (Set.empty, Map.empty) ts
 
-    visit (unTagged, tagged) t =
-        case immediateTag t of
-            Just theTag ->
-                (unTagged, Map.alter (\case Just t' -> Just $ t `combine` t'; _ -> Just t) theTag tagged)
-            _ -> (Set.insert t unTagged, tagged)
+--     visit (unTagged, tagged) t =
+--         case immediateTag t of
+--             Just theTag ->
+--                 (unTagged, Map.alter (\case Just t' -> Just $ t `combine` t'; _ -> Just t) theTag tagged)
+--             _ -> (Set.insert t unTagged, tagged)
 
-    immediateTag :: ErlType -> Maybe Tag
-    immediateTag t = case t of
-        (ETuple (ENamedAtom txt : rest)) -> Just $ RecordTag txt $ length rest
-        ENamedAtom txt                   -> Just $ SingleAtom txt
-        _                                -> Nothing
+--     immediateTag :: ErlType -> Maybe Tag
+--     immediateTag t = case t of
+--         (ETuple (ENamedAtom txt : rest)) -> Just $ RecordTag txt $ length rest
+--         ENamedAtom txt                   -> Just $ SingleAtom txt
+--         _                                -> Nothing
 
 squashHorizontally :: SquashConfig -> SquashConfig
 squashHorizontally conf = Map.foldl mergeAliases conf (groupSimilarRecs conf)
