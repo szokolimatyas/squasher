@@ -178,16 +178,9 @@ equate _ _ = Nothing
 -- should it be promoted to any or unknown or ignored?
 -- float/integer --> num?
 lub :: ErlType -> ErlType -> ErlType
+lub t1 t2 | Just t3 <- equate t1 t2 = t3
 lub ENone t2 = t2
 lub t1 ENone = t1
-lub EUnknown _ = EAny
-lub _ EUnknown = EAny
-lub t1 t2 | t1 == t2 = t1
-lub EBitString EBinary = EBitString
-lub EBinary EBitString = EBitString
-lub t1 t2
-    | t1 `elem` [EBoolean, ENamedAtom "true", ENamedAtom "false"] &&
-      t2 `elem` [EBoolean, ENamedAtom "true", ENamedAtom "false"] = EBoolean
 lub (ETuple ts1) (ETuple ts2)| length ts1 == length ts2 =
     ETuple $ zipWith lub ts1 ts2
 lub (EList t1) (EList t2) = EList $ t1 `lub` t2
