@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 
 module Squasher.Types(ErlType(..)) where
 
@@ -9,12 +11,13 @@ import           Data.List           (intercalate)
 import           Data.Map            (Map)
 import qualified Data.Map            as Map
 import qualified Data.Maybe          as Maybe
-import           Data.Set            (Set)
-import qualified Data.Set            as Set
+import           Data.HashSet        (HashSet)
+import qualified Data.HashSet        as HashSet
 import           Data.Text           (Text)
 import qualified Data.Text           as Text
 import           Foreign.Erlang.Term
-
+import GHC.Generics (Generic)
+import Data.Hashable
 
 data ErlType = EInt
              | EFloat
@@ -24,7 +27,7 @@ data ErlType = EInt
             -- | EList ErlType
              | EAny
              | ENone
-             | EUnion (Set ErlType)
+             | EUnion (HashSet ErlType)
              | EFun [ErlType] ErlType
             -- Meta alias, used by the algorithm
              | EAliasMeta Int
@@ -46,7 +49,9 @@ data ErlType = EInt
             --  | ESet -- 9 element tup or map
             --  | EDict -- 9 element tup
             --  | EOrdDict -- weird
-             deriving(Ord, Eq, Data, Typeable)
+             deriving(Ord, Eq, Data, Typeable, Generic)
+
+instance Hashable ErlType
 
 instance FromTerm ErlType where
     fromTerm t = case t of
@@ -57,8 +62,8 @@ instance FromTerm ErlType where
         (Tuple [Atom _ "tuple", List terms Nil]) -> ETuple <$> mapM fromTerm terms
         (Atom _ "any") -> Just EAny
         (Atom _ "none") -> Just ENone
-        (Tuple [Atom _ "union", Nil]) -> Just $ EUnion Set.empty
-        (Tuple [Atom _ "union", List terms Nil]) -> EUnion . Set.fromList <$> mapM fromTerm terms
+        (Tuple [Atom _ "union", Nil]) -> Just $ EUnion HashSet.empty
+        (Tuple [Atom _ "union", List terms Nil]) -> EUnion . HashSet.fromList <$> mapM fromTerm terms
         (Tuple [Atom _ "function", Nil, res]) -> EFun [] <$> fromTerm res
         (Tuple [Atom _ "function", List args Nil, res]) -> EFun <$> mapM fromTerm args <*> fromTerm res
         (Atom _ "unknown") -> Just EUnknown
@@ -88,7 +93,7 @@ instance Show ErlType where
         ETuple ts -> "{" ++ intercalate ", " (map show ts) ++ "}"
         EAny -> "any()"
         ENone -> "none()"
-        EUnion ts -> "<" ++ intercalate " | " (map show $ Set.toList ts) ++ ">"
+        EUnion ts -> "<" ++ intercalate " | " (map show $ HashSet.toList ts) ++ ">"
         EFun [t1] t2 -> "fun(" ++ show t1 ++ " -> " ++ show t2 ++ ")"
         EFun ts t -> "fun((" ++ intercalate ", " (map show ts) ++ ") -> " ++ show t ++ ")"
         EAliasMeta i -> "$" ++ show i

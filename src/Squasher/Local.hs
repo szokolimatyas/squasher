@@ -8,6 +8,7 @@ module Squasher.Local (runner, SquashConfig(..), AliasEnv(..), TyEnv(..)) where
 
 import           Control.Monad.Trans.State.Strict
 import           Data.ByteString.Lazy             (ByteString)
+import           Data.HashSet                     (HashSet)
 import           Data.IntMap.Strict               (IntMap)
 import           Data.IntSet                      (IntSet)
 import qualified Data.IntSet                      as IntSet
@@ -25,10 +26,10 @@ import           Data.Binary                      (decodeOrFail)
 import           Data.Binary.Get                  (ByteOffset)
 import qualified Data.Equivalence.Monad           as Equiv
 import           Data.Generics.Uniplate.Data
+import qualified Data.HashSet                     as HashSet
 import qualified Data.IntMap.Strict               as IntMap
 import           Data.List                        (delete, intercalate, nub,
                                                    (\\))
-import qualified Data.Maybe
 import           Data.Tuple                       (swap)
 import           Debug.Trace
 import           Foreign.Erlang.Term
@@ -90,7 +91,7 @@ maybeToEither :: a -> Maybe b -> Either a b
 maybeToEither _def (Just val) = Right val
 maybeToEither def Nothing     = Left def
 
-runner :: ByteString -> Except String (SquashConfig, SquashConfig)
+runner :: ByteString -> Except String SquashConfig
 runner bs = case res of
     Right (_, _, MkExternalTerm (List terms Nil)) -> do
         entries <- mapM entryFromTerm terms
@@ -99,7 +100,7 @@ runner bs = case res of
         let env' = MkTyEnv (Map.take 20 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
         traceM $ "Env:\n" ++ show (Map.size $ unTyEnv env')
         let env'' = squashLocal env'
-        return (env'', squashGlobal env'')
+        return $ squashGlobal env''
     Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
     Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
   where
@@ -123,29 +124,27 @@ combine (EList t1) (EList t2) = EList $ t1 `combine` t2
 -- no support for shapemaps!
 -- this is not the best, there could be too many different key types
 combine (EMap m1) (EMap m2) = EMap $ Map.unionWith combine m1 m2
-combine (EUnion ts) t1 | Set.null ts = t1
-combine t1 (EUnion ts) | Set.null ts = t1
-combine (EUnion ts1) (EUnion ts2) = mkFlatUnion $ Set.fold (flip combineUnion) ts1 ts2
+combine (EUnion ts) t1 | HashSet.null ts = t1
+combine t1 (EUnion ts) | HashSet.null ts = t1
+combine (EUnion ts1) (EUnion ts2) = mkFlatUnion $ HashSet.foldl' combineUnion ts1 ts2 -- (flip combineUnion)
 combine (EUnion ts) t1 = mkFlatUnion $ combineUnion ts t1
 combine t1 (EUnion ts) = mkFlatUnion $ combineUnion ts t1
 combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
     EFun (zipWith combine argts1 argts2) (combine t1 t2)
--- adding combineUnion here breaks stuff for some reason
--- mkFlatUnion $ Set.fromList [t1, t2]
-combine t1 t2 = mkFlatUnion $ combineUnion (Set.singleton t1) t2
+combine t1 t2 = mkFlatUnion $ combineUnion (HashSet.singleton t1) t2
 
 -- todo: better performance??
-combineUnion :: Set ErlType -> ErlType -> Set ErlType
-combineUnion ts t = if didEquate then newTs else Set.insert t ts where
-    (newTs, didEquate) = Set.fold go (Set.empty, False) $ Set.fold elements Set.empty ts
+combineUnion :: HashSet ErlType -> ErlType -> HashSet ErlType
+combineUnion ts t = if didEquate then newTs else HashSet.insert t ts where
+    (newTs, didEquate) = HashSet.foldl' go (HashSet.empty, False) $ HashSet.foldl' elements HashSet.empty ts
 
-    elements (EUnion ts') set = ts' <> set
-    elements t' set           = Set.insert t' set
+    elements set (EUnion ts') = ts' <> set
+    elements set t'           = HashSet.insert t' set
 
-    go t' (ts', combined') =
+    go (ts', combined') t' =
         case equate t t' of
-            Just t'' -> (Set.insert t'' ts', True)
-            Nothing  -> (Set.insert t' ts', combined')
+            Just t'' -> (HashSet.insert t'' ts', True)
+            Nothing  -> (HashSet.insert t' ts', combined')
 
 -- Combine, returns Nothing instead of toplevel unions or upcasts
 equate :: ErlType -> ErlType -> Maybe ErlType
@@ -194,15 +193,15 @@ lub (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
 lub _ _ = EAny
 
 
-mkFlatUnion :: Set ErlType -> ErlType
-mkFlatUnion ts | Set.size flatUnion > 60 = Set.fold lub ENone flatUnion
+mkFlatUnion :: HashSet ErlType -> ErlType
+mkFlatUnion ts | HashSet.size flatUnion > 60 = HashSet.foldl' lub ENone flatUnion
                | otherwise = EUnion flatUnion where
 --    flatUnion = squashUnionElements $ Set.fold go Set.empty ts
-    flatUnion = Set.fold go Set.empty ts
+    flatUnion = HashSet.foldl' go HashSet.empty ts
 
 
-    go (EUnion ts') set = ts' <> set
-    go t' set           = Set.insert t' set
+    go set (EUnion ts') = ts' <> set
+    go set t'           = HashSet.insert t' set
 
 makeArgs :: ErlType -> Int -> Int -> [ErlType]
 makeArgs t index size =
@@ -247,8 +246,7 @@ instance Show AliasEnv where
 
 -- not good: throw error!
 lookupAlias :: Int -> AliasEnv -> ErlType
-lookupAlias i MkAliasEnv{..} =
-    Data.Maybe.fromMaybe (error "internal error") (IntMap.lookup i aliasMap)
+lookupAlias i MkAliasEnv{..} = aliasMap IntMap.! i
 
 data SquashConfig = SquashConfig
                   { aliasEnv :: AliasEnv
@@ -274,7 +272,7 @@ resolve conf (EAliasMeta i) = lookupAlias i (aliasEnv conf)
 resolve _    t              = t
 
 aliases :: ErlType -> [Int]
-aliases t = Data.List.nub $ para visit t where
+aliases t = nub $ para visit t where
     visit :: ErlType -> [[Int]] -> [Int]
     visit (EAliasMeta i) is = i : concat is
     visit _ is              = concat is
@@ -304,8 +302,8 @@ mergeAliases conf as@(a1:rest) =
         process ai =
             substTy rest (EAliasMeta a1) (erase (resolve conf (EAliasMeta ai)))
         -- remove top-level aliases to avoid infinite types
-        erase (EAliasMeta a') | a' `elem` as = EUnion Set.empty
-        erase (EUnion ts) = mkFlatUnion $ Set.map erase ts
+        erase (EAliasMeta a') | a' `elem` as = EUnion HashSet.empty
+        erase (EUnion ts) = mkFlatUnion $ HashSet.map erase ts
         erase t = t
 
 -- -- | Change all occurences of aliases to newT in a type
@@ -328,7 +326,7 @@ aliasTuple conf t = postwalk' conf t f where
  --   f conf' t'@(ENamedAtom _) = reg conf' t'
     f conf' t'@(ETuple (ENamedAtom _ : _)) = reg conf' t'
     f conf' (EUnion ts) | any (\case { EAliasMeta _ -> True; _ -> False}) ts =
-        reg conf' (EUnion $ Set.map (resolve conf') ts)
+        reg conf' (EUnion $ HashSet.map (resolve conf') ts)
     f conf' t' = (conf', t')
 
 squash :: SquashConfig -> [Int] -> [Int] -> SquashConfig
@@ -385,7 +383,7 @@ tryRemoveUnknowns conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv f
         equateElements = transform visit
 
         visit :: ErlType -> ErlType
-        visit (EUnion ts) = EUnion $ Set.fold (flip combineUnion) Set.empty ts
+        visit (EUnion ts) = EUnion $ HashSet.foldl' combineUnion HashSet.empty ts
         visit t           = t
 
 
@@ -398,16 +396,16 @@ removeProxyAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv 
 
         remove = transform resolveProxy
 
-        resolveProxy (EUnion ts) | Set.size ts == 1 = resolveProxy (Set.findMin ts)
-        resolveProxy (EUnion ts) = EUnion $ Set.fold go Set.empty ts
+        resolveProxy (EUnion ts) | HashSet.size ts == 1 = resolveProxy (head $ HashSet.toList ts)
+        resolveProxy (EUnion ts) = EUnion $ HashSet.foldl' go HashSet.empty ts
         resolveProxy (EAliasMeta i) =
             case lookupAlias i (aliasEnv conf) of
                 EAliasMeta j -> resolveProxy (EAliasMeta j)
                 _            -> EAliasMeta i
         resolveProxy  t = t
 
-        go (EUnion ts) set = ts <> set
-        go t set           = Set.insert t set
+        go set (EUnion ts) = ts <> set
+        go set t           = HashSet.insert t set
 
 -- | Remove mappings for unused aliases.
 pruneAliases :: SquashConfig -> SquashConfig
@@ -422,7 +420,7 @@ pruneAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
 aliasesInTyRec :: IntSet -> ErlType -> SquashConfig -> IntSet
 aliasesInTyRec is t s = case t of
     ETuple ts -> IntSet.unions $ map (\t' -> aliasesInTyRec is t' s) ts
-    EUnion ts -> IntSet.unions $ map (\t' -> aliasesInTyRec is t' s) (Set.toList ts)
+    EUnion ts -> IntSet.unions $ map (\t' -> aliasesInTyRec is t' s) (HashSet.toList ts)
     EFun argts rest ->  IntSet.unions $ aliasesInTyRec is rest s : map (\t' -> aliasesInTyRec is t' s) argts
     EList t' -> aliasesInTyRec is t' s
     EMap m ->
@@ -537,7 +535,7 @@ tagMulti :: SquashConfig -> ErlType -> Set Tag
 tagMulti conf ty = case resolve conf ty of
     (ETuple (ENamedAtom txt : ts)) -> Set.singleton $ RecordTag txt $ length ts
     ENamedAtom txt                 -> Set.singleton $ SingleAtom txt
-    EUnion ts                      -> Set.unions $ Set.map (tagMulti conf) ts
+    EUnion ts                      -> Set.unions $ map (tagMulti conf) $ HashSet.toList ts
     _                              -> Set.empty
 
 -- groupSimilarRecsMulti :: SquashConfig -> Map (Set Tag) [Int]
@@ -569,12 +567,12 @@ getEq tagMap conf = runEq conf $ do
         classesToAliases cl = do
             tags <- Equiv.desc cl
             let l = foldl (\as tg -> Map.findWithDefault [] tg tagMap ++ as) [] tags
-            return $ Data.List.nub l
+            return $ nub l
 
 
 aliasesToTags :: SquashConfig -> Map Tag [Int]
 aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
-    Map.map Data.List.nub groups where
+    Map.map nub groups where
 
     groups = IntMap.foldlWithKey visit Map.empty aliasMap
 
