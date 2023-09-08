@@ -371,24 +371,6 @@ postwalk :: (ErlType -> State a ErlType) ->
 postwalk = transformM
 
 -- | Remove single element unions, collapse nested unions
-removeSingleUnions :: SquashConfig -> SquashConfig
-removeSingleUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs} =
-    conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
-        newAliasMap = IntMap.map flattenUnions aliasMap
-        newFuns = Map.map flattenUnions funs
-
-        flattenUnions :: ErlType -> ErlType
-        flattenUnions = transform visit
-
-        visit :: ErlType -> ErlType
-        visit (EUnion ts) | Set.size ts == 1 = Set.findMin ts
-        visit (EUnion ts) = EUnion $ Set.fold go Set.empty ts
-        visit t = t
-
-        go (EUnion ts) set = ts <> set
-        go t set           = Set.insert t set
-
--- | Remove single element unions, collapse nested unions
 -- Maybe we could leave only this, and don't use equate when combining things
 -- Mainly depends on performance impact I think
 
@@ -411,17 +393,21 @@ tryRemoveUnknowns conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv f
 removeProxyAliases :: SquashConfig -> SquashConfig
 removeProxyAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
-        newAliasMap = IntMap.map (remove conf) aliasMap
-        newFuns = Map.map (remove conf) funs
+        newAliasMap = IntMap.map remove aliasMap
+        newFuns = Map.map remove funs
 
-        remove conf' t = snd $ postwalk' conf' t resolveProxy
+        remove = transform resolveProxy
 
-        resolveProxy conf' (EAliasMeta i) =
-            case lookupAlias i (aliasEnv conf') of
-                EAliasMeta j -> resolveProxy conf' (EAliasMeta j)
-                _            -> (conf', EAliasMeta i)
-        resolveProxy conf' t = (conf', t)
+        resolveProxy (EUnion ts) | Set.size ts == 1 = resolveProxy (Set.findMin ts)
+        resolveProxy (EUnion ts) = EUnion $ Set.fold go Set.empty ts
+        resolveProxy (EAliasMeta i) =
+            case lookupAlias i (aliasEnv conf) of
+                EAliasMeta j -> resolveProxy (EAliasMeta j)
+                _            -> EAliasMeta i
+        resolveProxy  t = t
 
+        go (EUnion ts) set = ts <> set
+        go t set           = Set.insert t set
 
 -- | Remove mappings for unused aliases.
 pruneAliases :: SquashConfig -> SquashConfig
@@ -601,22 +587,16 @@ aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
 -- Could we unify proxy removal, pruning, etc?
 squashGlobal :: SquashConfig -> SquashConfig
 squashGlobal = compose [ aliasSingleRec
-                       , removeSingleUnions
                        -- horizontal squash, single
                        , squashHorizontally
-                       , removeSingleUnions
                        , removeProxyAliases
                        , pruneAliases
-                       , removeSingleUnions
                        -- horizontal squash, multi
                        , squashHorizontallyMulti
-                       , removeSingleUnions
                        , removeProxyAliases
                        , pruneAliases
-                       , removeSingleUnions
-                       , removeProxyAliases
-                       , pruneAliases
-                       , removeSingleUnions
+                      -- , removeProxyAliases
+                      -- , pruneAliases
                        , tryRemoveUnknowns
                        ]
 

@@ -174,3 +174,44 @@ notes from the original impl.
 
 Do we need the tag squash for unions if we have the equate?
 Or the reverse?
+
+
+the any comes from:
+
+{$11, integer()},
+{$12, ?},
+{$26, integer()},
+{$27, ?},
+{$44, integer()},
+{$45, ?},
+{$59, integer()},
+{$60, ?},
+{$118, integer()},
+{$119, ?},
+{$135, integer()},
+{$136, ?},
+{$146, integer()},
+{$147, ?},
+{$275, integer()},
+{$276, ?},
+{$290, integer()},
+{$291, ?},
+{$304, integer()},
+{$305, ?},
+{$313, ?},
+{$314, list($315)},
+{$316, list($317)},
+{$318, integer()},
+{$335, integer()},
+{$336, ?},
+{$350, integer()},
+{$351, ?},
+{$374, integer()},
+{$375, ?},
+{$393, integer()},
+{$394, ?},
+{$412, integer()},
+{$413, ?},
+{$431, integer()},
+{$432, ?},
+...
