@@ -215,3 +215,27 @@ the any comes from:
 {$431, integer()},
 {$432, ?},
 ...
+
+benchmark, rethink the lub somehow,
+test lazy vs strict data structures and algos
+
+
+Should we use a sequence instead?
+squash :: SquashConfig -> Seq Int -> [Int] -> SquashConfig
+squash conf Sequence.Empty     _d = conf
+squash conf@SquashConfig{..} (a1 Sequence.:<| w) d  = squash conf' (w Sequence.>< Sequence.fromList as) (a1 : d) where
+    as = aliases (lookupAlias a1 aliasEnv) Data.List.\\ d
+    ap = Data.List.delete a1 d
+    -- refers to ai, what is it???
+    f delta a2 =
+        if not (shouldMerge (map (resolve delta) [EAliasMeta a1, EAliasMeta a2]))
+        then delta
+        else mergeAliases delta [a1, a2] -- or include the whole worklist?
+
+    conf' =
+        if a1 `elem` d then conf else foldl f conf (ap ++ as)
+
+
+IntSet in global multi key squashing?
+
+STT in equivalence?

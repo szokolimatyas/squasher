@@ -28,10 +28,9 @@ import qualified Data.Equivalence.Monad           as Equiv
 import           Data.Generics.Uniplate.Data
 import qualified Data.HashSet                     as HashSet
 import qualified Data.IntMap.Strict               as IntMap
-import           Data.List                        (delete, intercalate, nub,
-                                                   (\\))
 import           Data.Tuple                       (swap)
 import           Debug.Trace
+import           Data.List                        (nub, intercalate)
 import           Foreign.Erlang.Term
 
 newtype Path = MkPath { pathParts :: [PathPart] }
@@ -95,11 +94,11 @@ runner :: ByteString -> Except String SquashConfig
 runner bs = case res of
     Right (_, _, MkExternalTerm (List terms Nil)) -> do
         entries <- mapM entryFromTerm terms
-        traceM "Start update\n"
+        traceM "Start update!"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
         let env' = MkTyEnv (Map.take 20 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
         traceM $ "Env:\n" ++ show (Map.size $ unTyEnv env')
-        let env'' = squashLocal env'
+        let env'' = Debug.Trace.trace "Local squash done, start global squash!" squashLocal env'
         return $ squashGlobal env''
     Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
     Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
@@ -271,11 +270,11 @@ resolve :: SquashConfig -> ErlType -> ErlType
 resolve conf (EAliasMeta i) = lookupAlias i (aliasEnv conf)
 resolve _    t              = t
 
-aliases :: ErlType -> [Int]
-aliases t = nub $ para visit t where
-    visit :: ErlType -> [[Int]] -> [Int]
-    visit (EAliasMeta i) is = i : concat is
-    visit _ is              = concat is
+aliases :: ErlType -> IntSet
+aliases = para visit where
+    visit :: ErlType -> [IntSet] -> IntSet
+    visit (EAliasMeta i) is = IntSet.insert i $ mconcat is
+    visit _ is              = mconcat is
 
 shouldMerge :: [ErlType] -> Bool
 shouldMerge (ETuple (ENamedAtom n : elems) : ts) =
@@ -329,11 +328,11 @@ aliasTuple conf t = postwalk' conf t f where
         reg conf' (EUnion $ HashSet.map (resolve conf') ts)
     f conf' t' = (conf', t')
 
-squash :: SquashConfig -> [Int] -> [Int] -> SquashConfig
+squash :: SquashConfig -> [Int] -> IntSet -> SquashConfig
 squash conf []     _d = conf
-squash conf@SquashConfig{..} (a1:w) d  = squash conf' (w ++ as) (d ++ [a1]) where
-    as = aliases (lookupAlias a1 aliasEnv) Data.List.\\ d
-    ap = Data.List.delete a1 d
+squash conf@SquashConfig{..} (a1:w) d  = squash conf' (w ++ IntSet.toList as) (IntSet.insert a1 d) where
+    as = aliases (lookupAlias a1 aliasEnv) IntSet.\\ d
+    ap = IntSet.delete a1 d
     -- refers to ai, what is it???
     f delta a2 =
         if not (shouldMerge (map (resolve delta) [EAliasMeta a1, EAliasMeta a2]))
@@ -341,12 +340,12 @@ squash conf@SquashConfig{..} (a1:w) d  = squash conf' (w ++ as) (d ++ [a1]) wher
         else mergeAliases delta [a1, a2] -- or include the whole worklist?
 
     conf' =
-        if a1 `elem` d then conf else foldl f conf (ap ++ as)
+        if IntSet.member a1 d then conf else IntSet.foldl' f conf (ap <> as)
 
 squashAll :: SquashConfig -> ErlType -> SquashConfig
 squashAll conf0 t = confn where
     as = aliases t
-    confn = foldl (\conf' i -> squash conf' [i] []) conf0 as
+    confn = IntSet.foldl' (\conf' i -> squash conf' [i] IntSet.empty) conf0 as
 
 squashLocal :: TyEnv -> SquashConfig
 squashLocal tEnv = pruneAliases $ removeProxyAliases $ Map.foldlWithKey h initialConf (unTyEnv tEnv) where
@@ -526,10 +525,12 @@ groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
 --         _                                -> Nothing
 
 squashHorizontally :: SquashConfig -> SquashConfig
-squashHorizontally conf = Map.foldl mergeAliases conf (groupSimilarRecs conf)
+squashHorizontally conf = 
+    Map.foldl mergeAliases conf (groupSimilarRecs conf)
 
 squashHorizontallyMulti :: SquashConfig -> SquashConfig
-squashHorizontallyMulti conf = foldl mergeAliases conf (getEq (aliasesToTags conf) conf)
+squashHorizontallyMulti conf = 
+    foldl mergeAliases conf (getEq (aliasesToTags conf) conf)
 
 tagMulti :: SquashConfig -> ErlType -> Set Tag
 tagMulti conf ty = case resolve conf ty of
