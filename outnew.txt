@@ -1,42 +1,35 @@
 Aliases:
-$993 -> {'test', integer()}
-$994 -> {'pany', integer()}
 $1009 -> {'bound', <'used' | 'unused'>, list({integer(), integer()})}
-$1342 -> <'report_errors' | 'report_warnings' | {'outdir', list(integer())} | 'bitlevel_binaries' | 'binary_comprehension' | 'export_all'>
-$1346 -> {'record_info', integer()}
-$1347 -> {'module_info', integer()}
-$1348 -> {'usage', #{}, list(?), {integer(), 'nil'}, #{}}
-$1349 -> {'lint', <'function' | 'attribute' | 'start'>, <'bead' | ''>, list(?), {integer(), {$1347, {$1347, 'nil', 'nil'}, 'nil'}}, list(?), list(<'report_errors' | 'report_warnings' | 'bitlevel_binaries' | $1342 | 'binary_comprehension' | 'export_all'>), #{}, <{integer(), {$993, {$994, {$1706, 'nil', 'nil'}, 'nil'}, {$1706, 'nil', 'nil'}}} | {integer(), 'nil'}>, {integer(), 'nil'}, <{integer(), {$1347, {$1347, {$1706, 'nil', 'nil'}, 'nil'}, {$1346, 'nil', {$1706, 'nil', 'nil'}}}} | {integer(), {$1347, {$1347, 'nil', 'nil'}, {$1346, 'nil', {$1706, 'nil', 'nil'}}}} | {integer(), {$1347, {$1347, 'nil', 'nil'}, {$1346, 'nil', 'nil'}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, <$1706 | list(?)>, list(?), integer(), list(<'obsolete_guard' | 'deprecated_function' | 'deprecated_type' | 'underscore_match' | 'bif_clash' | 'unused_record' | 'nif_inline' | 'unused_type' | 'shadow_vars' | 'unused_function' | 'unused_vars' | 'removed' | 'export_all'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list({any(), any()}), 'undefined', $1348, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$1360 -> {'remote', {integer(), integer()}, $1871, $1871}
-$1374 -> {'clause', {integer(), integer()}, list($1871), list(list($1871)), list($1871)}
-$1375 -> {'clauses', list($1374)}
-$1376 -> {'fun', {integer(), integer()}, $1375}
-$1418 -> {'generate', {integer(), integer()}, $1871, $1871}
-$1490 -> <{'cd', integer()} | {'c', integer()}>
-$1698 -> <{'MainPid', $1009} | {'FinishedNum', $1009} | {'MaxNum', $1009} | {'F', $1009} | {'Pid', $1009} | {'E', $1009}>
+$1342 -> <'bitlevel_binaries' | 'export_all' | {'outdir', list(integer())} | 'report_warnings' | 'binary_comprehension' | 'report_errors'>
+$1346 -> {'module_info', integer()}
+$1347 -> {'record_info', integer()}
+$1349 -> {'lint', <'start' | 'attribute' | 'function'>, <'' | 'bead'>, list(?), {integer(), {$1346, {$1346, 'nil', 'nil'}, 'nil'}}, list(?), list(<$1342 | 'bitlevel_binaries' | 'export_all' | 'report_warnings' | 'binary_comprehension' | 'report_errors'>), #{}, <{integer(), 'nil'} | {integer(), {{'test', integer()}, {{'pany', integer()}, {$1706, 'nil', 'nil'}, 'nil'}, {$1706, 'nil', 'nil'}}}>, {integer(), 'nil'}, <{integer(), {$1346, {$1346, 'nil', 'nil'}, {$1347, 'nil', 'nil'}}} | {integer(), {$1346, {$1346, 'nil', 'nil'}, {$1347, 'nil', {$1706, 'nil', 'nil'}}}} | {integer(), {$1346, {$1346, {$1706, 'nil', 'nil'}, 'nil'}, {$1347, 'nil', {$1706, 'nil', 'nil'}}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, <list(?) | $1706>, list(?), integer(), list(<'unused_record' | 'underscore_match' | 'unused_function' | 'shadow_vars' | 'obsolete_guard' | 'deprecated_function' | 'removed' | 'export_all' | 'bif_clash' | 'nif_inline' | 'unused_type' | 'unused_vars' | 'deprecated_type'>), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list({any(), any()}), 'undefined', {'usage', #{}, list(?), {integer(), 'nil'}, #{}}, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$1438 -> {'clause', {integer(), integer()}, list($1868), list(list($1868)), list($1868)}
+$1439 -> {'clauses', list($1438)}
+$1696 -> <{'FinishedNum', $1009} | {'E', $1009} | {'MaxNum', $1009} | {'Pid', $1009} | {'MainPid', $1009} | {'F', $1009}>
 $1706 -> <{'worker', integer()} | {'collector', integer()}>
 $1833 -> <{'location', {integer(), integer()}} | {'file', list(integer())}>
-$1871 -> <{'op', {integer(), integer()}, <'!' | '+' | '>='>, $1871, $1871} | {'lc', {integer(), integer()}, $1871, list($1418)} | {'tuple', {integer(), integer()}, list($1871)} | {'call', <list($1833) | {integer(), integer()}>, <$1871 | $1360>, list(<$1376 | $1871>)} | {'string', <list($1833) | {integer(), integer()}>, list(integer())} | {'if', {integer(), integer()}, list($1374)} | {'integer', {integer(), integer()}, integer()} | {'match', {integer(), integer()}, $1871, $1871} | {'case', {integer(), integer()}, $1871, list($1374)} | {'atom', <list($1833) | {integer(), integer()}>, <'normal' | 'bead' | 'c' | 'cd' | 'sort' | 'flatlength' | 'lists' | 'self' | 'spawn' | 'collector' | 'exit' | boolean() | 'worker'>} | {'receive', {integer(), integer()}, list($1374)} | {'var', {integer(), integer()}, <'MainPid' | 'P' | 'FinishedNum' | 'MyPid' | 'Res' | 'Collector' | 'E' | '_' | 'L' | 'MaxNum' | 'Pid' | 'F' | 'Pids'>}>
-$1874 -> <{'attribute', <list($1833) | {integer(), integer()}>, <'module' | 'file' | 'compile'>, <'bead' | {list(integer()), integer()} | 'export_all'>} | {'eof', {integer(), integer()}} | {'function', <list($1833) | {integer(), integer()}>, <'collector' | 'pany' | 'worker' | 'test'>, integer(), list($1374)}>
+$1868 -> <{'var', {integer(), integer()}, <'P' | 'MaxNum' | 'Pid' | 'MyPid' | 'Collector' | '_' | 'MainPid' | 'F' | 'Pids' | 'E' | 'L' | 'FinishedNum' | 'Res'>} | {'match', {integer(), integer()}, $1868, $1868} | {'receive', {integer(), integer()}, list($1438)} | {'case', {integer(), integer()}, $1868, list($1438)} | {'op', {integer(), integer()}, <'>=' | '!' | '+'>, $1868, $1868} | {'tuple', {integer(), integer()}, list($1868)} | {'string', <{integer(), integer()} | list($1833)>, list(integer())} | {'atom', <{integer(), integer()} | list($1833)>, <'lists' | 'worker' | 'exit' | 'spawn' | 'collector' | 'cd' | 'c' | 'self' | 'bead' | 'flatlength' | 'normal' | boolean() | 'sort'>} | {'integer', {integer(), integer()}, integer()} | {'if', {integer(), integer()}, list($1438)} | {'lc', {integer(), integer()}, $1868, list({'generate', {integer(), integer()}, $1868, $1868})} | {'call', <{integer(), integer()} | list($1833)>, <$1868 | {'remote', {integer(), integer()}, $1868, $1868}>, list(<{'fun', {integer(), integer()}, $1439} | $1868>)}>
+$1873 -> <{'eof', {integer(), integer()}} | {'function', <{integer(), integer()} | list($1833)>, <'worker' | 'pany' | 'test' | 'collector'>, integer(), list($1438)} | {'attribute', <{integer(), integer()} | list($1833)>, <'module' | 'file' | 'compile'>, <{list(integer()), integer()} | 'export_all' | 'bead'>}>
 
 Functions:
-add_lint_warning/3 -> fun(({{integer(), integer()}, 'erl_lint', 'export_all'}, list(integer()), $1349) -> $1349)
-add_warning/3 -> fun((list($1833), 'export_all', $1349) -> $1349)
-anno_set_file/2 -> fun(($1871, list(integer())) -> $1871)
-any_control_characters/1 -> fun(list(integer()) -> 'false')
-attribute_state/2 -> fun(($1874, $1349) -> $1349)
-auto_import_suppressed/1 -> fun(list($1342) -> {integer(), 'nil'})
-bif_clash_specifically_disabled/2 -> fun(($1349, $1490) -> 'false')
-bif_clashes/2 -> fun((list($1874), $1349) -> $1349)
-bool_option/4 -> fun((<'warn_unused_type' | 'warn_missing_spec' | 'warn_unused_record' | 'warn_deprecated_type' | 'warn_export_vars' | 'warn_bif_clash' | 'warn_deprecated_function' | 'warn_untyped_record' | 'warn_underscore_match' | 'warn_export_all' | 'warn_nif_inline' | 'warn_unused_function' | 'warn_unused_vars' | 'warn_removed' | 'warn_keywords' | 'warn_unused_import' | 'warn_obsolete_guard' | 'warn_missing_spec_all' | 'warn_shadow_vars'>, <'nowarn_underscore_match' | 'nowarn_unused_import' | 'nowarn_unused_record' | 'nowarn_bif_clash' | 'nowarn_missing_spec_all' | 'nowarn_export_all' | 'nowarn_untyped_record' | 'nowarn_unused_function' | 'nowarn_keywords' | 'nowarn_deprecated_type' | 'nowarn_shadow_vars' | 'nowarn_unused_type' | 'nowarn_export_vars' | 'nowarn_missing_spec' | 'nowarn_obsolete_guard' | 'nowarn_removed' | 'nowarn_unused_vars' | 'nowarn_nif_inline' | 'nowarn_deprecated_function'>, boolean(), list($1342)) -> boolean())
-call_function/4 -> fun((list($1833), <'c' | 'cd'>, integer(), $1349) -> $1349)
-check_module_name/3 -> fun(('bead', list($1833), $1349) -> $1349)
-check_unused_vars/3 -> fun((list($1698), list(?), $1349) -> {list($1698), $1349})
-clause/2 -> fun(($1374, $1349) -> {list($1698), $1349})
-clauses/2 -> fun((list($1374), $1349) -> $1349)
-compiler_options/1 -> fun(list($1874) -> list('export_all'))
-define_function/4 -> fun((list($1833), <'collector' | 'worker'>, integer(), $1349) -> $1349)
-disallowed_compile_flags/2 -> fun((list($1874), $1349) -> $1349)
-do_expr_var/4 -> fun((<'MainPid' | 'FinishedNum' | 'E' | 'MaxNum' | 'Pid' | 'F'>, {integer(), integer()}, list($1698), $1349) -> {list($1698), $1349})
-eval_file_attr/2 -> fun((list($1874), list(integer())) -> list($1874))
-eval_file_attribute/2 -> fun((list($1874), $1349) -> list($1874))
+add_lint_warning({{integer(), integer()}, 'erl_lint', 'export_all'}, list(integer()), $1349) -> $1349
+add_warning(list($1833), 'export_all', $1349) -> $1349
+anno_set_file($1868, list(integer())) -> $1868
+any_control_characters(list(integer())) -> 'false'
+attribute_state($1873, $1349) -> $1349
+auto_import_suppressed(list($1342)) -> {integer(), 'nil'}
+bif_clash_specifically_disabled($1349, <{'cd', integer()} | {'c', integer()}>) -> 'false'
+bif_clashes(list($1873), $1349) -> $1349
+bool_option(<'warn_unused_import' | 'warn_missing_spec' | 'warn_unused_function' | 'warn_removed' | 'warn_obsolete_guard' | 'warn_export_all' | 'warn_deprecated_function' | 'warn_export_vars' | 'warn_missing_spec_all' | 'warn_deprecated_type' | 'warn_unused_vars' | 'warn_untyped_record' | 'warn_bif_clash' | 'warn_unused_record' | 'warn_unused_type' | 'warn_keywords' | 'warn_nif_inline' | 'warn_shadow_vars' | 'warn_underscore_match'>, <'nowarn_bif_clash' | 'nowarn_unused_type' | 'nowarn_keywords' | 'nowarn_removed' | 'nowarn_export_vars' | 'nowarn_nif_inline' | 'nowarn_export_all' | 'nowarn_obsolete_guard' | 'nowarn_unused_record' | 'nowarn_unused_vars' | 'nowarn_deprecated_type' | 'nowarn_untyped_record' | 'nowarn_deprecated_function' | 'nowarn_unused_function' | 'nowarn_missing_spec_all' | 'nowarn_shadow_vars' | 'nowarn_unused_import' | 'nowarn_underscore_match' | 'nowarn_missing_spec'>, boolean(), list($1342)) -> boolean()
+call_function(list($1833), <'cd' | 'c'>, integer(), $1349) -> $1349
+check_module_name('bead', list($1833), $1349) -> $1349
+check_unused_vars(list($1696), list(?), $1349) -> {list($1696), $1349}
+clause($1438, $1349) -> {list($1696), $1349}
+clauses(list($1438), $1349) -> $1349
+compiler_options(list($1873)) -> list('export_all')
+define_function(list($1833), <'worker' | 'collector'>, integer(), $1349) -> $1349
+disallowed_compile_flags(list($1873), $1349) -> $1349
+do_expr_var(<'MaxNum' | 'Pid' | 'MainPid' | 'F' | 'E' | 'FinishedNum'>, {integer(), integer()}, list($1696), $1349) -> {list($1696), $1349}
+eval_file_attr(list($1873), list(integer())) -> list($1873)
+eval_file_attribute(list($1873), $1349) -> list($1873)

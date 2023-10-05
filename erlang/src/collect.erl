@@ -39,7 +39,7 @@ stop_erlang_trace(Pid) ->
     erlang:trace(all, false, [call]),
     Pid ! stop,
     Traces = get_traces(),
-    file:write_file("out.bin", term_to_binary(lists:uniq(Traces))).
+    file:write_file("out1.bin", term_to_binary(lists:uniq(Traces))).
 
 collect_loop() -> 
     receive
@@ -52,15 +52,19 @@ collect_loop() ->
                     track(ReturnValue, [{rng, Arity}, {name, io_lib:print(Function), Arity}])
             end,
             collect_loop();
-        {trace, _Pid, call, {_Module, Function, Arguments}} ->
+        {trace, _Pid, call, {_Module, Function, Arguments}} when is_list(Arguments) ->
             Arity = length(Arguments),
             case atom_to_list(Function) of
                 [$-|_] -> ok;
                 _ ->
-                    map_with_index(
+                    try map_with_index(
                         fun(V, I) ->
                             track(V, [{dom, I, Arity}, {name, io_lib:print(Function), Arity}]) 
                         end, Arguments)
+                    catch 
+                        A:B:C ->
+                            io:format("error: ~p~n", [{A,B,C, Arguments}])
+                    end
             end,
             collect_loop();
         _Other ->
@@ -137,6 +141,7 @@ track([], P, _) ->
     %% maybe a {list, none} or {list, ?}
     put_trace({list, unknown}, P),
     [];
+%%% todo: maybe_improper_list
 track(Vals, P, F) when is_list(Vals) ->
     lists:map(
         fun(V) -> 

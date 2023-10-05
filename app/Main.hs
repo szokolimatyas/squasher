@@ -13,6 +13,6 @@ main = do
     case runExcept (runner bytes) of
         Left err -> error err
         Right resNew -> do
-            -- writeFile "out.txt" ("Aliases:\n" ++ show (aliasEnv res) ++ "\nFunctions:\n" ++ show (tyEnv res))
+--            writeFile "out.txt" ("Aliases:\n" ++ show (aliasEnv res) ++ "\nFunctions:\n" ++ show (tyEnv res))
             writeFile "outnew.txt" ("Aliases:\n" ++ show (aliasEnv resNew) ++ "\nFunctions:\n" ++ show (tyEnv resNew))
             return ()

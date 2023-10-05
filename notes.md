@@ -239,3 +239,130 @@ squash conf@SquashConfig{..} (a1 Sequence.:<| w) d  = squash conf' (w Sequence.>
 IntSet in global multi key squashing?
 
 STT in equivalence?
+
+
+fromList [(993,1),(994,1),(1348,1),(1360,1),(1375,1),(1376,1),(1418,1),(1490,1)]
+
+when trying to inline something, what happens with mutually recursive aliases??
+
+$1 -> {foo, $2}
+$2 -> {bar, $1}
+
+into:
+$3 -> {zat, $2}
+
+or:
+
+
+$1 -> {foo, $2}
+$2 -> {bar, $3}
+$3 -> {zap, $1}
+
+into:
+$3 -> {zat, $2}
+
+
+
+$1 -> {foo, {bar, $3}}
+$2 -> {bar, {zap, $1}}
+$3 -> {zap, {foo, $2}}
+
+when substituting, see if what we substitute contains aliases that are to be inlined
+- try to inline that alias, but if inlining would introduce another alias that is to be inlined, abort
+
+
+
+
+erlc -I erlang\include\ erlang\src\collect.erl
+
+
+Pid = collect:start_erlang_trace(erl_scan).
+cd("erlang/src").
+c(bead).
+collect:stop_erlang_trace(Pid).
+{ok, B} = file:read_file("out.bin"), file:write_file("out1.erlterm", io_lib:print(binary_to_term(B))).
+
+
+error: {error,function_clause,
+              [{lists,map_1,
+                      [#Fun<collect.4.105128635>,eof],
+                      [{file,"lists.erl"},{line,1319}]},
+               {lists,map,2,[{file,"lists.erl"},{line,1315}]},
+               {collect,map_with_index,3,
+                        [{file,"erlang/src/collect.erl"},{line,177}]},
+               {collect,collect_loop,0,
+                        [{file,"erlang/src/collect.erl"},{line,60}]}],
+              [[46|eof],
+               {erl_scan,fun erl_scan:f_reserved_word/1,#Fun<epp.4.4871482>,
+                         false,false,true},
+               49,18,
+               [{')',{49,17}},
+                {var,{49,16},'L'},
+                {'(',{49,15}},
+                {atom,{49,11},sort},
+                {':',{49,10}},
+                {atom,{49,5},lists},
+                {'->',{48,9}},
+                {')',{48,7}},
+                {var,{48,6},'L'},
+                {'(',{48,5}},
+                {atom,{48,1},test}],
+               #Fun<erl_scan.0.53253250>,[]]}
+               
+               
+               5> error: {error,function_clause,
+              [{lists,map_1,
+                      [#Fun<collect.4.105128635>,eof],
+                      [{file,"lists.erl"},{line,1319}]},
+               {lists,map,2,[{file,"lists.erl"},{line,1315}]},
+               {collect,map_with_index,3,
+                        [{file,"erlang/src/collect.erl"},{line,177}]},
+               {collect,collect_loop,0,
+                        [{file,"erlang/src/collect.erl"},{line,60}]}],
+                        
+              [[46|eof],
+               {erl_scan,fun erl_scan:f_reserved_word/1,#Fun<epp.4.4871482>,
+                         false,false,true},
+               49,18,
+               [{')',{49,17}},
+                {var,{49,16},'L'},
+                {'(',{49,15}},
+                {atom,{49,11},sort},
+                {':',{49,10}},
+                {atom,{49,5},lists},
+                {'->',{48,9}},
+                {')',{48,7}},
+                {var,{48,6},'L'},
+                {'(',{48,5}},
+                {atom,{48,1},test}],
+               []]}
+               
+               
+               5> error: {error,function_clause,
+              [{lists,map_1,
+                      [#Fun<collect.4.105128635>,eof],
+                      [{file,"lists.erl"},{line,1319}]},
+               {lists,map,2,[{file,"lists.erl"},{line,1315}]},
+               {collect,map_with_index,3,
+                        [{file,"erlang/src/collect.erl"},{line,177}]},
+               {collect,collect_loop,0,
+                        [{file,"erlang/src/collect.erl"},{line,60}]}],
+              [[46|eof],
+               {erl_scan,fun erl_scan:f_reserved_word/1,#Fun<epp.4.4871482>,
+                         false,false,true},
+               49,18,
+               [{')',{49,17}},
+                {var,{49,16},'L'},
+                {'(',{49,15}},
+                {atom,{49,11},sort},
+                {':',{49,10}},
+                {atom,{49,5},lists},
+                {'->',{48,9}},
+                {')',{48,7}},
+                {var,{48,6},'L'},
+                {'(',{48,5}},
+                {atom,{48,1},test}]]}5>
+
+
+
+https://github.com/hamler-lang/Erlang/tree/master/src/Erlang

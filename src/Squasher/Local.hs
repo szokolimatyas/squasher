@@ -110,8 +110,10 @@ runner bs = case res of
 newtype TyEnv = MkTyEnv { unTyEnv :: Map FunName ErlType }
 instance Show TyEnv where
     show (MkTyEnv m) =
-        intercalate "\n" (map (\(i, t) -> show i ++ " -> " ++ show t) $ Map.toList m) ++
-        "\n"
+        intercalate "\n" (map showFun $ Map.toList m) ++ "\n" where
+
+        showFun (MkFunName{funName}, EFun ts t) = Text.unpack funName ++ "(" ++ intercalate ", " (map show ts) ++ ") -> " ++ show t
+        showFun (MkFunName{funName,funArity}, _t) = Text.unpack funName ++ "/" ++ show funArity ++  ": no text available"
 
 -- Combine, may introduce toplevel unions
 combine :: ErlType -> ErlType -> ErlType
@@ -311,6 +313,14 @@ substTy as newT = transform go where
     go (EAliasMeta alias) | alias `elem` as = newT
     go t = t
 
+substTy' :: IntMap ErlType -> ErlType -> ErlType
+substTy' sub = transform go where
+    go (EAliasMeta alias) =
+        case IntMap.lookup alias sub of
+            Just t -> t
+            _ -> EAliasMeta alias
+    go t = t
+
 mapAliasesTo :: SquashConfig -> [Int] -> ErlType -> SquashConfig
 mapAliasesTo SquashConfig{aliasEnv=MkAliasEnv{..},..} as newT =
     SquashConfig{aliasEnv=MkAliasEnv{aliasMap=newAliases, ..}, ..} where
@@ -347,6 +357,11 @@ squashAll conf0 t = confn where
     as = aliases t
     confn = IntSet.foldl' (\conf' i -> squash conf' [i] IntSet.empty) conf0 as
 
+-- localGlobalSquash :: SquashConfig -> ErlType -> SquashConfig
+-- localGlobalSquash conf0 t = confn where
+--     as = aliasesInTyRec IntSet.empty t conf0
+--     confn = _
+
 squashLocal :: TyEnv -> SquashConfig
 squashLocal tEnv = pruneAliases $ removeProxyAliases $ Map.foldlWithKey h initialConf (unTyEnv tEnv) where
     initialConf = SquashConfig (MkAliasEnv IntMap.empty 0) (MkTyEnv Map.empty)
@@ -354,6 +369,7 @@ squashLocal tEnv = pruneAliases $ removeProxyAliases $ Map.foldlWithKey h initia
     h conf n t = addFunction n t1 conf2 where
         (conf1, t1) = aliasTuple conf t
         conf2 = squashAll conf1 t1
+        -- squash in unions as well
 
 -- just until the debugging is done...
 postwalk' :: SquashConfig -> ErlType ->
@@ -433,6 +449,53 @@ aliasesInTyRec is t s = case t of
             in is'
     _ -> is
 
+-- | Inline aliases that have only one reference to them.
+-- todo: this is not good enough, circular substituting references should be avoided!
+-- todo: some should be inlined, but they are not! why??
+inlineAliases :: SquashConfig -> SquashConfig
+inlineAliases conf@SquashConfig{aliasEnv = ae@MkAliasEnv{..},tyEnv = MkTyEnv funs} =
+    conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newTyEnv } where
+
+    refsInFuns = IntMap.unionsWith (+) (map numOfRefs $ Map.elems funs)
+    refsInAliases = IntMap.unionsWith (+) (map numOfRefs $ IntMap.elems aliasMap)
+
+    singleRefs = IntMap.filter (==1) $ IntMap.unionWith (+) refsInFuns refsInAliases
+
+    -- the problem with this is:
+    -- inline (1375,{'clauses', list($1374)})
+    -- _then_
+    -- with this it is back: (1376,{'fun', {integer(), integer()}, $1375})
+    sub = IntMap.mapWithKey (\a _ -> lookupAlias a ae) singleRefs
+
+    -- do not substitute into itself
+    newAliasMap = 
+        IntMap.mapWithKey (\a t -> substTy' (IntMap.delete a sub) t) aliasMap
+    newTyEnv = Map.map (substTy' sub) funs
+
+   -- usedAliases = IntSet.unions $ map (\t -> aliasesInTyRec IntSet.empty t conf) tys
+   -- newAliasMap = IntMap.restrictKeys aliasMap usedAliases
+
+numOfRefs :: ErlType -> IntMap Int
+numOfRefs = para visit where
+    visit (EAliasMeta i) ims = 
+        IntMap.insertWith (+) i 1 (IntMap.unionsWith (+) ims) 
+    visit _ ims = 
+        IntMap.unionsWith (+) ims
+
+    
+    -- case t of
+    -- ETuple ts -> isums $ map (numOfRefs s) ts
+    -- EUnion ts -> isums $ map (numOfRefs s) (HashSet.toList ts)
+    -- EFun argts rest ->  isums $ numOfRefs s rest : map (numOfRefs s) argts
+    -- EList t' -> numOfRefs s t'
+    -- EMap m ->
+    --     isums $ map (\(t1, t2) -> isum (numOfRefs s t1) (numOfRefs s t2)) $ Map.toList m
+    -- EAliasMeta i -> IntMap.singleton i 1
+    -- _ -> IntMap.empty
+    -- where
+    --     isums = IntMap.unionsWith (+)
+    --     isum = IntMap.unionWith (+)
+
 -- -------------------------------------------------------------------------------
 -- -- Global squashing
 -- -------------------------------------------------------------------------------
@@ -505,7 +568,8 @@ groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
     visit acc key _ =
         case tag conf (EAliasMeta key) of
             Just theTag ->
-                Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) theTag acc
+                Map.insertWith (++) theTag [key] acc
+             --   Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) theTag acc
             _ -> acc
 
 -- squashUnionElements :: Set ErlType -> Set ErlType
@@ -580,7 +644,7 @@ aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
     visit acc alias _ =
         Set.fold (addTag alias) acc (tagMulti conf (EAliasMeta alias))
 
-    addTag alias = Map.alter (\case Just is -> Just (alias : is); _ -> Just [alias])
+    addTag alias tg = Map.insertWith (++) tg [alias]
 
 -- Clean up the multiple uses of removeSingleUnions, why do we need multiples of them?
 -- Could we unify proxy removal, pruning, etc?
@@ -594,8 +658,8 @@ squashGlobal = compose [ aliasSingleRec
                        , squashHorizontallyMulti
                        , removeProxyAliases
                        , pruneAliases
-                      -- , removeProxyAliases
-                      -- , pruneAliases
+                       , inlineAliases
+                       , pruneAliases
                        , tryRemoveUnknowns
                        ]
 
