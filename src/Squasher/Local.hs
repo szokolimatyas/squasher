@@ -102,7 +102,8 @@ runner bs = case dec of
         entries <- mapM entryFromTerm terms
         traceM "Start update!"
         let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-        let env' = MkTyEnv (Map.take 20 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
+       -- let env' = MkTyEnv (Map.take 20 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
+        let env' = env
         traceM $ "Env:\n" ++ show (Map.size $ unTyEnv env')
         let env'' = Debug.Trace.trace "Local squash done, start global squash!" squashLocal env'
         let res = squashGlobal env'' 
@@ -688,7 +689,6 @@ squashGlobal = compose [ aliasSingleRec
                        , removeProxyAliases
                        , pruneAliases
                        -- horizontal squash, multi
-                       -- this is not the performance hog all by itself
                        , squashHorizontallyMulti
                        , removeProxyAliases
                        , pruneAliases
