@@ -3,7 +3,18 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    name: Erlang
+    pantry-tree:
+      sha256: 457198669b3c6edca56f274383506abaf8eed6a583429efd170a1d15ff053b37
+      size: 28276
+    sha256: 430dfd19529a3d76813cd78b1b75f5748f1b5aaef558d89b32a4c5be44fc8877
+    size: 2387754
+    url: https://github.com/szokolimatyas/Erlang/archive/HEAD.tar.gz
+    version: 0.1.0.0
+  original:
+    url: https://github.com/szokolimatyas/Erlang/archive/HEAD.tar.gz
 snapshots:
 - completed:
     sha256: 60e54c1ba3c1e7163acf6dafa9d56b2d3b23f88a31ad53a1c9d888f32561f8da

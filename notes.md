@@ -362,7 +362,16 @@ error: {error,function_clause,
                 {var,{48,6},'L'},
                 {'(',{48,5}},
                 {atom,{48,1},test}]]}5>
+				
+				
+- git: https://github.com/example-user/my-repo.git
+  commit: 08c9b4cdf977d5bcd1baba046a007940c1940758
 
+
+- github: example-user/my-repo
+  commit: 08c9b4cdf977d5bcd1baba046a007940c1940758
+  subdirs:
+  - my-package
 
 
 https://github.com/hamler-lang/Erlang/tree/master/src/Erlang

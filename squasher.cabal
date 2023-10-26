@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
@@ -28,6 +28,7 @@ library
       Foreign.Erlang.Term
       Lib
       Squasher.Local
+      Squasher.Output
       Squasher.Types
   other-modules:
       Paths_squasher
@@ -35,7 +36,9 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.10 && <5
+      Erlang >=0.1.0.0
+    , STMonadTrans >=0.4.7
+    , base >=4.10 && <5
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
@@ -55,7 +58,9 @@ executable squasher-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N -O -optc-ffast-math -optc-O3 -fexcess-precision
   build-depends:
-      base >=4.10 && <5
+      Erlang >=0.1.0.0
+    , STMonadTrans >=0.4.7
+    , base >=4.10 && <5
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
@@ -78,7 +83,9 @@ test-suite squasher-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.10 && <5
+      Erlang >=0.1.0.0
+    , STMonadTrans >=0.4.7
+    , base >=4.10 && <5
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1

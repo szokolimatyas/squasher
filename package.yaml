@@ -30,6 +30,8 @@ dependencies:
 - equivalence >= 0.4.1
 - unordered-containers >= 0.2.19.1 
 - hashable >=1.2.5 && <1.5
+- STMonadTrans >= 0.4.7
+- Erlang >= 0.1.0.0
 
 ghc-options:
 - -Wall

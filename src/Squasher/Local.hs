@@ -24,7 +24,7 @@ import           Control.Monad                    (zipWithM)
 import           Control.Monad.Trans.Except       (Except, except, throwE)
 import           Data.Binary                      (decodeOrFail)
 import           Data.Binary.Get                  (ByteOffset)
-import qualified Data.Equivalence.Monad           as Equiv
+import qualified Data.Equivalence.STT             as Equiv
 import           Data.Generics.Uniplate.Data
 import qualified Data.HashSet                     as HashSet
 import qualified Data.IntMap.Strict               as IntMap
@@ -32,6 +32,9 @@ import           Data.Tuple                       (swap)
 import           Debug.Trace
 import           Data.List                        (nub, intercalate)
 import           Foreign.Erlang.Term
+import qualified Control.Monad.ST.Trans           as STT
+import           Data.Functor.Identity            (Identity, runIdentity)
+import           Data.Foldable                    (foldl')
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -371,12 +374,35 @@ squashLocal tEnv = pruneAliases $ removeProxyAliases $ Map.foldlWithKey h initia
         conf2 = squashAll conf1 t1
         -- squash in unions as well
 
--- just until the debugging is done...
+-- IMPORTANT! UPDATE WHEN ErlType changes
 postwalk' :: SquashConfig -> ErlType ->
              (SquashConfig -> ErlType -> (SquashConfig, ErlType)) ->
              (SquashConfig, ErlType)
 postwalk' conf t f = swap $ runState (postwalk f' t) conf where
     f' t' = state (\conf' -> swap $ f conf' t')
+
+-- postwalk' conf t f = case t of
+--     ETuple ts -> 
+--         let (conf', ts') = foldChildren ts in f conf' (ETuple ts')
+--     -- inefficient, is hashset the correct choice here?
+--     EUnion hs ->
+--         let (conf', hs') = foldChildren (HashSet.toList hs) in f conf' (EUnion $ HashSet.fromList hs')
+--     EFun args ret ->
+--         let (conf', args') = foldChildren args
+--             (conf'', ret') = f conf' ret
+--         in
+--             f conf'' (EFun args' ret')
+--     EMap m ->
+--         -- TODO: handle maps
+--         (conf, EMap m)
+--     EList t' ->
+--         let (conf', t'') = f conf t' in f conf' (EList t'') 
+--     _ -> f conf t
+--     where 
+--         foldChildren = foldr go (conf, mempty)
+--         go t' (conf', ts') = 
+--             let (conf'', t'') = postwalk' conf' t' f in
+--             (conf'', t'':ts')
 
 postwalk :: (ErlType -> State a ErlType) ->
             ErlType ->
@@ -534,13 +560,13 @@ aliasSingleRec conf = IntMap.foldlWithKey f conf' (aliasMap $ aliasEnv conf') wh
         in
             addAlias a t1 conf1
 
-foldChildren :: [ErlType] -> SquashConfig -> (SquashConfig, [ErlType])
-foldChildren ts conf = (conf', reverse ts') where
-    (conf', ts') = foldl visit (conf, []) ts
+    foldChildren :: [ErlType] -> SquashConfig -> (SquashConfig, [ErlType])
+    foldChildren ts confN = (confN', reverse ts') where
+        (confN', ts') = foldl visit (confN, []) ts
 
-    visit (c, acc) ty =
-        let (c1, ty1) = singleRecAlias c ty in
-        (c1, ty1 : acc)
+        visit (c, acc) ty =
+            let (c1, ty1) = singleRecAlias c ty in
+            (c1, ty1 : acc)
 
 data Tag = RecordTag Text Int | SingleAtom Text
     deriving (Eq, Ord, Show)
@@ -614,23 +640,24 @@ tagMulti conf ty = case resolve conf ty of
 --         then Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) tags acc
 --         else acc
 
-type TagEq s a = Equiv.EquivM s (Set Tag) Int a
+--type TagEq s a = Equiv.EquivM s (Set Tag) Int a
 
 -- Might be better if the tags were precomputed?
 -- also, what happens with the Set.null tagged aliases?
-runEq :: SquashConfig -> (forall s. TagEq s a) -> a
-runEq conf = Equiv.runEquivM (tagMulti conf . EAliasMeta) Set.union
+--- runEq :: SquashConfig -> (forall s. TagEq s a) -> a
+--runEq conf = Equiv.runEquivM (tagMulti conf . EAliasMeta) Set.union
 
+---getEq :: Map Tag [Int] -> SquashConfig -> [[Int]]
 getEq :: Map Tag [Int] -> SquashConfig -> [[Int]]
-getEq tagMap conf = runEq conf $ do
-    mapM_ visit tagMap
-    clss <- Equiv.classes
-    traverse classesToAliases clss where
-        visit :: [Int] -> TagEq s ()
+getEq tagMap conf = runIdentity $ STT.runSTT $ do
+    st <- Equiv.leastEquiv (tagMulti conf . EAliasMeta) Set.union
+    mapM_ (visit st) tagMap
+    clss <- Equiv.classes st
+    traverse (classesToAliases st) clss where
         visit = Equiv.equateAll
 
-        classesToAliases cl = do
-            tags <- Equiv.desc cl
+        classesToAliases st cl = do
+            tags <- Equiv.desc st cl
             let l = foldl (\as tg -> Map.findWithDefault [] tg tagMap ++ as) [] tags
             return $ nub l
 
@@ -655,6 +682,7 @@ squashGlobal = compose [ aliasSingleRec
                        , removeProxyAliases
                        , pruneAliases
                        -- horizontal squash, multi
+                       -- this is not the performance hog all by itself
                        , squashHorizontallyMulti
                        , removeProxyAliases
                        , pruneAliases
