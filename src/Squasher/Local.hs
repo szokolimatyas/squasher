@@ -94,7 +94,7 @@ maybeToEither _def (Just val) = Right val
 maybeToEither def Nothing     = Left def
 
 runner :: ByteString -> Except String SquashConfig
-runner bs = case res of
+runner bs = case dec of
     Right (_, _, MkExternalTerm (List terms Nil)) -> do
         entries <- mapM entryFromTerm terms
         traceM "Start update!"
@@ -102,12 +102,13 @@ runner bs = case res of
         let env' = MkTyEnv (Map.take 20 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
         traceM $ "Env:\n" ++ show (Map.size $ unTyEnv env')
         let env'' = Debug.Trace.trace "Local squash done, start global squash!" squashLocal env'
-        return $ squashGlobal env''
+        let res = squashGlobal env'' 
+        return res
     Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
     Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
   where
-    res ::  Either (ByteString, ByteOffset, String) (ByteString, ByteOffset, ExternalTerm)
-    res = decodeOrFail bs
+    dec ::  Either (ByteString, ByteOffset, String) (ByteString, ByteOffset, ExternalTerm)
+    dec = decodeOrFail bs
 
 
 newtype TyEnv = MkTyEnv { unTyEnv :: Map FunName ErlType }
@@ -240,7 +241,7 @@ update ty (MkPath p) env =
 
 data AliasEnv = MkAliasEnv
     { aliasMap  :: IntMap ErlType
-    , nextIndex :: Int
+    , nextIndex :: !Int
     } deriving (Eq, Ord)
 
 instance Show AliasEnv where
@@ -560,7 +561,7 @@ aliasSingleRec conf = IntMap.foldlWithKey f conf' (aliasMap $ aliasEnv conf') wh
 
     foldChildren :: [ErlType] -> SquashConfig -> (SquashConfig, [ErlType])
     foldChildren ts confN = (confN', reverse ts') where
-        (confN', ts') = foldl visit (confN, []) ts
+        (confN', ts') = foldl' visit (confN, []) ts
 
         visit (c, acc) ty =
             let (c1, ty1) = singleRecAlias c ty in
@@ -614,11 +615,11 @@ groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
 
 squashHorizontally :: SquashConfig -> SquashConfig
 squashHorizontally conf = 
-    Map.foldl mergeAliases conf (groupSimilarRecs conf)
+    Map.foldl' mergeAliases conf (groupSimilarRecs conf)
 
 squashHorizontallyMulti :: SquashConfig -> SquashConfig
 squashHorizontallyMulti conf = 
-    foldl mergeAliases conf (getEq (aliasesToTags conf) conf)
+    foldl' mergeAliases conf (getEq (aliasesToTags conf) conf)
 
 tagMulti :: SquashConfig -> ErlType -> Set Tag
 tagMulti conf ty = case resolve conf ty of
@@ -656,7 +657,7 @@ getEq tagMap conf = runIdentity $ STT.runSTT $ do
 
         classesToAliases st cl = do
             tags <- Equiv.desc st cl
-            let l = foldl (\as tg -> Map.findWithDefault [] tg tagMap ++ as) [] tags
+            let l = foldl' (\as tg -> Map.findWithDefault [] tg tagMap ++ as) [] tags
             return $ nub l
 
 
