@@ -334,7 +334,7 @@ mapAliasesTo SquashConfig{aliasEnv=MkAliasEnv{..},..} as newT =
                 aliasMap
 
 aliasTuple :: SquashConfig -> ErlType -> (SquashConfig, ErlType)
-aliasTuple conf t = postwalk' conf t f where
+aliasTuple conf t = postwalk conf t f where
  --   f conf' t'@(ENamedAtom _) = reg conf' t'
     f conf' t'@(ETuple (ENamedAtom _ : _)) = reg conf' t'
     f conf' (EUnion ts) | any (\case { EAliasMeta _ -> True; _ -> False}) ts =
@@ -375,39 +375,37 @@ squashLocal tEnv = pruneAliases $ removeProxyAliases $ Map.foldlWithKey h initia
         -- squash in unions as well
 
 -- IMPORTANT! UPDATE WHEN ErlType changes
-postwalk' :: SquashConfig -> ErlType ->
+postwalk :: SquashConfig -> ErlType ->
              (SquashConfig -> ErlType -> (SquashConfig, ErlType)) ->
              (SquashConfig, ErlType)
-postwalk' conf t f = swap $ runState (postwalk f' t) conf where
-    f' t' = state (\conf' -> swap $ f conf' t')
+postwalk conf_ t_ f = postwalk' conf_ t_ where
+    postwalk' conf t = case t of
+        ETuple ts -> 
+            let (conf', ts') = foldChildren ts in f conf' (ETuple ts')
+        -- inefficient, is hashset the correct choice here?
+        EUnion hs ->
+            let (conf', hs') = foldChildren (HashSet.toList hs) in f conf' (EUnion $ HashSet.fromList hs')
+        EFun args ret ->
+            let (conf', args') = foldChildren args
+                (conf'', ret') = postwalk' conf' ret
+            in
+                f conf'' (EFun args' ret')
+        EMap m ->
+            -- TODO: handle maps
+            (conf, EMap m)
+        EList t' ->
+            let (conf', t'') = postwalk' conf t' in f conf' (EList t'') 
+        _ -> f conf t
+        where
+        foldChildren = foldr go (conf, mempty)
+        go t' (conf', ts') = 
+            let (conf'', t'') = postwalk' conf' t' in
+            (conf'', t'':ts')
 
--- postwalk' conf t f = case t of
---     ETuple ts -> 
---         let (conf', ts') = foldChildren ts in f conf' (ETuple ts')
---     -- inefficient, is hashset the correct choice here?
---     EUnion hs ->
---         let (conf', hs') = foldChildren (HashSet.toList hs) in f conf' (EUnion $ HashSet.fromList hs')
---     EFun args ret ->
---         let (conf', args') = foldChildren args
---             (conf'', ret') = f conf' ret
---         in
---             f conf'' (EFun args' ret')
---     EMap m ->
---         -- TODO: handle maps
---         (conf, EMap m)
---     EList t' ->
---         let (conf', t'') = f conf t' in f conf' (EList t'') 
---     _ -> f conf t
---     where 
---         foldChildren = foldr go (conf, mempty)
---         go t' (conf', ts') = 
---             let (conf'', t'') = postwalk' conf' t' f in
---             (conf'', t'':ts')
-
-postwalk :: (ErlType -> State a ErlType) ->
-            ErlType ->
-            State a ErlType
-postwalk = transformM
+-- postwalk :: (ErlType -> State a ErlType) ->
+--             ErlType ->
+--             State a ErlType
+-- postwalk = transformM
 
 -- | Remove single element unions, collapse nested unions
 -- Maybe we could leave only this, and don't use equate when combining things
@@ -529,7 +527,7 @@ numOfRefs = para visit where
 -- originally conf' was not used, which is weird
 singleRecFun :: SquashConfig -> FunName -> ErlType -> SquashConfig
 singleRecFun conf fn t = addFunction fn t' conf' where
-    (conf', t') = postwalk' conf t f
+    (conf', t') = postwalk conf t f
 
     --f co ty@(ENamedAtom _) = reg co ty
     f co ty@(ETuple (ENamedAtom _ : _)) = reg co ty
@@ -537,7 +535,7 @@ singleRecFun conf fn t = addFunction fn t' conf' where
 
 singleRecAlias :: SquashConfig -> ErlType -> (SquashConfig, ErlType)
 singleRecAlias conf t = (conf', t') where
-    (conf', t') = postwalk' conf t f
+    (conf', t') = postwalk conf t f
 
     --f co ty@(ENamedAtom _) = reg co ty
     f co ty@(ETuple (ENamedAtom _ : _)) = reg co ty
