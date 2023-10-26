@@ -28,7 +28,6 @@ import qualified Data.Equivalence.STT             as Equiv
 import           Data.Generics.Uniplate.Data
 import qualified Data.HashSet                     as HashSet
 import qualified Data.IntMap.Strict               as IntMap
-import           Data.Tuple                       (swap)
 import           Debug.Trace
 import           Data.List                        (intercalate)
 import           Data.Containers.ListUtils        (nubOrd, nubInt)
@@ -36,6 +35,9 @@ import           Foreign.Erlang.Term
 import qualified Control.Monad.ST.Trans           as STT
 import           Data.Functor.Identity            (Identity, runIdentity)
 import           Data.Foldable                    (foldl')
+import           Algebra.Graph.AdjacencyIntMap    (AdjacencyIntMap)
+import qualified Algebra.Graph.AdjacencyIntMap
+import           Algebra.Graph.AdjacencyIntMap.Algorithm (bfs)
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -451,30 +453,33 @@ removeProxyAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv 
 
 -- | Remove mappings for unused aliases.
 pruneAliases :: SquashConfig -> SquashConfig
-pruneAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
+pruneAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex } where
-
-    tys = Map.elems funs
-    usedAliases = IntSet.unions $ map (\t -> aliasesInTyRec IntSet.empty t conf) tys
+    usedAliases = getReachable conf
     newAliasMap = IntMap.restrictKeys aliasMap usedAliases
 
--- | All aliases in a type, and the aliases in the aliases, etc...
-aliasesInTyRec :: IntSet -> ErlType -> SquashConfig -> IntSet
-aliasesInTyRec is t s = case t of
-    ETuple ts -> IntSet.unions $ map (\t' -> aliasesInTyRec is t' s) ts
-    EUnion ts -> IntSet.unions $ map (\t' -> aliasesInTyRec is t' s) (HashSet.toList ts)
-    EFun argts rest ->  IntSet.unions $ aliasesInTyRec is rest s : map (\t' -> aliasesInTyRec is t' s) argts
-    EList t' -> aliasesInTyRec is t' s
-    EMap m ->
-        IntSet.unions $ map (\(t1, t2) -> IntSet.union (aliasesInTyRec is t1 s) (aliasesInTyRec is t2 s)) $ Map.toList m
-    EAliasMeta i ->
-        if IntSet.member i is
-        then is
-        else
-            let t' = lookupAlias i (aliasEnv s)
-                is' = aliasesInTyRec (IntSet.insert i is) t' s
-            in is'
-    _ -> is
+aliasesToGraph :: IntMap ErlType -> AdjacencyIntMap 
+aliasesToGraph aliasMap = 
+    Algebra.Graph.AdjacencyIntMap.edges $ IntMap.toList aliasMap >>= uncurry getEdges where
+
+    --maybe we don't need this, just overlay edges and return an AdjacencyIntMap
+    getEdges :: Int -> ErlType -> [(Int, Int)] 
+    getEdges from = para visit where
+        visit :: ErlType -> [[(Int, Int)] ] -> [(Int, Int)] 
+        visit (EAliasMeta i) es = (from, i) : concat es
+        visit _ is              = concat is
+
+getReachable :: SquashConfig -> IntSet
+getReachable SquashConfig{aliasEnv=MkAliasEnv aliasMap _, tyEnv=MkTyEnv funs} = reachable where
+    aliasGraph = aliasesToGraph aliasMap
+    immediate = Map.elems funs >>= aliases'
+    reachable = IntSet.fromList $ immediate ++ concat (bfs aliasGraph immediate)
+
+    aliases' :: ErlType -> [Int]
+    aliases' = para visit where
+        visit :: ErlType -> [[Int]] -> [Int]
+        visit (EAliasMeta i) is = i:concat is
+        visit _ is              = concat is
 
 -- | Inline aliases that have only one reference to them.
 -- todo: this is not good enough, circular substituting references should be avoided!

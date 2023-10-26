@@ -38,6 +38,7 @@ library
   build-depends:
       Erlang >=0.1.0.0
     , STMonadTrans >=0.4.7
+    , algebraic-graphs >=0.7
     , base >=4.10 && <5
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
@@ -60,6 +61,7 @@ executable squasher-exe
   build-depends:
       Erlang >=0.1.0.0
     , STMonadTrans >=0.4.7
+    , algebraic-graphs >=0.7
     , base >=4.10 && <5
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
@@ -85,6 +87,7 @@ test-suite squasher-test
   build-depends:
       Erlang >=0.1.0.0
     , STMonadTrans >=0.4.7
+    , algebraic-graphs >=0.7
     , base >=4.10 && <5
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
