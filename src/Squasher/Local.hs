@@ -30,7 +30,8 @@ import qualified Data.HashSet                     as HashSet
 import qualified Data.IntMap.Strict               as IntMap
 import           Data.Tuple                       (swap)
 import           Debug.Trace
-import           Data.List                        (nub, intercalate)
+import           Data.List                        (intercalate)
+import           Data.Containers.ListUtils        (nubOrd, nubInt)
 import           Foreign.Erlang.Term
 import qualified Control.Monad.ST.Trans           as STT
 import           Data.Functor.Identity            (Identity, runIdentity)
@@ -139,6 +140,7 @@ combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
 combine t1 t2 = mkFlatUnion $ combineUnion (HashSet.singleton t1) t2
 
 -- todo: better performance??
+-- accumulation needs to be faster
 combineUnion :: HashSet ErlType -> ErlType -> HashSet ErlType
 combineUnion ts t = if didEquate then newTs else HashSet.insert t ts where
     (newTs, didEquate) = HashSet.foldl' go (HashSet.empty, False) $ HashSet.foldl' elements HashSet.empty ts
@@ -658,12 +660,12 @@ getEq tagMap conf = runIdentity $ STT.runSTT $ do
         classesToAliases st cl = do
             tags <- Equiv.desc st cl
             let l = foldl' (\as tg -> Map.findWithDefault [] tg tagMap ++ as) [] tags
-            return $ nub l
+            return $ nubInt l
 
 
 aliasesToTags :: SquashConfig -> Map Tag [Int]
 aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
-    Map.map nub groups where
+    Map.map nubInt groups where
 
     groups = IntMap.foldlWithKey visit Map.empty aliasMap
 
@@ -689,6 +691,6 @@ squashGlobal = compose [ aliasSingleRec
                        , pruneAliases
                        , tryRemoveUnknowns
                        ]
-
+-- foldl'?
 compose :: [a -> a] -> a -> a
 compose = foldl (flip (.)) id
