@@ -2,9 +2,9 @@
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
-
-module Squasher.Types(ErlType(..)) where
+module Squasher.Types(ErlType(..), Container(..)) where
 
 import           Data.Data
 import           Data.List           (intercalate)
@@ -37,21 +37,34 @@ data ErlType = EInt
              | EBitString
             -- is_builtin can be used when wrapping functions
              -- support for improper lists?
-             | EList ErlType
+             -- array, or
+             | EContainer (Container ErlType)
              -- keyword maps?
              | EMap (Map ErlType ErlType)
              | EPid
              | EPort
              | ERef
              | EBoolean
-             --
-            --  | EArray -- 5 element tup
-            --  | ESet -- 9 element tup or map
-            --  | EDict -- 9 element tup
-            --  | EOrdDict -- weird
              deriving(Ord, Eq, Data, Typeable, Generic)
 
+-- improper lists? maybe_improper_lists?
+data Container a = CList a
+                 | CDict a
+                 | COldSet a
+                 | CGbSet a
+                 | CGbTree a a
+                 -- for empty gb_set and gb_tree, we cannot differentiate between the representations
+                 | CGb
+                 | CArray a
+
 instance Hashable ErlType
+
+deriving instance Ord a => Ord (Container a)
+deriving instance Eq a => Eq (Container a)
+deriving instance Data a => Data (Container a)
+deriving instance Typeable a => Typeable (Container a)
+deriving instance Generic a => Generic (Container a)
+instance (Hashable a,  Generic a, Typeable a) => Hashable (Container a)
 
 instance FromTerm ErlType where
     fromTerm t = case t of
@@ -70,7 +83,7 @@ instance FromTerm ErlType where
         (Atom _ "binary") -> Just EBinary
         (Atom _ "bitstring") -> Just EBitString
         (Tuple [Atom _ "list",  term]) ->
-            EList <$> fromTerm term
+            EContainer . CList <$> fromTerm term
         (Tuple [Atom _ "map", Nil]) ->
             Just $ EMap Map.empty
         (Tuple [Atom _ "map", List terms Nil]) ->
@@ -105,23 +118,13 @@ instance Show ErlType where
         ERef -> "reference()"
         EBoolean -> "boolean()"
         EMap ts -> "#{" ++ intercalate ", " (map (\(t1, t2) -> show t1 ++ " => " ++ show t2) (Map.toList ts)) ++ "}"
-        EList t -> "list(" ++ show t ++ ")"
+        EContainer c -> show c
 
--- -- Subtyping, without handling unknowns?
--- -- no map handling, function handling
--- (<:) :: ErlType -> ErlType -> Bool
--- t1 <: t2 | t1 == t2 = True
--- --EInt <: EFloat = True
--- (ENamedAtom _) <: EAnyAtom = True
--- EBoolean <: EAnyAtom = True
--- (ENamedAtom "true") <: EBoolean = True
--- (ENamedAtom "false") <: EBoolean = True
--- ENone <: _ = True
--- _ <: EAny = True
--- EBitString <: EBinary = True
--- (EUnion ts) <: t = all (<: t) ts
--- t <: (EUnion ts) = any (t <: ) ts
--- (EList t1) <: (EList t2) = t1 <: t2
--- _ <: _ = False
-
-
+instance Show a => Show (Container a) where
+    show (CList t) = "list(" ++ show t ++ ")"
+    show (CDict t) = "dict:dict(" ++ show t ++ ")"
+    show (COldSet t) = "sets:set(" ++ show t ++ ")"
+    show (CGbSet t) = "gb_sets:set(" ++ show t ++ ")"
+    show (CGbTree t1 t2) = "gb_trees:tree(" ++ show t1 ++ ", " ++ show t2 ++ ")"
+    show CGb = "sets:set(?) | gb_trees:tree(?)"
+    show (CArray t) = "array:array(" ++ show t ++ ")"

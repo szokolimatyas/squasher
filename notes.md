@@ -251,3 +251,26 @@ whoops:
 $6727 -> <{'MainPid', $5281} | {'F', $5281} | {'FinishedNum', $5281} | {'E', $5281} | {'MaxNum', $5281} | {'Pid', <pid() | $5281>}>
 
 what is this pid() doing here???
+
+also what is this:
+
+module(list($6659), list(integer()), list($5006)) -> ?
+forms(list($6659), $5280) -> ?
+
+did it throw or what?
+
+
+less agressive shquashing?
+limit the number of different tags between the inpected tagsets
+
+also investigate the large number of any()
+
+upcast list(?) to list() or list(any)
+upcast atom unions larger than a certain number
+upcast false, true <-- this should be done really early on
+
+container types should already be handled in the tracer part
+this means that the FromTerm instance of ErlType should also be extended
+also update as well
+
+there is a list() inside of a union for some reason???

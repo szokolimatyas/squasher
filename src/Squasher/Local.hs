@@ -7,37 +7,38 @@
 module Squasher.Local (runner, SquashConfig(..), AliasEnv(..), TyEnv(..)) where
 
 import           Control.Monad.Trans.State.Strict
-import           Data.ByteString.Lazy             (ByteString)
-import           Data.HashSet                     (HashSet)
-import           Data.IntMap.Strict               (IntMap)
-import           Data.IntSet                      (IntSet)
-import qualified Data.IntSet                      as IntSet
-import           Data.Map.Strict                  (Map)
-import qualified Data.Map.Strict                  as Map
-import           Data.Set                         (Set)
-import qualified Data.Set                         as Set
-import           Data.Text                        (Text)
-import qualified Data.Text                        as Text
+import           Data.ByteString.Lazy                    (ByteString)
+import           Data.HashSet                            (HashSet)
+import           Data.IntMap.Strict                      (IntMap)
+import           Data.IntSet                             (IntSet)
+import qualified Data.IntSet                             as IntSet
+import           Data.Map.Strict                         (Map)
+import qualified Data.Map.Strict                         as Map
+import           Data.Set                                (Set)
+import qualified Data.Set                                as Set
+import           Data.Text                               (Text)
+import qualified Data.Text                               as Text
 import           Squasher.Types
 --import Data.Generics.Uniplate.Operations (transformM)
-import           Control.Monad                    (zipWithM)
-import           Control.Monad.Trans.Except       (Except, except, throwE)
-import           Data.Binary                      (decodeOrFail)
-import           Data.Binary.Get                  (ByteOffset)
-import qualified Data.Equivalence.STT             as Equiv
-import           Data.Generics.Uniplate.Data
-import qualified Data.HashSet                     as HashSet
-import qualified Data.IntMap.Strict               as IntMap
-import           Debug.Trace
-import           Data.List                        (intercalate)
-import           Data.Containers.ListUtils        (nubOrd, nubInt)
-import           Foreign.Erlang.Term
-import qualified Control.Monad.ST.Trans           as STT
-import           Data.Functor.Identity            (Identity, runIdentity)
-import           Data.Foldable                    (foldl')
-import           Algebra.Graph.AdjacencyIntMap    (AdjacencyIntMap)
+import           Algebra.Graph.AdjacencyIntMap           (AdjacencyIntMap)
 import qualified Algebra.Graph.AdjacencyIntMap
 import           Algebra.Graph.AdjacencyIntMap.Algorithm (bfs)
+import           Control.Monad                           (zipWithM)
+import qualified Control.Monad.ST.Trans                  as STT
+import           Control.Monad.Trans.Except              (Except, except,
+                                                          throwE)
+import           Data.Binary                             (decodeOrFail)
+import           Data.Binary.Get                         (ByteOffset)
+import           Data.Containers.ListUtils               (nubInt, nubOrd)
+import qualified Data.Equivalence.STT                    as Equiv
+import           Data.Foldable                           (foldl')
+import           Data.Functor.Identity                   (runIdentity)
+import           Data.Generics.Uniplate.Data
+import qualified Data.HashSet                            as HashSet
+import qualified Data.IntMap.Strict                      as IntMap
+import           Data.List                               (intercalate)
+import           Debug.Trace
+import           Foreign.Erlang.Term
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -106,7 +107,7 @@ runner bs = case dec of
         let env' = env
         traceM $ "Env:\n" ++ show (Map.size $ unTyEnv env')
         let env'' = Debug.Trace.trace "Local squash done, start global squash!" squashLocal env'
-        let res = squashGlobal env'' 
+        let res = squashGlobal env''
         return res
     Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
     Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
@@ -129,7 +130,6 @@ combine t1 t2 | Just t3 <- equate t1 t2 = t3
 combine (ENamedAtom a1) (ENamedAtom a2)
     | a1 `elem` ["true", "false"] &&
       a2 `elem` ["true", "false"] = EBoolean
-combine (EList t1) (EList t2) = EList $ t1 `combine` t2
 -- no support for shapemaps!
 -- this is not the best, there could be too many different key types
 combine (EMap m1) (EMap m2) = EMap $ Map.unionWith combine m1 m2
@@ -171,7 +171,8 @@ equate (ENamedAtom txt) EBoolean | txt == "true" || txt == "false" = Just EBoole
 equate EBoolean (ENamedAtom txt) | txt == "true" || txt == "false" = Just EBoolean
 equate EBitString EBinary = Just EBitString
 equate EBinary EBitString = Just EBitString
-equate (EList t1) (EList t2) = EList <$> equate t1 t2
+-- TODO: when equating, transform inner representations to container
+equate (EContainer c1) (EContainer c2) = EContainer <$> equateCont c1 c2
 -- what is with record like structures?,
 equate (ETuple ts1) (ETuple ts2) | length ts1 /= length ts2 = Nothing
 equate (ETuple (ENamedAtom a1 : ts1)) (ETuple (ENamedAtom a2 : ts2)) | a1 == a2 =
@@ -181,6 +182,21 @@ equate (ETuple ts1) (ETuple ts2) =
 --equate (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
 --    Just $ EFun (zipWith combine argts1 argts2) (combine t1 t2)
 equate _ _ = Nothing
+
+-- should this rather be combine??
+equateCont :: Container ErlType -> Container ErlType -> Maybe (Container ErlType)
+equateCont (CList t1) (CList t2)     = Just $ CList $ combine t1 t2
+equateCont (CDict t1) (CDict t2)     = Just $ CDict $ combine t1 t2
+equateCont (COldSet t1) (COldSet t2) = Just $ COldSet $ combine t1 t2
+equateCont (CGbSet t1) (CGbSet t2)   = Just $ CGbSet $ combine t1 t2
+equateCont (CGbTree t1 t2) (CGbTree t3 t4) = Just $ CGbTree (combine t1 t3) (combine t2 t4)
+equateCont CGb CGb = Just CGb
+equateCont CGb (CGbSet t1) = Just $ CGbSet t1
+equateCont (CGbSet t1) CGb = Just $ CGbSet t1
+equateCont CGb (CGbTree t1 t2) = Just $ CGbTree t1 t2
+equateCont (CGbTree t1 t2) CGb = Just $ CGbTree t1 t2
+equateCont (CArray t1) (CArray t2) = Just $ CArray $ combine t1 t2
+equateCont _ _ = Nothing
 
 -- Function used to tame too large types, collaping them.
 -- Not sure if the handling of Unknown values here is correct
@@ -192,7 +208,7 @@ lub ENone t2 = t2
 lub t1 ENone = t1
 lub (ETuple ts1) (ETuple ts2)| length ts1 == length ts2 =
     ETuple $ zipWith lub ts1 ts2
-lub (EList t1) (EList t2) = EList $ t1 `lub` t2
+lub (EContainer c1) (EContainer c2) = lubCont c1 c2
 -- TODO: actual lub for maps
 lub (EMap _) (EMap _) =
     EMap $ Map.singleton EAny EAny
@@ -202,9 +218,23 @@ lub (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
     EFun (replicate (length argts1) ENone) (lub t1 t2)
 lub _ _ = EAny
 
+lubCont :: Container ErlType -> Container ErlType -> ErlType
+lubCont (CList t1) (CList t2)     = EContainer $ CList $ lub t1 t2
+lubCont (CDict t1) (CDict t2)     = EContainer $ CDict $ lub t1 t2
+lubCont (COldSet t1) (COldSet t2) = EContainer $ COldSet $ lub t1 t2
+lubCont (CGbSet t1) (CGbSet t2)   = EContainer $ CGbSet $ lub t1 t2
+lubCont (CGbTree t1 t2) (CGbTree t3 t4) = EContainer $ CGbTree (lub t1 t3) (lub t2 t4)
+lubCont CGb CGb = EContainer CGb
+lubCont CGb (CGbSet t1) = EContainer $ CGbSet t1
+lubCont (CGbSet t1) CGb = EContainer $ CGbSet t1
+lubCont CGb (CGbTree t1 t2) = EContainer $ CGbTree t1 t2
+lubCont (CGbTree t1 t2) CGb = EContainer $ CGbTree t1 t2
+lubCont (CArray t1) (CArray t2) = EContainer $ CArray $ lub t1 t2
+lubCont _ _ = EAny
+
 
 mkFlatUnion :: HashSet ErlType -> ErlType
-mkFlatUnion ts | HashSet.size flatUnion > 60 = HashSet.foldl' lub ENone flatUnion
+mkFlatUnion ts | HashSet.size flatUnion > 100 = HashSet.foldl' lub ENone flatUnion
                | otherwise = EUnion flatUnion where
 --    flatUnion = squashUnionElements $ Set.fold go Set.empty ts
     flatUnion = HashSet.foldl' go HashSet.empty ts
@@ -234,7 +264,7 @@ update ty (MkPath p) env =
         Range arity : p' ->
             update (EFun (replicate arity EUnknown) ty) (MkPath p') env
         ListElement : p' ->
-            update (EList ty) (MkPath p') env
+            update (EContainer $ CList ty) (MkPath p') env
         MapElement k : p' ->
             update (EMap $ Map.singleton k ty) (MkPath p') env
         [FunN fn] -> let tenv = unTyEnv env in
@@ -327,7 +357,7 @@ substTy' sub = transform go where
     go (EAliasMeta alias) =
         case IntMap.lookup alias sub of
             Just t -> t
-            _ -> EAliasMeta alias
+            _      -> EAliasMeta alias
     go t = t
 
 mapAliasesTo :: SquashConfig -> [Int] -> ErlType -> SquashConfig
@@ -386,7 +416,7 @@ postwalk :: SquashConfig -> ErlType ->
              (SquashConfig, ErlType)
 postwalk conf_ t_ f = postwalk' conf_ t_ where
     postwalk' conf t = case t of
-        ETuple ts -> 
+        ETuple ts ->
             let (conf', ts') = foldChildren ts in f conf' (ETuple ts')
         -- inefficient, is hashset the correct choice here?
         EUnion hs ->
@@ -399,19 +429,30 @@ postwalk conf_ t_ f = postwalk' conf_ t_ where
         EMap m ->
             -- TODO: handle maps
             (conf, EMap m)
-        EList t' ->
-            let (conf', t'') = postwalk' conf t' in f conf' (EList t'') 
+        EContainer c -> doCont c
         _ -> f conf t
         where
         foldChildren = foldr go (conf, mempty)
-        go t' (conf', ts') = 
+        go t' (conf', ts') =
             let (conf'', t'') = postwalk' conf' t' in
             (conf'', t'':ts')
 
--- postwalk :: (ErlType -> State a ErlType) ->
---             ErlType ->
---             State a ErlType
--- postwalk = transformM
+        doCont (CList t1) =
+            let (conf', t1') = postwalk' conf t1 in f conf' (EContainer $ CList t1')
+        doCont (CDict t1) =
+            let (conf', t1') = postwalk' conf t1 in f conf' (EContainer $ CDict t1')
+        doCont (COldSet t1) =
+            let (conf', t1') = postwalk' conf t1 in f conf' (EContainer $ COldSet t1')
+        doCont (CGbSet t1) =
+            let (conf', t1') = postwalk' conf t1 in f conf' (EContainer $ CGbSet t1')
+        doCont (CArray t1) =
+            let (conf', t1') = postwalk' conf t1 in f conf' (EContainer $ CArray t1')
+        doCont CGb = f conf (EContainer CGb)
+        doCont (CGbTree t1 t2) =
+            let (conf', t1') = postwalk' conf t1
+                (conf'', t2') = postwalk' conf' t2
+            in
+                f conf'' (EContainer $ CGbTree t1' t2')
 
 -- | Remove single element unions, collapse nested unions
 -- Maybe we could leave only this, and don't use equate when combining things
@@ -459,14 +500,14 @@ pruneAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}} =
     usedAliases = getReachable conf
     newAliasMap = IntMap.restrictKeys aliasMap usedAliases
 
-aliasesToGraph :: IntMap ErlType -> AdjacencyIntMap 
-aliasesToGraph aliasMap = 
+aliasesToGraph :: IntMap ErlType -> AdjacencyIntMap
+aliasesToGraph aliasMap =
     Algebra.Graph.AdjacencyIntMap.edges $ IntMap.toList aliasMap >>= uncurry getEdges where
 
     --maybe we don't need this, just overlay edges and return an AdjacencyIntMap
-    getEdges :: Int -> ErlType -> [(Int, Int)] 
+    getEdges :: Int -> ErlType -> [(Int, Int)]
     getEdges from = para visit where
-        visit :: ErlType -> [[(Int, Int)] ] -> [(Int, Int)] 
+        visit :: ErlType -> [[(Int, Int)] ] -> [(Int, Int)]
         visit (EAliasMeta i) es = (from, i) : concat es
         visit _ is              = concat is
 
@@ -501,7 +542,7 @@ inlineAliases conf@SquashConfig{aliasEnv = ae@MkAliasEnv{..},tyEnv = MkTyEnv fun
     sub = IntMap.mapWithKey (\a _ -> lookupAlias a ae) singleRefs
 
     -- do not substitute into itself
-    newAliasMap = 
+    newAliasMap =
         IntMap.mapWithKey (\a t -> substTy' (IntMap.delete a sub) t) aliasMap
     newTyEnv = Map.map (substTy' sub) funs
 
@@ -510,24 +551,10 @@ inlineAliases conf@SquashConfig{aliasEnv = ae@MkAliasEnv{..},tyEnv = MkTyEnv fun
 
 numOfRefs :: ErlType -> IntMap Int
 numOfRefs = para visit where
-    visit (EAliasMeta i) ims = 
-        IntMap.insertWith (+) i 1 (IntMap.unionsWith (+) ims) 
-    visit _ ims = 
+    visit (EAliasMeta i) ims =
+        IntMap.insertWith (+) i 1 (IntMap.unionsWith (+) ims)
+    visit _ ims =
         IntMap.unionsWith (+) ims
-
-    
-    -- case t of
-    -- ETuple ts -> isums $ map (numOfRefs s) ts
-    -- EUnion ts -> isums $ map (numOfRefs s) (HashSet.toList ts)
-    -- EFun argts rest ->  isums $ numOfRefs s rest : map (numOfRefs s) argts
-    -- EList t' -> numOfRefs s t'
-    -- EMap m ->
-    --     isums $ map (\(t1, t2) -> isum (numOfRefs s t1) (numOfRefs s t2)) $ Map.toList m
-    -- EAliasMeta i -> IntMap.singleton i 1
-    -- _ -> IntMap.empty
-    -- where
-    --     isums = IntMap.unionsWith (+)
-    --     isum = IntMap.unionWith (+)
 
 -- -------------------------------------------------------------------------------
 -- -- Global squashing
@@ -622,11 +649,11 @@ groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasMap _} =
 --         _                                -> Nothing
 
 squashHorizontally :: SquashConfig -> SquashConfig
-squashHorizontally conf = 
+squashHorizontally conf =
     Map.foldl' mergeAliases conf (groupSimilarRecs conf)
 
 squashHorizontallyMulti :: SquashConfig -> SquashConfig
-squashHorizontallyMulti conf = 
+squashHorizontallyMulti conf =
     foldl' mergeAliases conf (getEq (aliasesToTags conf) conf)
 
 tagMulti :: SquashConfig -> ErlType -> Set Tag
