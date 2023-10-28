@@ -23,7 +23,7 @@ import           Squasher.Types
 import           Algebra.Graph.AdjacencyIntMap           (AdjacencyIntMap)
 import qualified Algebra.Graph.AdjacencyIntMap
 import           Algebra.Graph.AdjacencyIntMap.Algorithm (bfs)
-import           Control.Monad                           (zipWithM)
+import           Control.Monad                           (zipWithM, foldM)
 import qualified Control.Monad.ST.Trans                  as STT
 import           Control.Monad.Trans.Except              (Except, except,
                                                           throwE)
@@ -39,6 +39,7 @@ import qualified Data.IntMap.Strict                      as IntMap
 import           Data.List                               (intercalate)
 import           Debug.Trace
 import           Foreign.Erlang.Term
+import           Data.Maybe                              (fromMaybe)
 
 newtype Path = MkPath { pathParts :: [PathPart] }
     deriving(Eq, Show)
@@ -145,7 +146,10 @@ combine t1 t2 = mkFlatUnion $ combineUnion (HashSet.singleton t1) t2
 -- todo: better performance??
 -- accumulation needs to be faster
 combineUnion :: HashSet ErlType -> ErlType -> HashSet ErlType
-combineUnion ts t = if didEquate then newTs else HashSet.insert t ts where
+combineUnion ts t = fromMaybe (HashSet.insert t ts) (equateUnion ts t)
+
+equateUnion :: HashSet ErlType -> ErlType -> Maybe (HashSet ErlType)
+equateUnion ts t = if didEquate then Just newTs else Nothing where
     (newTs, didEquate) = HashSet.foldl' go (HashSet.empty, False) $ HashSet.foldl' elements HashSet.empty ts
 
     elements set (EUnion ts') = ts' <> set
@@ -179,6 +183,9 @@ equate (ETuple (ENamedAtom a1 : ts1)) (ETuple (ENamedAtom a2 : ts2)) | a1 == a2 
     Just $ ETuple $ ENamedAtom a1 : zipWith combine ts1 ts2
 equate (ETuple ts1) (ETuple ts2) =
     ETuple <$> zipWithM equate ts1 ts2
+equate (EUnion ts1) (EUnion ts2) = mkFlatUnion <$> foldM equateUnion ts1 ts2 -- (flip combineUnion)
+equate (EUnion ts) t1 = mkFlatUnion <$> equateUnion ts t1
+equate t1 (EUnion ts) = mkFlatUnion <$> equateUnion ts t1
 --equate (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
 --    Just $ EFun (zipWith combine argts1 argts2) (combine t1 t2)
 equate _ _ = Nothing
@@ -555,6 +562,20 @@ numOfRefs = para visit where
         IntMap.insertWith (+) i 1 (IntMap.unionsWith (+) ims)
     visit _ ims =
         IntMap.unionsWith (+) ims
+
+-- maybe do this in the trace collector instead?
+-- that way it stays compatible with the stdlib if it changes in any way
+toContainer :: ErlType -> Maybe (Container ErlType)
+toContainer (ETuple [EInt, ENamedAtom "nil"]) = Just CGb
+toContainer (ETuple [ENamedAtom "array", EInt, EInt, _, _]) = 
+    undefined
+toContainer (ETuple [ENamedAtom "dict", EInt, EInt, EInt, EInt, EInt, EInt, _, _]) =
+    undefined
+toContainer (ETuple [ENamedAtom "set", EInt, EInt, EInt, EInt, EInt, EInt, _, _]) =
+    undefined
+toContainer _ = Nothing
+
+-- TODO: upcast atom unions, merge similar tuples that have few non-equatable elements
 
 -- -------------------------------------------------------------------------------
 -- -- Global squashing
