@@ -27,8 +27,11 @@ library
   exposed-modules:
       Foreign.Erlang.Term
       Lib
+      Squasher.Common
+      Squasher.Global
       Squasher.Local
       Squasher.Output
+      Squasher.Squasher
       Squasher.Types
   other-modules:
       Paths_squasher

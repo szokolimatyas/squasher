@@ -1,6 +1,7 @@
 module Main (main) where
 
-import Squasher.Local(runner, tyEnv, aliasEnv)
+import Squasher.Common
+import Squasher.Squasher
 import System.Environment (getArgs)
 import qualified Data.ByteString.Lazy as BS
 import Control.Monad.Trans.Except(runExcept)

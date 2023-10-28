@@ -1,7 +1,8 @@
 {-# LANGUAGE RecordWildCards   #-}
 module Squasher.Output where
 
-import Squasher.Local
+import Squasher.Squasher
+import Squasher.Common
 import qualified Erlang.Type as ET
 import Squasher.Types
 import Data.Text(Text)
