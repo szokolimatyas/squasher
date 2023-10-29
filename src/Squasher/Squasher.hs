@@ -52,6 +52,10 @@ runner bs = case dec of
 -- Could we unify proxy removal, pruning, etc?
 squashGlobal :: SquashConfig -> SquashConfig
 squashGlobal = compose [ aliasSingleRec
+                       -- horizontal squash, single
+                       , squashHorizontally'
+                       , removeProxyAliases
+                       , pruneAliases
                        , strictSquash
                        , removeProxyAliases
                        , pruneAliases

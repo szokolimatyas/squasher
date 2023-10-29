@@ -1,7 +1,7 @@
 {-# LANGUAGE RankNTypes    #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE LambdaCase #-}
-module Squasher.Global(squashHorizontally, squashHorizontallyMulti, aliasSingleRec, strictSquash) where
+module Squasher.Global(squashHorizontally, squashHorizontallyMulti, aliasSingleRec, squashHorizontally', strictSquash) where
 
 import qualified Data.HashSet                            as HashSet
 import           Data.Map.Strict                         (Map)
@@ -81,18 +81,6 @@ tag conf ty = case resolve conf ty of
 --    EUnion ts -> sameTagged $ Set.toList ts
     _                              -> Nothing
 
-
-groupSimilarRecs :: SquashConfig -> Map Tag [Int]
-groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} =
-    IntMap.foldlWithKey visit Map.empty aliasM where
-
-    visit acc key _ =
-        case tag conf (EAliasMeta key) of
-            Just theTag ->
-                Map.insertWith (++) theTag [key] acc
-             --   Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) theTag acc
-            _ -> acc
-
 -- squashUnionElements :: Set ErlType -> Set ErlType
 -- squashUnionElements ts = unTaggedSet <> Set.fromList (Map.elems tagMap) where
 --     (unTaggedSet, tagMap) = Set.foldl visit (Set.empty, Map.empty) ts
@@ -108,6 +96,17 @@ groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} =
 --         (ETuple (ENamedAtom txt : rest)) -> Just $ RecordTag txt $ length rest
 --         ENamedAtom txt                   -> Just $ SingleAtom txt
 --         _                                -> Nothing
+
+groupSimilarRecs :: SquashConfig -> Map Tag [Int]
+groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} =
+    IntMap.foldlWithKey visit Map.empty aliasM where
+
+    visit acc key _ =
+        case tag conf (EAliasMeta key) of
+            Just theTag ->
+                Map.insertWith (++) theTag [key] acc
+             --   Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) theTag acc
+            _ -> acc
 
 squashHorizontally :: SquashConfig -> SquashConfig
 squashHorizontally conf =
@@ -189,12 +188,13 @@ strictSquash conf = iter maps conf' where
             let inter = Map.intersectionWith (,) m m' in
             Map.size inter > 0 -- && all typesAreSimilar inter
 
-        typesAreSimilar (i1, i2) = case (lookupAlias i1 conf, lookupAlias i2 conf) of
-            (ETuple ts1, ETuple ts2) -> 
-                -- the number of matching equatable fields are greater than number of all fields divided by two
-                count (\(t1, t2) -> isJust $ equate (resolve conf t1) (resolve conf t2)) (zip ts1 ts2) > div (length ts1) 2
-            (ENamedAtom txt1, ENamedAtom txt2) -> txt1 == txt2
-            _ -> False
+typesAreSimilar :: SquashConfig -> Int -> Int -> Bool
+typesAreSimilar conf i1 i2 = case (lookupAlias i1 conf, lookupAlias i2 conf) of
+    (ETuple ts1, ETuple ts2) -> 
+        -- the number of matching equatable fields are greater than number of all fields divided by two
+        count (\(t1, t2) -> isJust $ equate (resolve conf t1) (resolve conf t2)) (zip ts1 ts2) > div (length ts1) 2
+    (ENamedAtom txt1, ENamedAtom txt2) -> txt1 == txt2
+    _ -> False
 
     -- iterate over list of maps, if two maps have a nonempty intersection, and:
     -- the intersection records have "enough" equatable fields
@@ -236,3 +236,23 @@ aliasesToGraph aliasM =
     getEdges from (EAliasMeta i) = [(from, i)] 
     getEdges from (EUnion ts)    = concatMap (getEdges from) ts
     getEdges _    _              = []
+
+
+-- groupSimilarRecs' :: SquashConfig -> Map Tag [Int]
+-- groupSimilarRecs' conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} =
+--     IntMap.foldlWithKey visit Map.empty aliasM where
+
+--     visit acc key _ =
+--         case tag conf (EAliasMeta key) of
+--             Just theTag ->
+--                 Map.insertWith (++) theTag [key] acc
+--              --   Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) theTag acc
+--             _ -> acc
+
+squashHorizontally' :: SquashConfig -> SquashConfig
+squashHorizontally' conf = foldl' go conf groups where
+    groups = Map.elems $ groupSimilarRecs conf
+
+    go :: SquashConfig -> [Int] -> SquashConfig
+    go conf' [] = conf'
+    go conf' (a:as) = let sim = filter (typesAreSimilar conf a) as in go (mergeAliases conf' (a:sim)) as
