@@ -274,3 +274,36 @@ this means that the FromTerm instance of ErlType should also be extended
 also update as well
 
 there is a list() inside of a union for some reason???
+
+
+fromList [(RecordTag "call" 3,5041),(RecordTag "op" 4,5040)],
+fromList [(RecordTag "atom" 2,5043),(RecordTag "op" 4,5042)],
+fromList [(RecordTag "atom" 2,5045),(RecordTag "var" 2,5044)],
+fromList [(RecordTag "if" 2,5046),(RecordTag "op" 4,5047)],
+fromList [(RecordTag "atom" 2,5049),(RecordTag "var" 2,5048)],
+fromList [(RecordTag "atom" 2,5051),(RecordTag "tuple" 2,5050)],
+fromList [(RecordTag "case" 3,5052),(RecordTag "receive" 2,5053)],
+fromList [(RecordTag "outdir" 1,5054)],
+fromList [(RecordTag "atom" 2,5056),(RecordTag "var" 2,5055)],
+fromList [(RecordTag "atom" 2,5057),(RecordTag "tuple" 2,5058)],
+fromList [(RecordTag "atom" 2,5060),(RecordTag "var" 2,5059)],
+fromList [(RecordTag "call" 3,5062),(RecordTag "integer" 2,5061),(RecordTag "var" 2,5063)],
+fromList [(RecordTag "call" 3,5065),(RecordTag "lc" 3,5064)],
+fromList [(RecordTag "atom" 2,5067),(RecordTag "var" 2,5066)],
+fromList [(RecordTag "op" 4,5068),(RecordTag "var" 2,5069)],
+fromList [(RecordTag "call" 3,5070),(RecordTag "op" 4,5071)],
+fromList [(RecordTag "atom" 2,5073),(RecordTag "op" 4,5072)],
+fromList [(RecordTag "atom" 2,5075),(RecordTag "var" 2,5074)],
+fromList [(RecordTag "atom" 2,5076),(RecordTag "var" 2,5077)],
+fromList [(RecordTag "atom" 2,5080),(RecordTag "if" 2,5082),(RecordTag "lc" 3,5079),(RecordTag "op" 4,5081),(RecordTag "tuple" 2,5078)],
+fromList [(RecordTag "atom" 2,5083),(RecordTag "var" 2,5084)],
+fromList [(RecordTag "atom" 2,5086),(RecordTag "tuple" 2,5085)],
+fromList [(RecordTag "call" 3,5090),(RecordTag "case" 3,5087),(RecordTag "match" 3,5088),(RecordTag "receive" 2,5091),(RecordTag "var" 2,5089)],
+
+
+$5654 -> <$5652 | $5650>
+$5656 -> <$5652 | $5654>
+$5658 -> <$5656 | $5654>
+
+
+$5652 -> <$5650 | $5647 | $5642>

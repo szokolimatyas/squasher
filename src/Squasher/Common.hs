@@ -259,8 +259,8 @@ instance Show AliasEnv where
         "\n"
 
 -- not good: throw error!
-lookupAlias :: Int -> AliasEnv -> ErlType
-lookupAlias i MkAliasEnv{..} = aliasMap IntMap.! i
+lookupAlias :: Int -> SquashConfig -> ErlType
+lookupAlias i SquashConfig{aliasEnv=MkAliasEnv{..}} = aliasMap IntMap.! i
 
 data SquashConfig = SquashConfig
                   { aliasEnv :: AliasEnv
@@ -282,7 +282,7 @@ reg SquashConfig{aliasEnv = MkAliasEnv{..}, ..} t =
     (SquashConfig{aliasEnv = MkAliasEnv (IntMap.insert nextIndex t aliasMap) (nextIndex + 1), ..}, EAliasMeta nextIndex)
 
 resolve :: SquashConfig -> ErlType -> ErlType
-resolve conf (EAliasMeta i) = lookupAlias i (aliasEnv conf)
+resolve conf (EAliasMeta i) = lookupAlias i conf
 resolve _    t              = t
 
 aliases :: ErlType -> IntSet

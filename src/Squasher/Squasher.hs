@@ -52,18 +52,28 @@ runner bs = case dec of
 -- Could we unify proxy removal, pruning, etc?
 squashGlobal :: SquashConfig -> SquashConfig
 squashGlobal = compose [ aliasSingleRec
-                       -- horizontal squash, single
-                       , squashHorizontally
+                       , strictSquash
                        , removeProxyAliases
                        , pruneAliases
-                       -- horizontal squash, multi
-                       , squashHorizontallyMulti
                        , removeProxyAliases
                        , pruneAliases
                        , inlineAliases
                        , pruneAliases
                        , tryRemoveUnknowns
                        ]
+-- squashGlobal = compose [ aliasSingleRec
+--                        -- horizontal squash, single
+--                        , squashHorizontally
+--                        , removeProxyAliases
+--                        , pruneAliases
+--                        -- horizontal squash, multi
+--                        , squashHorizontallyMulti
+--                        , removeProxyAliases
+--                        , pruneAliases
+--                        , inlineAliases
+--                        , pruneAliases
+--                        , tryRemoveUnknowns
+--                        ]
 -- foldl'?
 compose :: [a -> a] -> a -> a
 compose = foldl (flip (.)) id
@@ -99,7 +109,7 @@ removeProxyAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv 
         resolveProxy (EUnion ts) | HashSet.size ts == 1 = resolveProxy (head $ HashSet.toList ts)
         resolveProxy (EUnion ts) = EUnion $ HashSet.foldl' go HashSet.empty ts
         resolveProxy (EAliasMeta i) =
-            case lookupAlias i (aliasEnv conf) of
+            case lookupAlias i conf of
                 EAliasMeta j -> resolveProxy (EAliasMeta j)
                 _            -> EAliasMeta i
         resolveProxy  t = t
@@ -153,7 +163,7 @@ inlineAliases conf@SquashConfig{aliasEnv = ae@MkAliasEnv{..},tyEnv = MkTyEnv fun
     -- inline (1375,{'clauses', list($1374)})
     -- _then_
     -- with this it is back: (1376,{'fun', {integer(), integer()}, $1375})
-    sub = IntMap.mapWithKey (\a _ -> lookupAlias a ae) singleRefs
+    sub = IntMap.mapWithKey (\a _ -> lookupAlias a conf) singleRefs
 
     -- do not substitute into itself
     newAliasMap =
