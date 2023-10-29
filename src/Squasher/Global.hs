@@ -1,7 +1,7 @@
 {-# LANGUAGE RankNTypes    #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE LambdaCase #-}
-module Squasher.Global(squashHorizontally, squashHorizontallyMulti, aliasSingleRec, squashHorizontally', strictSquash) where
+module Squasher.Global(squashHorizontally, squashHorizontallyMulti, aliasSingleRec, strictSquashHorizontally, strictSquash) where
 
 import qualified Data.HashSet                            as HashSet
 import           Data.Map.Strict                         (Map)
@@ -19,9 +19,6 @@ import qualified Data.Equivalence.STT                    as Equiv
 import qualified Control.Monad.ST.Trans                  as STT
 import           Data.Maybe                              (mapMaybe, isJust)
 import qualified Debug.Trace
-import           Algebra.Graph.AdjacencyIntMap           (AdjacencyIntMap)
-import qualified Algebra.Graph.AdjacencyIntMap
-import qualified Algebra.Graph.AdjacencyIntMap.Algorithm
 
 import           Squasher.Common
 import           Squasher.Types
@@ -78,7 +75,6 @@ tag :: SquashConfig -> ErlType -> Maybe Tag
 tag conf ty = case resolve conf ty of
     (ETuple (ENamedAtom txt : ts)) -> Just $ RecordTag txt $ length ts
     ENamedAtom txt                 -> Just $ SingleAtom txt
---    EUnion ts -> sameTagged $ Set.toList ts
     _                              -> Nothing
 
 -- squashUnionElements :: Set ErlType -> Set ErlType
@@ -105,7 +101,6 @@ groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} =
         case tag conf (EAliasMeta key) of
             Just theTag ->
                 Map.insertWith (++) theTag [key] acc
-             --   Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) theTag acc
             _ -> acc
 
 squashHorizontally :: SquashConfig -> SquashConfig
@@ -114,7 +109,7 @@ squashHorizontally conf =
 
 squashHorizontallyMulti :: SquashConfig -> SquashConfig
 squashHorizontallyMulti conf =
-    foldl' mergeAliases conf (getEq (aliasesToTags conf) conf)
+    foldl' mergeAliases conf (getEq (tagsToAliases conf) conf)
 
 tagMulti :: SquashConfig -> ErlType -> Set Tag
 tagMulti conf ty = case resolve conf ty of
@@ -134,13 +129,6 @@ tagMulti conf ty = case resolve conf ty of
 --         then Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) tags acc
 --         else acc
 
---type TagEq s a = Equiv.EquivM s (Set Tag) Int a
-
--- Might be better if the tags were precomputed?
--- also, what happens with the Set.null tagged aliases?
---- runEq :: SquashConfig -> (forall s. TagEq s a) -> a
---runEq conf = Equiv.runEquivM (tagMulti conf . EAliasMeta) Set.union
-
 ---getEq :: Map Tag [Int] -> SquashConfig -> [[Int]]
 getEq :: Map Tag [Int] -> SquashConfig -> [[Int]]
 getEq tagMap conf = runIdentity $ STT.runSTT $ do
@@ -156,8 +144,8 @@ getEq tagMap conf = runIdentity $ STT.runSTT $ do
             return $ nubInt l
 
 
-aliasesToTags :: SquashConfig -> Map Tag [Int]
-aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = Map.map nubInt groups where
+tagsToAliases :: SquashConfig -> Map Tag [Int]
+tagsToAliases conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = Map.map nubInt groups where
     groups = IntMap.foldlWithKey visit Map.empty aliasM
 
     visit acc alias _ =
@@ -170,23 +158,18 @@ aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = Map.map nubInt g
 -------------------------------------------------------------------------------
 
 strictSquash :: SquashConfig -> SquashConfig
-strictSquash conf = iter maps conf' where
-    groups = aliasesToGroups conf
-    (conf', maps) = squashSameTagsInUnion conf groups
+strictSquash conf = foldl' iter conf groups where
+    --groups = aliasesToGroups conf
+    --(conf', maps) = squashSameTagsInUnion conf groups
+    groups = groupSimilarRecs conf
 
-    iter []     confN = confN
-    iter (m:ms) confN = iter ms (oneIteration m ms confN)
+    iter conf' []     = conf'
+    iter conf' (a:as) = iter (oneIteration a as conf') as
 
-    oneIteration :: Map Tag Int -> [Map Tag Int] -> SquashConfig -> SquashConfig
-    oneIteration m ms confN = mergeAliases confN $ Map.elems m ++ concatMap Map.elems toMerge where
-        toMerge = filter f ms
-
-        -- merge two groups if:
-        -- - there are same tagged types
-        -- - all of the matching same tagged type have similar fields
-        f m' = 
-            let inter = Map.intersectionWith (,) m m' in
-            Map.size inter > 0 -- && all typesAreSimilar inter
+    oneIteration :: Int -> [Int] -> SquashConfig -> SquashConfig
+    oneIteration a as conf' = mergeAliases conf' $ a : toMerge where
+        toMerge = filter f as
+        f = typesAreSimilar conf a
 
 typesAreSimilar :: SquashConfig -> Int -> Int -> Bool
 typesAreSimilar conf i1 i2 = case (lookupAlias i1 conf, lookupAlias i2 conf) of
@@ -212,47 +195,26 @@ squashSameTagsInUnion conf = foldl' go (conf, []) where
         Just a' -> (mergeAliases conf' [a', a], m)
         Nothing -> (conf', Map.insert tg a m)
 
--- all toplevel parts of a union
--- returns a list, because the same tag could be applied to different types
-aliasesToGroups :: SquashConfig -> [[(Tag, Int)]]
-aliasesToGroups conf@SquashConfig{aliasEnv=(MkAliasEnv aliasM _)} = groups where
-   
-    graph = aliasesToGraph aliasM
+-- the unions are not created sadly...
+-- we need another way
+strictSquashHorizontally :: SquashConfig -> SquashConfig
+strictSquashHorizontally conf = iter (aliasesToTags conf) conf where
+    iter []     conf' = conf'
+    iter (p:ps) conf' = iter ps (oneIteration p ps conf')
 
+
+    oneIteration :: (Int, Tag) -> [(Int, Tag)] -> SquashConfig -> SquashConfig
+    oneIteration (a, tg) as conf' = mergeAliases conf' $ a : toMerge where
+        toMerge = map fst $ filter f as
+        
+        f (a', tg') = tg == tg' && typesAreSimilar conf a a'
+
+-- an alias can have multiple entries for int
+aliasesToTags :: SquashConfig -> [(Int, Tag)]
+aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = groups where
     groups = IntMap.foldlWithKey visit [] aliasM
 
-    visit :: [[(Tag, Int)]] -> Int -> ErlType -> [[(Tag, Int)]]
-    visit acc alias _ = nubOrd (mapMaybe (\i -> (,i) <$> tag conf (EAliasMeta i)) $ topAliases alias) : acc
-
-    topAliases :: Int -> [Int]
-    topAliases = Algebra.Graph.AdjacencyIntMap.Algorithm.reachable graph
-
-
-aliasesToGraph :: IntMap ErlType -> AdjacencyIntMap
-aliasesToGraph aliasM =
-    Algebra.Graph.AdjacencyIntMap.edges $ IntMap.toList aliasM >>= uncurry getEdges where
-
-    getEdges :: Int -> ErlType -> [(Int, Int)]
-    getEdges from (EAliasMeta i) = [(from, i)] 
-    getEdges from (EUnion ts)    = concatMap (getEdges from) ts
-    getEdges _    _              = []
-
-
--- groupSimilarRecs' :: SquashConfig -> Map Tag [Int]
--- groupSimilarRecs' conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} =
---     IntMap.foldlWithKey visit Map.empty aliasM where
-
---     visit acc key _ =
---         case tag conf (EAliasMeta key) of
---             Just theTag ->
---                 Map.insertWith (++) theTag [key] acc
---              --   Map.alter (\case Just is -> Just (key : is); _ -> Just [key]) theTag acc
---             _ -> acc
-
-squashHorizontally' :: SquashConfig -> SquashConfig
-squashHorizontally' conf = foldl' go conf groups where
-    groups = Map.elems $ groupSimilarRecs conf
-
-    go :: SquashConfig -> [Int] -> SquashConfig
-    go conf' [] = conf'
-    go conf' (a:as) = let sim = filter (typesAreSimilar conf a) as in go (mergeAliases conf' (a:sim)) as
+    visit :: [(Int, Tag)] -> Int -> ErlType -> [(Int, Tag)]
+    visit acc alias _ = 
+        let tags = Set.toList $ tagMulti conf (EAliasMeta alias) in
+            map (alias,) tags ++ acc

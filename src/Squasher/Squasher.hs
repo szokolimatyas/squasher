@@ -53,7 +53,7 @@ runner bs = case dec of
 squashGlobal :: SquashConfig -> SquashConfig
 squashGlobal = compose [ aliasSingleRec
                        -- horizontal squash, single
-                       , squashHorizontally'
+                       , strictSquashHorizontally
                        , removeProxyAliases
                        , pruneAliases
                        , strictSquash
