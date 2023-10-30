@@ -221,8 +221,10 @@ getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ ST
     clss <- Equiv.classes st
     -- Equiv.desc st 
     mapM (fmap IntSet.toList . Equiv.desc st) clss where
+        -- this makes the result equivalent with the agressive squash
+        --visit st is = Equiv.equateAll st is
         visit _  []     = return ()
-        visit st (i:is) = Equiv.equateAll st (filter (typesAreSimilar conf i) is) >> visit st is
+        visit st (i:is) = Equiv.equateAll st (i : filter (typesAreSimilar conf i) is) >> visit st is
 
         setup st (i, t) = do
             let children = topLevelAliases t
