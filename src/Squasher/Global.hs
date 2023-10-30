@@ -198,16 +198,9 @@ squashSameTagsInUnion conf = foldl' go (conf, []) where
 -- the unions are not created sadly...
 -- we need another way
 strictSquashHorizontally :: SquashConfig -> SquashConfig
-strictSquashHorizontally conf = iter (aliasesToTags conf) conf where
-    iter []     conf' = conf'
-    iter (p:ps) conf' = iter ps (oneIteration p ps conf')
+strictSquashHorizontally conf = 
+    foldl' mergeAliases conf (getEq' (tagsToAliases conf) conf)
 
-
-    oneIteration :: (Int, Tag) -> [(Int, Tag)] -> SquashConfig -> SquashConfig
-    oneIteration (a, tg) as conf' = mergeAliases conf' $ a : toMerge where
-        toMerge = map fst $ filter f as
-        
-        f (a', tg') = tg == tg' && typesAreSimilar conf a a'
 
 -- an alias can have multiple entries for int
 aliasesToTags :: SquashConfig -> [(Int, Tag)]
@@ -218,3 +211,27 @@ aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = groups where
     visit acc alias _ = 
         let tags = Set.toList $ tagMulti conf (EAliasMeta alias) in
             map (alias,) tags ++ acc
+
+-- not good yet for some reason, unions are left behind
+getEq' :: Map Tag [Int] -> SquashConfig -> [[Int]]
+getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ STT.runSTT $ do
+    st <- Equiv.leastEquiv IntSet.singleton IntSet.union
+    mapM_ (setup st) $ IntMap.toList aliasM
+    mapM_ (visit st) tagMap
+    clss <- Equiv.classes st
+    -- Equiv.desc st 
+    mapM (fmap IntSet.toList . Equiv.desc st) clss where
+        visit _  []     = return ()
+        visit st (i:is) = Equiv.equateAll st (filter (typesAreSimilar conf i) is) >> visit st is
+
+        setup st (i, t) = do
+            let children = topLevelAliases t
+            Equiv.equateAll st (i:children)
+        -- classesToAliases st cl = do
+        --     tags <- Equiv.desc st cl
+        --     let l = foldl' (\as tg -> Map.findWithDefault [] tg tagMap ++ as) [] tags
+        --     return $ nubInt l
+topLevelAliases :: ErlType -> [Int]
+topLevelAliases (EAliasMeta i) = [i]
+topLevelAliases (EUnion ts)    = concatMap topLevelAliases ts
+topLevelAliases _              = []
