@@ -282,8 +282,9 @@ reg :: SquashConfig -> ErlType -> (SquashConfig, ErlType)
 reg SquashConfig{aliasEnv = MkAliasEnv{..}, ..} t =
     (SquashConfig{aliasEnv = MkAliasEnv (IntMap.insert nextIndex t aliasMap) (nextIndex + 1), ..}, EAliasMeta nextIndex)
 
+-- maybe do a check that we are not entering a loop, just in case
 resolve :: SquashConfig -> ErlType -> ErlType
-resolve conf (EAliasMeta i) = lookupAlias i conf
+resolve conf (EAliasMeta i) = resolve conf $ lookupAlias i conf
 resolve _    t              = t
 
 aliases :: ErlType -> IntSet

@@ -218,11 +218,14 @@ upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv fu
                 EUnion ts
         visit t = t
 
-        isAtomLike t = case t of
+        -- this wont' be a loop because we ensured no loops in mergeAliases
+        -- can inlineAliases or something else mess it up?
+        isAtomLike t = case resolve conf t of
             EAnyAtom -> True;
             ENamedAtom _ -> True 
             EBoolean -> True 
             EUnknown -> True
+            EUnion ts -> all isAtomLike ts
             _ -> False
 
 numOfRefs :: ErlType -> IntMap Int
