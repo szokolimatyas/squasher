@@ -56,7 +56,7 @@ squashAll conf0 t = confn where
 
 squashLocal :: TyEnv -> SquashConfig
 squashLocal tEnv = Map.foldlWithKey h initialConf (unTyEnv tEnv) where
-    initialConf = SquashConfig (MkAliasEnv IntMap.empty 0) (MkTyEnv Map.empty)
+    initialConf = SquashConfig (MkAliasEnv IntMap.empty 0) (MkTyEnv Map.empty) 3 -- TODO: make this a parameter
 
     h conf n t = addFunction n t1 conf2 where
         (conf1, t1) = aliasTuple conf t

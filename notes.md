@@ -280,3 +280,12 @@ Less agressive squashing #1:
 
 Less agressive squashing #2:
 - number of missing tags must be under a threshold, at least one same-tagged type
+
+
+additional problem: this is because we don't create aliases for atoms!
+create aliases for atom unions? that should not interfere with the records
+
+$11 -> <'bitlevel_binaries' | 'export_all' | 'report_warnings' | 'binary_comprehension' | 'report_errors' | {'outdir', list(integer())}>
+
+
+... 'bitlevel_binaries' | $11 | 'binary_comprehension' ...

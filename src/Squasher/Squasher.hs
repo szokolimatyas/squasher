@@ -62,9 +62,11 @@ squashGlobal = compose [ aliasSingleRec
                        , removeProxyAliases
                        , pruneAliases
                        , inlineAliases
-                       , pruneAliases
                        , tryRemoveUnknowns
                        , squashTuples
+                       , upcastAtomUnions
+                       , inlineAliases
+                       , pruneAliases
                        ]
 -- squashGlobal = compose [ aliasSingleRec
 --                        -- horizontal squash, single
@@ -194,13 +196,34 @@ squashTuples conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
 
     f t        EUnknown = Just t
     f EUnknown t        = Just t
-    f (ETuple (t1:ts1)) (ETuple (t2:ts2)) =
-        if length ts1 == length ts2 then do
-            ts' <- zipWithM equate ts1 ts2
-            return $ ETuple (combine t1 t2:ts')
-        else
-            Nothing
+    f (ETuple (t1:ts1)) (ETuple (t2:ts2)) | length ts1 == length ts2 = do
+        ts' <- zipWithM equate ts1 ts2
+        return $ ETuple (combine t1 t2:ts')
     f _                 _                 = Nothing
+
+upcastAtomUnions :: SquashConfig -> SquashConfig
+upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs, atomUnionSize=size} =
+    conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
+        newAliasMap = IntMap.map equateElements aliasMap
+        newFuns = Map.map equateElements funs
+
+        equateElements :: ErlType -> ErlType
+        equateElements = transform visit
+
+        visit :: ErlType -> ErlType
+        visit (EUnion ts) = 
+            if all isAtomLike ts && HashSet.size ts > size then
+                EAnyAtom
+            else
+                EUnion ts
+        visit t = t
+
+        isAtomLike t = case t of
+            EAnyAtom -> True;
+            ENamedAtom _ -> True 
+            EBoolean -> True 
+            EUnknown -> True
+            _ -> False
 
 numOfRefs :: ErlType -> IntMap Int
 numOfRefs = para visit where

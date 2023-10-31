@@ -265,6 +265,7 @@ lookupAlias i SquashConfig{aliasEnv=MkAliasEnv{..}} = aliasMap IntMap.! i
 data SquashConfig = SquashConfig
                   { aliasEnv :: AliasEnv
                   , tyEnv    :: TyEnv
+                  , atomUnionSize :: Int
                   } deriving(Show)
 
 addFunction :: FunName -> ErlType -> SquashConfig -> SquashConfig
