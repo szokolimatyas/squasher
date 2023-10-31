@@ -22,8 +22,10 @@ import           Data.Generics.Uniplate.Data
 import qualified Data.HashSet                            as HashSet
 import qualified Data.IntMap.Strict                      as IntMap
 import           Debug.Trace
-import           Foreign.Erlang.Term
+import           Data.Maybe                              (fromMaybe)
+import           Control.Monad                           (foldM, zipWithM)
 
+import           Foreign.Erlang.Term
 import Squasher.Common
 import Squasher.Local
 import Squasher.Global
@@ -59,11 +61,10 @@ squashGlobal = compose [ aliasSingleRec
                        , strictSquash
                        , removeProxyAliases
                        , pruneAliases
-                       , removeProxyAliases
-                       , pruneAliases
                        , inlineAliases
                        , pruneAliases
                        , tryRemoveUnknowns
+                       , squashTuples
                        ]
 -- squashGlobal = compose [ aliasSingleRec
 --                        -- horizontal squash, single
@@ -155,7 +156,7 @@ getReachable SquashConfig{aliasEnv=MkAliasEnv aliasMap _, tyEnv=MkTyEnv funs} = 
 -- todo: this is not good enough, circular substituting references should be avoided!
 -- todo: some should be inlined, but they are not! why??
 inlineAliases :: SquashConfig -> SquashConfig
-inlineAliases conf@SquashConfig{aliasEnv = ae@MkAliasEnv{..},tyEnv = MkTyEnv funs} =
+inlineAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newTyEnv } where
 
     refsInFuns = IntMap.unionsWith (+) (map numOfRefs $ Map.elems funs)
@@ -174,8 +175,32 @@ inlineAliases conf@SquashConfig{aliasEnv = ae@MkAliasEnv{..},tyEnv = MkTyEnv fun
         IntMap.mapWithKey (\a t -> substTy' (IntMap.delete a sub) t) aliasMap
     newTyEnv = Map.map (substTy' sub) funs
 
-   -- usedAliases = IntSet.unions $ map (\t -> aliasesInTyRec IntSet.empty t conf) tys
-   -- newAliasMap = IntMap.restrictKeys aliasMap usedAliases
+squashTuples :: SquashConfig -> SquashConfig
+squashTuples conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
+    conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
+
+    newAliasMap = IntMap.map equateElements aliasMap
+    newFuns = Map.map equateElements funs
+
+    equateElements :: ErlType -> ErlType
+    equateElements = transform visit
+
+    visit :: ErlType -> ErlType
+    visit (EUnion ts) = fromMaybe (EUnion ts) $ squashUnions $ HashSet.toList ts
+    visit t           = t
+
+    squashUnions :: [ErlType] -> Maybe ErlType
+    squashUnions = foldM f EUnknown
+
+    f t        EUnknown = Just t
+    f EUnknown t        = Just t
+    f (ETuple (t1:ts1)) (ETuple (t2:ts2)) =
+        if length ts1 == length ts2 then do
+            ts' <- zipWithM equate ts1 ts2
+            return $ ETuple (combine t1 t2:ts')
+        else
+            Nothing
+    f _                 _                 = Nothing
 
 numOfRefs :: ErlType -> IntMap Int
 numOfRefs = para visit where

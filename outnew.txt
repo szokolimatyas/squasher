@@ -1,5 +1,5 @@
 Aliases:
-$3 -> <{'record_info', integer()} | {'module_info', integer()}>
+$3 -> {<'record_info' | 'module_info'>, integer()}
 $6 -> <{'worker', integer()} | list(?) | {'collector', integer()}>
 $8 -> {'pany', integer()}
 $9 -> {'test', integer()}
@@ -9,12 +9,12 @@ $47 -> <{'location', {integer(), integer()}} | {'file', list(integer())}>
 $65 -> <{'var', {integer(), integer()}, <'P' | 'MaxNum' | 'Pid' | 'MyPid' | 'Collector' | '_' | 'MainPid' | 'F' | 'Pids' | 'E' | 'L' | 'FinishedNum' | 'Res'>} | {'match', {integer(), integer()}, $65, $65} | {'lc', {integer(), integer()}, $65, list({'generate', {integer(), integer()}, $65, $65})} | {'call', <{integer(), integer()} | list($47)>, <$65 | {'remote', {integer(), integer()}, $65, $65}>, list(<$65 | {'fun', {integer(), integer()}, $216}>)} | {'receive', {integer(), integer()}, list($111)} | {'if', {integer(), integer()}, list($111)} | {'case', {integer(), integer()}, $65, list($111)} | {'atom', <{integer(), integer()} | list($47)>, <'lists' | 'worker' | 'exit' | 'spawn' | 'collector' | 'cd' | 'c' | 'self' | 'bead' | 'flatlength' | 'normal' | boolean() | 'sort'>} | {'op', {integer(), integer()}, <'>=' | '!' | '+'>, $65, $65} | {'integer', {integer(), integer()}, integer()} | {'tuple', {integer(), integer()}, list($65)} | {'string', <{integer(), integer()} | list($47)>, list(integer())}>
 $111 -> {'clause', {integer(), integer()}, list($65), list(list($65)), list(any())}
 $121 -> <{'eof', {integer(), integer()}} | {'attribute', <{integer(), integer()} | list($47)>, <'module' | 'file' | 'compile'>, <{list(integer()), integer()} | 'export_all' | 'bead'>} | {'function', <{integer(), integer()} | list($47)>, <'worker' | 'pany' | 'test' | 'collector'>, integer(), list($111)}>
-$143 -> <{'cd', integer()} | {'c', integer()}>
+$143 -> {<'cd' | 'c'>, integer()}
 $216 -> {'clauses', list($111)}
 $377 -> {'bound', <'used' | 'unused'>, list({integer(), integer()})}
-$379 -> <{'E', $377} | {'MaxNum', $377} | {'FinishedNum', $377} | {'MainPid', $377} | {'F', $377} | {'Pid', $377}>
+$379 -> {<'MaxNum' | 'Pid' | 'MainPid' | 'F' | 'E' | 'FinishedNum'>, $377}
 $1889 -> {'ok', list(?)}
-$3069 -> <{'case', {integer(), integer()}} | {'if', {integer(), integer()}} | {'receive', {integer(), integer()}}>
+$3069 -> {<'if' | 'receive' | 'case'>, {integer(), integer()}}
 
 Functions:
 add_lint_warning({{integer(), integer()}, 'erl_lint', 'export_all'}, list(integer()), $14) -> $14
