@@ -289,3 +289,9 @@ $11 -> <'bitlevel_binaries' | 'export_all' | 'report_warnings' | 'binary_compreh
 
 
 ... 'bitlevel_binaries' | $11 | 'binary_comprehension' ...
+
+or just do subset checks
+
+
+<{list(?), ?,         list($0), ?,         list(integer()), ?} | 
+ {list(?), integer(), list($0), integer(), integer(),       ?}>

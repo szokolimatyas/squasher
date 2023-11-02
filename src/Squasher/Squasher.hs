@@ -9,7 +9,7 @@ import           Data.IntMap.Strict                      (IntMap)
 import           Data.IntSet                             (IntSet)
 import qualified Data.IntSet                             as IntSet
 import qualified Data.Map.Strict                         as Map
-import           Squasher.Types
+import           Data.List                               (partition)
 --import Data.Generics.Uniplate.Operations (transformM)
 import           Algebra.Graph.AdjacencyIntMap           (AdjacencyIntMap)
 import qualified Algebra.Graph.AdjacencyIntMap
@@ -23,12 +23,13 @@ import qualified Data.HashSet                            as HashSet
 import qualified Data.IntMap.Strict                      as IntMap
 import           Debug.Trace
 import           Data.Maybe                              (fromMaybe)
-import           Control.Monad                           (foldM, zipWithM)
+import           Control.Monad                           (foldM, zipWithM, guard)
 
 import           Foreign.Erlang.Term
 import Squasher.Common
 import Squasher.Local
 import Squasher.Global
+import           Squasher.Types
 
 
 runner :: ByteString -> Except String SquashConfig
@@ -64,6 +65,7 @@ squashGlobal = compose [ aliasSingleRec
                        , inlineAliases
                        , tryRemoveUnknowns
                        , squashTuples
+                       , removeSubsets
                        , upcastAtomUnions
                        , inlineAliases
                        , pruneAliases
@@ -100,7 +102,7 @@ tryRemoveUnknowns conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv f
         equateElements = transform visit
 
         visit :: ErlType -> ErlType
-        visit (EUnion ts) = EUnion $ HashSet.foldl' combineUnion HashSet.empty ts
+        visit (EUnion ts) = mkUnion $ HashSet.foldl' combineUnion HashSet.empty ts
         visit t           = t
 
 
@@ -192,7 +194,15 @@ squashTuples conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
     visit t           = t
 
     squashUnions :: [ErlType] -> Maybe ErlType
-    squashUnions = foldM f EUnknown
+    squashUnions ts = do
+        let (tuples, other) = partition isTuple ts
+        guard $ not $ null tuples
+        tuples' <- foldM f EUnknown tuples
+        return $ mkUnion $ HashSet.fromList $ tuples' : other
+
+    isTuple EUnknown   = True
+    isTuple (ETuple _) = True
+    isTuple _          = False
 
     f t        EUnknown = Just t
     f EUnknown t        = Just t
@@ -200,6 +210,29 @@ squashTuples conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
         ts' <- zipWithM equate ts1 ts2
         return $ ETuple (combine t1 t2:ts')
     f _                 _                 = Nothing
+
+removeSubsets :: SquashConfig -> SquashConfig
+removeSubsets conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
+    conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
+
+    newAliasMap = IntMap.map doElements aliasMap
+    newFuns = Map.map doElements funs
+
+    doElements :: ErlType -> ErlType
+    doElements = transform visit
+
+    visit :: ErlType -> ErlType
+    visit (EUnion ts) = mkUnion $ doUnion ts
+    visit t           = t
+
+    --doUnion :: HashSet ErlType -> HashSet ErlType
+    doUnion ts = HashSet.difference ts $ HashSet.unions $ map getAliased (HashSet.toList ts)
+
+    -- we could make this more recursive
+    getAliased (EAliasMeta i) = case resolve conf (EAliasMeta i) of
+        EUnion ts -> ts
+        t -> HashSet.singleton t
+    getAliased _ = HashSet.empty
 
 upcastAtomUnions :: SquashConfig -> SquashConfig
 upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs, atomUnionSize=size} =
@@ -212,8 +245,13 @@ upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv fu
 
         visit :: ErlType -> ErlType
         visit (EUnion ts) = 
-            if all isAtomLike ts && HashSet.size ts > size then
-                EAnyAtom
+            let (atoms, other) = partition isAtomLike $ HashSet.toList ts in
+            -- maybe make this switchable, so mixed unions don't get upcast
+            if length atoms > size then
+                if null other then
+                    EAnyAtom
+                else
+                    EUnion $ HashSet.fromList $ EAnyAtom:other
             else
                 EUnion ts
         visit t = t

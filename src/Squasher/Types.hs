@@ -4,7 +4,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
-module Squasher.Types(ErlType(..), Container(..)) where
+module Squasher.Types(ErlType(..), Container(..), mkUnion) where
 
 import           Data.Data
 import           Data.List           (intercalate)
@@ -128,3 +128,7 @@ instance Show a => Show (Container a) where
     show (CGbTree t1 t2) = "gb_trees:tree(" ++ show t1 ++ ", " ++ show t2 ++ ")"
     show CGb = "sets:set(?) | gb_trees:tree(?)"
     show (CArray t) = "array:array(" ++ show t ++ ")"
+
+mkUnion :: HashSet ErlType -> ErlType
+mkUnion ts | HashSet.size ts == 1 = head $ HashSet.toList ts
+mkUnion ts = EUnion ts
