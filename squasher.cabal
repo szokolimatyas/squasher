@@ -46,6 +46,7 @@ library
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
+    , doclayout >=0.4.0.1
     , equivalence >=0.4.1
     , hashable >=1.2.5 && <1.5
     , text >=1.2.5.0
@@ -69,6 +70,7 @@ executable squasher-exe
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
+    , doclayout >=0.4.0.1
     , equivalence >=0.4.1
     , hashable >=1.2.5 && <1.5
     , optparse-applicative
@@ -95,6 +97,7 @@ test-suite squasher-test
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
+    , doclayout >=0.4.0.1
     , equivalence >=0.4.1
     , hashable >=1.2.5 && <1.5
     , squasher

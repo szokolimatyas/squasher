@@ -7,17 +7,16 @@ import qualified Data.HashSet                            as HashSet
 import           Data.Map.Strict                         (Map)
 import qualified Data.Map.Strict                         as Map
 import qualified Data.IntMap.Strict                      as IntMap
-import           Data.IntMap.Strict                      (IntMap)
 import qualified Data.IntSet                             as IntSet
 import           Data.Text                               (Text)
 import           Data.Set                                (Set)
 import qualified Data.Set                                as Set
-import           Data.Containers.ListUtils               (nubInt, nubOrd)
+import           Data.Containers.ListUtils               (nubInt)
 import           Data.Foldable                           (foldl')
 import           Data.Functor.Identity                   (runIdentity)
 import qualified Data.Equivalence.STT                    as Equiv
 import qualified Control.Monad.ST.Trans                  as STT
-import           Data.Maybe                              (mapMaybe, isJust)
+import           Data.Maybe                              (isJust)
 import qualified Debug.Trace
 
 import           Squasher.Common
@@ -185,15 +184,15 @@ typesAreSimilar conf i1 i2 = case (lookupAlias i1 conf, lookupAlias i2 conf) of
 count :: (a -> Bool) -> [a] -> Int
 count f = foldl' (\acc a -> if f a then acc + 1 else acc) 0
 
-squashSameTagsInUnion :: SquashConfig -> [[(Tag, Int)]] -> (SquashConfig, [Map Tag Int])
-squashSameTagsInUnion conf = foldl' go (conf, []) where
-    go (conf', ms) ps = 
-        let (conf'', m) = foldl' add (conf', Map.empty) ps in
-            (conf'', m:ms)
+-- squashSameTagsInUnion :: SquashConfig -> [[(Tag, Int)]] -> (SquashConfig, [Map Tag Int])
+-- squashSameTagsInUnion conf = foldl' go (conf, []) where
+--     go (conf', ms) ps = 
+--         let (conf'', m) = foldl' add (conf', Map.empty) ps in
+--             (conf'', m:ms)
     
-    add (conf', m) (tg, a) = case Map.lookup tg m of
-        Just a' -> (mergeAliases conf' [a', a], m)
-        Nothing -> (conf', Map.insert tg a m)
+--     add (conf', m) (tg, a) = case Map.lookup tg m of
+--         Just a' -> (mergeAliases conf' [a', a], m)
+--         Nothing -> (conf', Map.insert tg a m)
 
 -- the unions are not created sadly...
 -- we need another way
@@ -203,14 +202,14 @@ strictSquashHorizontally conf =
 
 
 -- an alias can have multiple entries for int
-aliasesToTags :: SquashConfig -> [(Int, Tag)]
-aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = groups where
-    groups = IntMap.foldlWithKey visit [] aliasM
+-- aliasesToTags :: SquashConfig -> [(Int, Tag)]
+-- aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = groups where
+--     groups = IntMap.foldlWithKey visit [] aliasM
 
-    visit :: [(Int, Tag)] -> Int -> ErlType -> [(Int, Tag)]
-    visit acc alias _ = 
-        let tags = Set.toList $ tagMulti conf (EAliasMeta alias) in
-            map (alias,) tags ++ acc
+--     visit :: [(Int, Tag)] -> Int -> ErlType -> [(Int, Tag)]
+--     visit acc alias _ = 
+--         let tags = Set.toList $ tagMulti conf (EAliasMeta alias) in
+--             map (alias,) tags ++ acc
 
 -- not good yet for some reason, unions are left behind
 getEq' :: Map Tag [Int] -> SquashConfig -> [[Int]]

@@ -126,7 +126,7 @@ instance Show a => Show (Container a) where
     show (COldSet t) = "sets:set(" ++ show t ++ ")"
     show (CGbSet t) = "gb_sets:set(" ++ show t ++ ")"
     show (CGbTree t1 t2) = "gb_trees:tree(" ++ show t1 ++ ", " ++ show t2 ++ ")"
-    show CGb = "sets:set(?) | gb_trees:tree(?)"
+    show CGb = "gb_sets:set(?) | gb_trees:tree(?)"
     show (CArray t) = "array:array(" ++ show t ++ ")"
 
 mkUnion :: HashSet ErlType -> ErlType

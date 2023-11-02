@@ -37,7 +37,7 @@ aliasTuple conf t = postwalk conf t f where
 
 squash :: SquashConfig -> [Int] -> IntSet -> SquashConfig
 squash conf []     _d = conf
-squash conf@SquashConfig{..} (a1:w) d  = squash conf' (w ++ IntSet.toList as) (IntSet.insert a1 d) where
+squash conf (a1:w) d  = squash conf' (w ++ IntSet.toList as) (IntSet.insert a1 d) where
     as = aliases (lookupAlias a1 conf) IntSet.\\ d
     ap = IntSet.delete a1 d
     -- refers to ai, what is it???
