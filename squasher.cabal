@@ -30,6 +30,7 @@ library
       Squasher.Common
       Squasher.Global
       Squasher.Local
+      Squasher.Naming
       Squasher.Output
       Squasher.Squasher
       Squasher.Types
