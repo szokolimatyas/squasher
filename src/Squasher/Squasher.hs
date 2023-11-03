@@ -8,27 +8,27 @@ import           Data.ByteString.Lazy                    (ByteString)
 import           Data.IntMap.Strict                      (IntMap)
 import           Data.IntSet                             (IntSet)
 import qualified Data.IntSet                             as IntSet
-import qualified Data.Map.Strict                         as Map
 import           Data.List                               (partition)
+import qualified Data.Map.Strict                         as Map
 --import Data.Generics.Uniplate.Operations (transformM)
 import           Algebra.Graph.AdjacencyIntMap           (AdjacencyIntMap)
 import qualified Algebra.Graph.AdjacencyIntMap
 import           Algebra.Graph.AdjacencyIntMap.Algorithm (bfs)
-import           Control.Monad.Trans.Except              (Except,
-                                                          throwE)
+import           Control.Monad                           (foldM, guard,
+                                                          zipWithM)
+import           Control.Monad.Trans.Except              (Except, throwE)
 import           Data.Binary                             (decodeOrFail)
 import           Data.Binary.Get                         (ByteOffset)
 import           Data.Generics.Uniplate.Data
 import qualified Data.HashSet                            as HashSet
 import qualified Data.IntMap.Strict                      as IntMap
-import           Debug.Trace
 import           Data.Maybe                              (fromMaybe)
-import           Control.Monad                           (foldM, zipWithM, guard)
+import           Debug.Trace
 
 import           Foreign.Erlang.Term
-import Squasher.Common
-import Squasher.Local
-import Squasher.Global
+import           Squasher.Common
+import           Squasher.Global
+import           Squasher.Local
 import           Squasher.Types
 
 
@@ -231,7 +231,7 @@ removeSubsets conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} 
     -- we could make this more recursive
     getAliased (EAliasMeta i) = case resolve conf (EAliasMeta i) of
         EUnion ts -> ts
-        t -> HashSet.singleton t
+        t         -> HashSet.singleton t
     getAliased _ = HashSet.empty
 
 upcastAtomUnions :: SquashConfig -> SquashConfig
@@ -244,7 +244,7 @@ upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv fu
         equateElements = transform visit
 
         visit :: ErlType -> ErlType
-        visit (EUnion ts) = 
+        visit (EUnion ts) =
             let (atoms, other) = partition isAtomLike $ HashSet.toList ts in
             -- maybe make this switchable, so mixed unions don't get upcast
             if length atoms > size then
@@ -259,12 +259,12 @@ upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv fu
         -- this wont' be a loop because we ensured no loops in mergeAliases
         -- can inlineAliases or something else mess it up?
         isAtomLike t = case resolve conf t of
-            EAnyAtom -> True;
-            ENamedAtom _ -> True 
-            EBoolean -> True 
-            EUnknown -> True
-            EUnion ts -> all isAtomLike ts
-            _ -> False
+            EAnyAtom     -> True;
+            ENamedAtom _ -> True
+            EBoolean     -> True
+            EUnknown     -> True
+            EUnion ts    -> all isAtomLike ts
+            _            -> False
 
 numOfRefs :: ErlType -> IntMap Int
 numOfRefs = para visit where

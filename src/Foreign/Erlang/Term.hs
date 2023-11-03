@@ -3,7 +3,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
-module Foreign.Erlang.Term(ExternalTerm(..), Term(..), FromTerm(..)) where
+module Foreign.Erlang.Term(ExternalTerm(..), Term(..), FromTerm(..), AtomType(..)) where
 
 import           Control.Monad      (replicateM)
 import           Data.Binary

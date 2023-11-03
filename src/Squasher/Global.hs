@@ -1,22 +1,22 @@
+{-# LANGUAGE LambdaCase    #-}
 {-# LANGUAGE RankNTypes    #-}
 {-# LANGUAGE TupleSections #-}
-{-# LANGUAGE LambdaCase #-}
 module Squasher.Global(squashHorizontally, squashHorizontallyMulti, aliasSingleRec, strictSquashHorizontally, strictSquash) where
 
-import qualified Data.HashSet                            as HashSet
-import           Data.Map.Strict                         (Map)
-import qualified Data.Map.Strict                         as Map
-import qualified Data.IntMap.Strict                      as IntMap
-import qualified Data.IntSet                             as IntSet
-import           Data.Text                               (Text)
-import           Data.Set                                (Set)
-import qualified Data.Set                                as Set
-import           Data.Containers.ListUtils               (nubInt)
-import           Data.Foldable                           (foldl')
-import           Data.Functor.Identity                   (runIdentity)
-import qualified Data.Equivalence.STT                    as Equiv
-import qualified Control.Monad.ST.Trans                  as STT
-import           Data.Maybe                              (isJust)
+import qualified Control.Monad.ST.Trans    as STT
+import           Data.Containers.ListUtils (nubInt)
+import qualified Data.Equivalence.STT      as Equiv
+import           Data.Foldable             (foldl')
+import           Data.Functor.Identity     (runIdentity)
+import qualified Data.HashSet              as HashSet
+import qualified Data.IntMap.Strict        as IntMap
+import qualified Data.IntSet               as IntSet
+import           Data.Map.Strict           (Map)
+import qualified Data.Map.Strict           as Map
+import           Data.Maybe                (isJust)
+import           Data.Set                  (Set)
+import qualified Data.Set                  as Set
+import           Data.Text                 (Text)
 import qualified Debug.Trace
 
 import           Squasher.Common
@@ -172,7 +172,7 @@ strictSquash conf = foldl' iter conf groups where
 
 typesAreSimilar :: SquashConfig -> Int -> Int -> Bool
 typesAreSimilar conf i1 i2 = case (lookupAlias i1 conf, lookupAlias i2 conf) of
-    (ETuple ts1, ETuple ts2) -> 
+    (ETuple ts1, ETuple ts2) ->
         -- the number of matching equatable fields are greater than number of all fields divided by two
         count (\(t1, t2) -> isJust $ equate (resolve conf t1) (resolve conf t2)) (zip ts1 ts2) > div (length ts1) 2
     (ENamedAtom txt1, ENamedAtom txt2) -> txt1 == txt2
@@ -186,10 +186,10 @@ count f = foldl' (\acc a -> if f a then acc + 1 else acc) 0
 
 -- squashSameTagsInUnion :: SquashConfig -> [[(Tag, Int)]] -> (SquashConfig, [Map Tag Int])
 -- squashSameTagsInUnion conf = foldl' go (conf, []) where
---     go (conf', ms) ps = 
+--     go (conf', ms) ps =
 --         let (conf'', m) = foldl' add (conf', Map.empty) ps in
 --             (conf'', m:ms)
-    
+
 --     add (conf', m) (tg, a) = case Map.lookup tg m of
 --         Just a' -> (mergeAliases conf' [a', a], m)
 --         Nothing -> (conf', Map.insert tg a m)
@@ -197,7 +197,7 @@ count f = foldl' (\acc a -> if f a then acc + 1 else acc) 0
 -- the unions are not created sadly...
 -- we need another way
 strictSquashHorizontally :: SquashConfig -> SquashConfig
-strictSquashHorizontally conf = 
+strictSquashHorizontally conf =
     foldl' mergeAliases conf (getEq' (tagsToAliases conf) conf)
 
 
@@ -207,7 +207,7 @@ strictSquashHorizontally conf =
 --     groups = IntMap.foldlWithKey visit [] aliasM
 
 --     visit :: [(Int, Tag)] -> Int -> ErlType -> [(Int, Tag)]
---     visit acc alias _ = 
+--     visit acc alias _ =
 --         let tags = Set.toList $ tagMulti conf (EAliasMeta alias) in
 --             map (alias,) tags ++ acc
 
@@ -218,7 +218,7 @@ getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ ST
     mapM_ (setup st) $ IntMap.toList aliasM
     mapM_ (visit st) tagMap
     clss <- Equiv.classes st
-    -- Equiv.desc st 
+    -- Equiv.desc st
     mapM (fmap IntSet.toList . Equiv.desc st) clss where
         -- this makes the result equivalent with the agressive squash
         --visit st is = Equiv.equateAll st is

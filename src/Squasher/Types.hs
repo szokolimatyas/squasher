@@ -1,23 +1,23 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
 module Squasher.Types(ErlType(..), Container(..), mkUnion) where
 
 import           Data.Data
+import           Data.Hashable
+import           Data.HashSet        (HashSet)
+import qualified Data.HashSet        as HashSet
 import           Data.List           (intercalate)
 import           Data.Map            (Map)
 import qualified Data.Map            as Map
 import qualified Data.Maybe          as Maybe
-import           Data.HashSet        (HashSet)
-import qualified Data.HashSet        as HashSet
 import           Data.Text           (Text)
 import qualified Data.Text           as Text
 import           Foreign.Erlang.Term
-import GHC.Generics (Generic)
-import Data.Hashable
+import           GHC.Generics        (Generic)
 
 data ErlType = EInt
              | EFloat
@@ -121,13 +121,13 @@ instance Show ErlType where
         EContainer c -> show c
 
 instance Show a => Show (Container a) where
-    show (CList t) = "list(" ++ show t ++ ")"
-    show (CDict t) = "dict:dict(" ++ show t ++ ")"
-    show (COldSet t) = "sets:set(" ++ show t ++ ")"
-    show (CGbSet t) = "gb_sets:set(" ++ show t ++ ")"
+    show (CList t)       = "list(" ++ show t ++ ")"
+    show (CDict t)       = "dict:dict(" ++ show t ++ ")"
+    show (COldSet t)     = "sets:set(" ++ show t ++ ")"
+    show (CGbSet t)      = "gb_sets:set(" ++ show t ++ ")"
     show (CGbTree t1 t2) = "gb_trees:tree(" ++ show t1 ++ ", " ++ show t2 ++ ")"
-    show CGb = "gb_sets:set(?) | gb_trees:tree(?)"
-    show (CArray t) = "array:array(" ++ show t ++ ")"
+    show CGb             = "gb_sets:set(?) | gb_trees:tree(?)"
+    show (CArray t)      = "array:array(" ++ show t ++ ")"
 
 mkUnion :: HashSet ErlType -> ErlType
 mkUnion ts | HashSet.size ts == 1 = head $ HashSet.toList ts

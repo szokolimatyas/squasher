@@ -5,24 +5,23 @@
 
 module Squasher.Common where
 
-import           Data.HashSet                            (HashSet)
-import qualified Data.HashSet                            as HashSet
-import           Data.IntMap.Strict                      (IntMap)
-import qualified Data.IntMap.Strict                      as IntMap
-import           Data.IntSet                             (IntSet)
-import qualified Data.IntSet                             as IntSet
-import           Data.Map.Strict                         (Map)
-import qualified Data.Map.Strict                         as Map
-import           Data.Text                               (Text)
-import qualified Data.Text                               as Text
-import           Control.Monad.Trans.Except              (Except, except,
-                                                          throwE)
+import           Control.Monad               (foldM, zipWithM)
+import           Control.Monad.Trans.Except  (Except, except, throwE)
 import           Data.Generics.Uniplate.Data
-import           Data.List                               (intercalate)
-import           Data.Maybe                              (fromMaybe)
-import           Squasher.Types
+import           Data.HashSet                (HashSet)
+import qualified Data.HashSet                as HashSet
+import           Data.IntMap.Strict          (IntMap)
+import qualified Data.IntMap.Strict          as IntMap
+import           Data.IntSet                 (IntSet)
+import qualified Data.IntSet                 as IntSet
+import           Data.List                   (intercalate)
+import           Data.Map.Strict             (Map)
+import qualified Data.Map.Strict             as Map
+import           Data.Maybe                  (fromMaybe)
+import           Data.Text                   (Text)
+import qualified Data.Text                   as Text
 import           Foreign.Erlang.Term
-import           Control.Monad                           (zipWithM, foldM)
+import           Squasher.Types
 
 
 newtype Path = MkPath { pathParts :: [PathPart] }
@@ -263,8 +262,8 @@ lookupAlias :: Int -> SquashConfig -> ErlType
 lookupAlias i SquashConfig{aliasEnv=MkAliasEnv{..}} = aliasMap IntMap.! i
 
 data SquashConfig = SquashConfig
-                  { aliasEnv :: AliasEnv
-                  , tyEnv    :: TyEnv
+                  { aliasEnv      :: AliasEnv
+                  , tyEnv         :: TyEnv
                   , atomUnionSize :: Int
                   } deriving(Show)
 
@@ -382,7 +381,7 @@ postwalk conf_ t_ f = postwalk' conf_ t_ where
 -- that way it stays compatible with the stdlib if it changes in any way
 toContainer :: ErlType -> Maybe (Container ErlType)
 toContainer (ETuple [EInt, ENamedAtom "nil"]) = Just CGb
-toContainer (ETuple [ENamedAtom "array", EInt, EInt, _, _]) = 
+toContainer (ETuple [ENamedAtom "array", EInt, EInt, _, _]) =
     undefined
 toContainer (ETuple [ENamedAtom "dict", EInt, EInt, EInt, EInt, EInt, EInt, _, _]) =
     undefined

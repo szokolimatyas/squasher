@@ -1,16 +1,16 @@
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE RankNTypes      #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Squasher.Local(squashLocal) where
 
-import           Data.IntSet                             (IntSet)
-import qualified Data.IntSet                             as IntSet
-import qualified Data.Map.Strict                         as Map
-import           Squasher.Types
+import qualified Data.HashSet       as HashSet
+import qualified Data.IntMap.Strict as IntMap
+import           Data.IntSet        (IntSet)
+import qualified Data.IntSet        as IntSet
+import qualified Data.Map.Strict    as Map
 import           Squasher.Common
-import qualified Data.HashSet                            as HashSet
-import qualified Data.IntMap.Strict                      as IntMap
+import           Squasher.Types
 
 
 shouldMerge :: [ErlType] -> Bool

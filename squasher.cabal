@@ -40,14 +40,12 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      Erlang >=0.1.0.0
-    , STMonadTrans >=0.4.7
+      STMonadTrans >=0.4.7
     , algebraic-graphs >=0.7
     , base >=4.10 && <5
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
-    , doclayout >=0.4.0.1
     , equivalence >=0.4.1
     , hashable >=1.2.5 && <1.5
     , text >=1.2.5.0
@@ -64,14 +62,12 @@ executable squasher-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N -O -optc-ffast-math -optc-O3 -fexcess-precision
   build-depends:
-      Erlang >=0.1.0.0
-    , STMonadTrans >=0.4.7
+      STMonadTrans >=0.4.7
     , algebraic-graphs >=0.7
     , base >=4.10 && <5
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
-    , doclayout >=0.4.0.1
     , equivalence >=0.4.1
     , hashable >=1.2.5 && <1.5
     , optparse-applicative
@@ -91,14 +87,12 @@ test-suite squasher-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      Erlang >=0.1.0.0
-    , STMonadTrans >=0.4.7
+      STMonadTrans >=0.4.7
     , algebraic-graphs >=0.7
     , base >=4.10 && <5
     , binary >=0.8.9.0
     , bytestring >=0.11.4.0
     , containers >=0.6.5.1
-    , doclayout >=0.4.0.1
     , equivalence >=0.4.1
     , hashable >=1.2.5 && <1.5
     , squasher

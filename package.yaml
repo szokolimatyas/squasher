@@ -31,8 +31,6 @@ dependencies:
 - unordered-containers >= 0.2.19.1 
 - hashable >=1.2.5 && <1.5
 - STMonadTrans >= 0.4.7
-- Erlang >= 0.1.0.0
-- doclayout >= 0.4.0.1
 - algebraic-graphs >= 0.7
 
 ghc-options:

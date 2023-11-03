@@ -1,112 +1,153 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-module Squasher.Output where
+module Squasher.Output(out) where
 
-import Squasher.Squasher
-import Squasher.Common
-import qualified Erlang.Type as ET
-import qualified Utils as EU
-import Erlang.Pretty()
-import Squasher.Types
-import Data.Text(Text)
-import qualified Data.Text as Text
-import qualified Data.HashSet                            as HashSet
-import qualified Data.Map      as Map
-import qualified Data.IntMap   as IntMap
-import Data.Foldable(foldl')
-import Data.Maybe(fromMaybe)
-import Text.DocLayout
+import qualified Data.HashSet        as HashSet
+import           Data.IntMap         (IntMap)
+import qualified Data.IntMap         as IntMap
+import qualified Data.Map            as Map
+import           Data.Text           (Text)
+import qualified Data.Text           as Text
+import           Foreign.Erlang.Term (AtomType (..), Term (..))
+import qualified Foreign.Erlang.Term as Erlang
+import           Squasher.Common
+import           Squasher.Naming
+import           Squasher.Types
 
-out :: SquashConfig -> Text
-out SquashConfig{..} = render (Just 90) $ EU.pretty forms where
-    forms = case typeAttrs ++ funAttrs of
-        (a:as) -> foldl' (flip ET.Forms1) (ET.Forms0 a) as
-        _ -> error "Internal error, no data"
-    
-    typeAttrs = map ET.Form0 $ aliasesToAttrs aliasEnv
-    funAttrs = map ET.Form0 $ envToAttrs tyEnv
+out :: IntMap Name -> SquashConfig -> Term
+out names SquashConfig{..} =
+    Erlang.List (aliasesToForms names aliasEnv ++ envToForms names tyEnv) Erlang.Nil
 
--- so it can be pretty printed
--- we need to also find good names and aliases here
-toErl :: SquashConfig -> ([(Text, ET.TypedAttrVal)], [ET.TypeSpec])
-toErl SquashConfig{..} = undefined
+envToForms :: IntMap Name -> TyEnv -> [Term]
+envToForms names (MkTyEnv m) = map doSpec $ Map.toList m where
+    doSpec :: (FunName, ErlType) -> Term
+    doSpec (MkFunName{..}, EFun ts t) =
+        taggedTuple names "attribute"
+            [ atom "spec"
+            , Erlang.Tuple
+                [ Erlang.Tuple [atom funName, Erlang.Integer $ toInteger funArity]
+                , Erlang.List [funType names ts t] Erlang.Nil
+                ]
+            ]
+    doSpec _ = error "Internal error, not a function"
 
-toType :: ErlType -> ET.Type
-toType _t = case _t of
-    EInt -> ET.Type7 $ ET.Atom "integer"
-    EFloat -> ET.Type7 $ ET.Atom "float"
-    ENamedAtom txt -> ET.Type6 $ ET.Atom $ Text.unpack txt
-    EAnyAtom -> ET.Type7 $ ET.Atom "atom"
-    ETuple ts -> case toTopSequence ts of
-        Just tops -> ET.Type17 tops  -- $ map _ ts
-        _ -> ET.Type16
-    EAny -> ET.Type7 $ ET.Atom "any"
-    ENone -> ET.Type7 $ ET.Atom "none"
-    EUnion ts -> 
-        case toTopUnion $ HashSet.toList ts of
-            Just top -> ET.Type4 top
-            _ -> ET.Type7 $ ET.Atom "none"
-    EFun ts t -> ET.Type24 $ toFunType ts t
-    -- todo naming
-    EAliasMeta i -> ET.Type5 $ ET.Var $ "V" ++ show i
-    EUnknown -> ET.Type5 $ ET.Var "_"
-    EBinary -> ET.Type7 $ ET.Atom "binary"
-    EBitString -> ET.Type7 $ ET.Atom "bitstring"
-    EContainer c -> transContainer c
-    EMap _ -> ET.Type15 $ ET.MapPairTypes0 $ ET.MapPairType0 (erlTypeToTop EAny) (erlTypeToTop EAny)
-    EPid -> ET.Type7 $ ET.Atom "pid"
-    EPort -> ET.Type7 $ ET.Atom "port"
-    ERef -> ET.Type7 $ ET.Atom "reference"
-    EBoolean -> ET.Type7 $ ET.Atom "boolean"
+aliasesToForms :: IntMap Name -> AliasEnv -> [Term]
+aliasesToForms names MkAliasEnv{..} = map typeAlias $ IntMap.toList aliasMap where
+    typeAlias :: (Int, ErlType) -> Term
+    typeAlias (i, t) = case names IntMap.! i of
+        Alias txt ->
+            taggedTuple names "attribute"
+                [atom "type", Erlang.Tuple [atom txt, toTerm names t, Erlang.Nil]]
+        Record txt ->
+            taggedTuple names "attribute"
+                [ atom "record"
+                , Erlang.Tuple
+                    [ atom txt
+                    , Erlang.List (map (recordFieldToTerm names) $ recordFields t) Erlang.Nil
+                    ]
+                ]
 
-transContainer :: Container ErlType -> ET.Type
-transContainer _c = case _c of
-    CList t -> ET.Type12 $ erlTypeToTop t
-    CDict t -> ET.Type10  (ET.Atom "dict") (ET.Atom "dict") (ET.TopTypes0 $ erlTypeToTop t)
-    COldSet t -> ET.Type10  (ET.Atom "sets") (ET.Atom "set") (ET.TopTypes0 $ erlTypeToTop t)
-    CGbSet t -> ET.Type10  (ET.Atom "gb_sets") (ET.Atom "set") (ET.TopTypes0 $ erlTypeToTop t)
-    CGbTree t1 t2 -> ET.Type10  (ET.Atom "gb_trees") (ET.Atom "tree") (ET.TopTypes1 (erlTypeToTop t1) $ ET.TopTypes0 $ erlTypeToTop t2)
-    CGb -> 
-        case toTopUnion [EContainer $ CGbSet EAny, EContainer $ CGbTree EAny EAny] of
-            Just top -> ET.Type4 top
-            _ -> ET.Type7 $ ET.Atom "any"
-    CArray t -> ET.Type10  (ET.Atom "array") (ET.Atom "array") (ET.TopTypes0 $ erlTypeToTop t)
+recordFields :: ErlType -> [(Int, ErlType)]
+recordFields (ETuple ts) = zip [1, 2..] ts
+recordFields _           = error "Internal error, not a tuple"
 
-toFunType :: [ErlType] -> ErlType -> ET.FunType
-toFunType ts t = case toTopSequence ts of
-    Just tops -> ET.FunType2 tops (erlTypeToTop t)
-    _ -> ET.FunType1 (erlTypeToTop t)
+recordFieldToTerm :: IntMap Name -> (Int, ErlType) -> Term
+recordFieldToTerm n (i, t) =
+    taggedTuple n "type"
+        [ atom "field_type"
+        , Erlang.List [atom $ Text.pack $ show i, toTerm n t] Erlang.Nil
+        ]
 
--- these might result in unnecessary parens
-toTopSequence :: [ErlType] -> Maybe ET.TopTypes
-toTopSequence []     = Nothing
-toTopSequence (t:ts) = Just $ foldl' (\acc t' -> ET.TopTypes1 (erlTypeToTop t') acc) (ET.TopTypes0 $ erlTypeToTop t) ts
+class ToTerm a where
+    toTerm :: IntMap Name -> a -> Term
 
-toTopUnion :: [ErlType] -> Maybe ET.TopType
-toTopUnion []     = Nothing -- any
-toTopUnion (t:ts) = Just $ foldl' (\acc t' -> ET.TopType1 (toType t') acc) (erlTypeToTop t) ts
+atom :: Text -> Term
+atom = Erlang.Atom Erlang.AtomUtf8
 
+-- separate one for builtins?
+userType :: IntMap Name -> Text -> [ErlType] -> Term
+userType n txt ts =
+    Erlang.Tuple [ atom "user_type"
+                 , Erlang.Nil
+                 , atom txt
+                 , Erlang.List (map (toTerm n) ts) Erlang.Nil
+                 ]
 
-erlTypeToTop :: ErlType -> ET.TopType
---erlTypeToTop (EUnion ts) = 
-erlTypeToTop t = ET.TopType2 $ toType t
+remoteType :: IntMap Name -> Text -> Text -> [ErlType] -> Term
+remoteType n m f args =
+    Erlang.Tuple [ atom "remote_type"
+                 , Erlang.Nil
+                 , Erlang.List
+                    [atom m, atom f, Erlang.List (map (toTerm n) args) Erlang.Nil]
+                    Erlang.Nil
+                 ]
 
--- no when guard, no named params etc
-toFunction :: (FunName, ErlType) -> ET.Attribute 
-toFunction (MkFunName{..}, EFun ts t) =
-    ET.Attribute2 $ ET.TypeSpec 
-        (ET.SpecFunc0 $ ET.Atom $ Text.unpack funName) 
-        (ET.TypeSigs0 $ ET.TypeSig0 $ toFunType ts t)
-toFunction _ = error "Internal error"
+builtin :: IntMap Name -> Text -> [ErlType] -> Term
+builtin n txt ts =
+    Erlang.Tuple [ atom "type"
+                 , Erlang.Nil
+                 , atom txt
+                 , Erlang.List (map (toTerm n) ts) Erlang.Nil
+                 ]
 
-envToAttrs :: TyEnv -> [ET.Attribute]
-envToAttrs (MkTyEnv m) = map toFunction $ Map.toList m
+taggedTuple :: ToTerm a => IntMap Name -> Text -> [a] -> Term
+taggedTuple n txt as =
+    Erlang.Tuple $ [atom txt, Erlang.Nil] ++ map (toTerm n) as
 
-aliasToAttr :: (Int, ErlType) -> ET.Attribute
-aliasToAttr (i, t) = ET.Attribute1 
-    (ET.Atom "type") 
-    (ET.TypedAttrVal1 
-        (ET.Expr13 $ ET.ExprRemote1 $ ET.ExprMax1 $ ET.Atomic3 $ ET.Atom $ "V" ++ show i) 
-        (erlTypeToTop t))
+instance ToTerm ErlType where
+    toTerm n _t = case _t of
+        EInt -> builtin n "integer" []
+        EFloat -> builtin n "float" []
+        -- escape the '-s?
+        ENamedAtom a -> atom a
+        EAnyAtom -> builtin n "atom" []
+        ETuple ts -> taggedTuple n "type" [atom "tuple", Erlang.List (map (toTerm n) ts) Erlang.Nil]
+        EAny -> builtin n "any" []
+        ENone -> builtin n "none" []
+        EUnion ts ->
+            taggedTuple n "type"
+                [ atom "union"
+                , Erlang.List (map (toTerm n) $ HashSet.toList ts) Erlang.Nil
+                ]
+        EFun ts t -> funType n ts t
+        EAliasMeta i ->
+            case n IntMap.! i of
+                Alias txt -> userType n txt []
+                Record txt -> taggedTuple n "type" [atom "record", Erlang.List [atom txt] Erlang.Nil]
+        EUnknown -> userType n "unknown" []
+        EBinary -> userType n "binary" []
+        EBitString -> userType n "bitstring" []
+        EPid -> builtin n "pid" []
+        EPort -> builtin n "port" []
+        ERef -> builtin n "reference" []
+        EBoolean -> userType n "boolean" []
+        EMap _ -> taggedTuple n "type" [atom "map", atom "any"]
+        EContainer c -> toTerm n c
 
-aliasesToAttrs :: AliasEnv -> [ET.Attribute]
-aliasesToAttrs (MkAliasEnv aliasM _) = map aliasToAttr $ IntMap.toList aliasM
+funType :: IntMap Name -> [ErlType] -> ErlType -> Term
+funType n ts t =
+    taggedTuple n "type"
+        [ atom "'fun'" -- or 'fun'
+        , Erlang.List [ taggedTuple n "type" [ atom "product", Erlang.List (map (toTerm n) ts) Erlang.Nil ]
+                      , toTerm n t
+                      ]
+          Erlang.Nil
+        ]
+
+instance ToTerm Term where
+    toTerm _ t = t
+
+instance ToTerm (Container ErlType) where
+    toTerm n _c = case _c of
+        CList t -> builtin n "list" [t]
+        CDict t -> remoteType n "dict" "dict" [t]
+        COldSet t -> remoteType n "sets" "set" [t]
+        CGbSet t -> remoteType n "gb_sets" "set" [t]
+        CGbTree t1 t2 -> remoteType n "gb_trees" "tree" [t1, t2]
+        CGb ->
+            taggedTuple n "type"
+                [ atom "union"
+                , Erlang.List (map (toTerm n) [CGbSet EAny, CGbTree EAny EAny]) Erlang.Nil
+                ]
+        CArray t -> remoteType n "array" "array" [t]
