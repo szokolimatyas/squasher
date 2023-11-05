@@ -211,7 +211,6 @@ strictSquashHorizontally conf =
 --         let tags = Set.toList $ tagMulti conf (EAliasMeta alias) in
 --             map (alias,) tags ++ acc
 
--- not good yet for some reason, unions are left behind
 getEq' :: Map Tag [Int] -> SquashConfig -> [[Int]]
 getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ STT.runSTT $ do
     st <- Equiv.leastEquiv IntSet.singleton IntSet.union
@@ -228,10 +227,32 @@ getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ ST
         setup st (i, t) = do
             let children = topLevelAliases t
             Equiv.equateAll st (i:children)
-        -- classesToAliases st cl = do
-        --     tags <- Equiv.desc st cl
-        --     let l = foldl' (\as tg -> Map.findWithDefault [] tg tagMap ++ as) [] tags
-        --     return $ nubInt l
+
+-- equate similar types, but also have a threshold of 3 on different tags
+getEq'' :: Map Tag [Int] -> SquashConfig -> [[Int]]
+getEq'' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ STT.runSTT $ do
+    st <- Equiv.leastEquiv IntSet.singleton IntSet.union
+    mapM_ (setup st) $ IntMap.toList aliasM
+    mapM_ (visit st) tagMap
+    clss <- Equiv.classes st
+    -- Equiv.desc st
+    mapM (fmap IntSet.toList . Equiv.desc st) clss where
+        visit _  []     = return ()
+        visit st (i:is) = Equiv.equateAll st (i : filter (fits i) is) >> visit st is
+
+        setup st (i, t) = do
+            let children = topLevelAliases t
+            Equiv.equateAll st (i:children)
+
+        fits i i' =
+            let 
+                tgs = tagMulti conf $ EAliasMeta i
+                tgs' = tagMulti conf $ EAliasMeta i'
+                inter = Set.intersection tgs tgs' in
+            -- builtin parameter for threshold
+            typesAreSimilar conf i i' &&
+            not (null inter) && not (Set.size tgs - Set.size inter > 3 || Set.size tgs' - Set.size inter > 3)
+
 topLevelAliases :: ErlType -> [Int]
 topLevelAliases (EAliasMeta i) = [i]
 topLevelAliases (EUnion ts)    = concatMap topLevelAliases ts
