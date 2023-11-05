@@ -11,6 +11,12 @@
     binary |
     bitstring |
     {list, re_type()} |
+    {dict, re_type()} |
+    {set, re_type()} |
+    {gb_set, re_type()} |
+    {gb_tree, re_type(), re_type()} |
+    gb_empty |
+    {array, re_type()} |
     {map, [{re_type(), re_type()}]} |
     pid |
     port |
@@ -31,4 +37,9 @@
     {'rng', Arity :: integer()} | 
     #tuple_index{} |
     list_element |
+    dict_element |
+    set_element |
+    gb_set_element |
+    {gb_tree_element, 1 | 2} |
+    array_element |
     {map_element, re_type()}.

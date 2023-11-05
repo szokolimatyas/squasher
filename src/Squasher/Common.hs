@@ -41,6 +41,11 @@ data PathPart =
               | FunN FunName -- ^ Function name and arity
               | Rec ErlType Int Int -- ^ Record with key, at position, field number
               | ListElement -- ^ List
+              | DictElement
+              | SetElement
+              | GbSetElement
+              | GbTreeElement Bool -- True if first
+              | ArrayElement
               | MapElement ErlType -- ^ Not a shapemap yet!
               deriving(Eq, Show)
 
@@ -55,6 +60,14 @@ instance FromTerm PathPart where
        -- Tuple [Atom _ "tuple_index", Tuple [Atom _ "atom", Atom _ key], Integer i, Integer j] ->
        --     Just $ Rec (Just key) (fromInteger i) (fromInteger j)
         Atom _ "list_element" -> Just ListElement
+        Atom _ "dict_element" -> Just DictElement
+        Atom _ "set_element" -> Just SetElement
+        Atom _ "gb_set_element" -> Just GbSetElement
+        Tuple [Atom _ "gb_tree_element", Integer 1] ->
+            Just $ GbTreeElement True
+        Tuple [Atom _ "gb_tree_element", Integer 2] ->
+            Just $ GbTreeElement False
+        Atom _ "array_element" -> Just ArrayElement
         Tuple [Atom _ "map_element", key] ->
             MapElement <$> fromTerm key
         -- TODO: what about when the tuple index is not an atom?
@@ -238,6 +251,18 @@ update ty (MkPath p) env =
             update (EFun (replicate arity EUnknown) ty) (MkPath p') env
         ListElement : p' ->
             update (EContainer $ CList ty) (MkPath p') env
+        DictElement : p' ->
+            update (EContainer $ CDict ty) (MkPath p') env
+        SetElement : p' ->
+            update (EContainer $ COldSet ty) (MkPath p') env
+        GbSetElement : p' ->
+            update (EContainer $ CGbSet ty) (MkPath p') env
+        ArrayElement : p' ->
+            update (EContainer $ CArray ty) (MkPath p') env
+        GbTreeElement True : p' ->
+            update (EContainer $ CGbTree ty EUnknown) (MkPath p') env
+        GbTreeElement False : p' ->
+            update (EContainer $ CGbTree EUnknown ty) (MkPath p') env
         MapElement k : p' ->
             update (EMap $ Map.singleton k ty) (MkPath p') env
         [FunN fn] -> let tenv = unTyEnv env in

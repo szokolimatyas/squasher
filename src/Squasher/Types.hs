@@ -89,6 +89,20 @@ instance FromTerm ErlType where
         (Tuple [Atom _ "map", List terms Nil]) ->
             Just $ EMap $ Map.fromList $ Maybe.mapMaybe
                 (\case { Tuple [t1,t2] -> (,) <$> fromTerm t1 <*> fromTerm t2; _ -> Nothing}) terms
+        (Tuple [Atom _ "dict",  term]) ->
+            EContainer . CDict <$> fromTerm term
+        (Tuple [Atom _ "set",  term]) ->
+            EContainer . COldSet <$> fromTerm term
+        (Tuple [Atom _ "gb_set",  term]) ->
+            EContainer . CGbSet <$> fromTerm term
+        (Tuple [Atom _ "gb_tree",  term1, term2]) -> do
+            t1 <- fromTerm term1
+            t2 <- fromTerm term2
+            return $ EContainer $ CGbTree t1 t2
+        (Atom _ "gb_empty") ->
+            Just $ EContainer CGb
+        (Tuple [Atom _ "array",  term]) ->
+            EContainer . CArray <$> fromTerm term
         (Atom _ "pid") -> Just EPid
         (Atom _ "port") -> Just EPort
         (Atom _ "reference") -> Just ERef
