@@ -8,7 +8,7 @@ import           Data.ByteString.Lazy                    (ByteString)
 import           Data.IntMap.Strict                      (IntMap)
 import           Data.IntSet                             (IntSet)
 import qualified Data.IntSet                             as IntSet
-import           Data.List                               (partition)
+import           Data.List                               (partition, foldl')
 import qualified Data.Map.Strict                         as Map
 --import Data.Generics.Uniplate.Operations (transformM)
 import           Algebra.Graph.AdjacencyIntMap           (AdjacencyIntMap)
@@ -17,8 +17,6 @@ import           Algebra.Graph.AdjacencyIntMap.Algorithm (bfs)
 import           Control.Monad                           (foldM, guard,
                                                           zipWithM)
 import           Control.Monad.Trans.Except              (Except, throwE)
-import           Data.Binary                             (decodeOrFail)
-import           Data.Binary.Get                         (ByteOffset)
 import           Data.Generics.Uniplate.Data
 import qualified Data.HashSet                            as HashSet
 import qualified Data.IntMap.Strict                      as IntMap
@@ -32,24 +30,12 @@ import           Squasher.Local
 import           Squasher.Types
 
 
-runner :: ByteString -> Except String SquashConfig
-runner bs = case dec of
-    Right (_, _, MkExternalTerm (List terms Nil)) -> do
-        entries <- mapM entryFromTerm terms
-        traceM "Start update!"
-        let env = foldl (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-       -- let env' = MkTyEnv (Map.take 20 $ unTyEnv env) --MkTyEnv (Map.take 1 $ unTyEnv env) --MkTyEnv (Map.take 1 $ Map.drop 14 (unTyEnv env))
-        let env' = env
-        traceM $ "Env:\n" ++ show (Map.size $ unTyEnv env')
-        let env'' = Debug.Trace.trace "Local squash done, start global squash!" $ pruneAliases $ removeProxyAliases $ squashLocal env'
-        let res = squashGlobal env''
-        return res
-    Right (_, _, MkExternalTerm terms) -> throwE $ "Terms are in a wrong format: " ++ show terms
-    Left (_, _, str) -> throwE $ "Could not parse bytestring, error: " ++ str
-  where
-    dec ::  Either (ByteString, ByteOffset, String) (ByteString, ByteOffset, ExternalTerm)
-    dec = decodeOrFail bs
-
+runner :: [Term] -> Except String SquashConfig
+runner terms = do
+    entries <- mapM entryFromTerm terms
+    let env = foldl' (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
+    let env' = pruneAliases $ removeProxyAliases $ squashLocal env
+    return $ squashGlobal env'
 
 -- Clean up the multiple uses of removeSingleUnions, why do we need multiples of them?
 -- Could we unify proxy removal, pruning, etc?

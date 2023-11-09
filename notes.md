@@ -295,3 +295,10 @@ or just do subset checks
 
 <{list(?), ?,         list($0), ?,         list(integer()), ?} | 
  {list(?), integer(), list($0), integer(), integer(),       ?}>
+
+
+
+{ok, B} = file:read_file("out.bin"), binary_to_term(B).
+
+
+{ok, B} = file:read_file("out.bin"), L = binary_to_term(B), S = lists:flatmap(fun(F) -> erl_pp:form(F) ++ "\n" end, L), file:write_file("pretty.erl", S).

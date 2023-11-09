@@ -49,14 +49,19 @@ aliasesToForms names MkAliasEnv{..} = map typeAlias $ IntMap.toList aliasMap whe
                 ]
 
 recordFields :: ErlType -> [(Int, ErlType)]
-recordFields (ETuple ts) = zip [1, 2..] ts
-recordFields _           = error "Internal error, not a tuple"
+recordFields (ETuple (_:ts)) = zip [1, 2..] ts
+recordFields _           = error "Internal error, not a valid record"
 
 recordFieldToTerm :: IntMap Name -> (Int, ErlType) -> Term
 recordFieldToTerm n (i, t) =
-    taggedTuple n "type"
-        [ atom "field_type"
-        , Erlang.List [atom $ Text.pack $ show i, toTerm n t] Erlang.Nil
+    Erlang.Tuple 
+        [ atom "typed_record_field"
+        , Erlang.Tuple
+            [ atom "record_field"
+            , Erlang.Nil
+            , taggedTuple n "atom" [atom $ "field" <> Text.pack (show i)]
+            ] 
+        , toTerm n t
         ]
 
 class ToTerm a where
@@ -100,7 +105,7 @@ instance ToTerm ErlType where
         EInt -> builtin n "integer" []
         EFloat -> builtin n "float" []
         -- escape the '-s?
-        ENamedAtom a -> atom a
+        ENamedAtom a -> taggedTuple n "atom" [atom a]
         EAnyAtom -> builtin n "atom" []
         ETuple ts -> taggedTuple n "type" [atom "tuple", Erlang.List (map (toTerm n) ts) Erlang.Nil]
         EAny -> builtin n "any" []
@@ -114,8 +119,8 @@ instance ToTerm ErlType where
         EAliasMeta i ->
             case n IntMap.! i of
                 Alias txt -> userType n txt []
-                Record txt -> taggedTuple n "type" [atom "record", Erlang.List [atom txt] Erlang.Nil]
-        EUnknown -> userType n "unknown" []
+                Record txt -> taggedTuple n "type" [atom "record", Erlang.List [taggedTuple n "atom" [atom txt]] Erlang.Nil]
+        EUnknown -> taggedTuple n "var" [atom "_"]
         EBinary -> userType n "binary" []
         EBitString -> userType n "bitstring" []
         EPid -> builtin n "pid" []
@@ -128,7 +133,7 @@ instance ToTerm ErlType where
 funType :: IntMap Name -> [ErlType] -> ErlType -> Term
 funType n ts t =
     taggedTuple n "type"
-        [ atom "'fun'" -- or 'fun'
+        [ atom "fun" -- or 'fun'
         , Erlang.List [ taggedTuple n "type" [ atom "product", Erlang.List (map (toTerm n) ts) Erlang.Nil ]
                       , toTerm n t
                       ]
@@ -140,6 +145,8 @@ instance ToTerm Term where
 
 instance ToTerm (Container ErlType) where
     toTerm n _c = case _c of
+        CList EUnknown -> builtin n "list" []
+        CList EAny -> builtin n "list" []
         CList t -> builtin n "list" [t]
         CDict t -> remoteType n "dict" "dict" [t]
         COldSet t -> remoteType n "sets" "set" [t]

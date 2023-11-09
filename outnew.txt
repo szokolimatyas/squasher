@@ -1,18 +1,18 @@
 Aliases:
-$3 -> {<'record_info' | 'module_info'>, integer()}
-$6 -> <list(?) | {<'worker' | 'collector'>, integer()}>
+$3 -> {'record_info' | 'module_info', integer()}
+$6 -> list(_) | {'worker' | 'collector', integer()}
 $8 -> {'pany', integer()}
 $9 -> {'test', integer()}
-$11 -> <atom() | {'outdir', list(integer())}>
-$14 -> {'lint', <'start' | 'attribute' | 'function'>, <'' | 'bead'>, list(?), {integer(), {$3, {$3, 'nil', 'nil'}, 'nil'}}, list(?), list($11), #{}, <{integer(), {$9, {$8, {$6, 'nil', 'nil'}, 'nil'}, {$6, 'nil', 'nil'}}} | {integer(), 'nil'}>, {integer(), 'nil'}, <{integer(), {$3, {$3, {$6, 'nil', 'nil'}, 'nil'}, {$3, 'nil', {$6, 'nil', 'nil'}}}} | {integer(), {$3, {$3, 'nil', 'nil'}, {$3, 'nil', {$6, 'nil', 'nil'}}}} | {integer(), {$3, {$3, 'nil', 'nil'}, {$3, 'nil', 'nil'}}}>, list(?), integer(), list(?), list(?), {integer(), 'nil'}, $6, list(?), integer(), list(atom()), list(?), list(?), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list({any(), any()}), 'undefined', {'usage', #{}, list(?), {integer(), 'nil'}, #{}}, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$47 -> <{'location', {integer(), integer()}} | {'file', list(integer())}>
-$65 -> <{'match', {integer(), integer()}, $65, $65} | {'lc', {integer(), integer()}, $65, list({'generate', {integer(), integer()}, $65, $65})} | {'receive', {integer(), integer()}, list($111)} | {'if', {integer(), integer()}, list($111)} | {'atom', <{integer(), integer()} | list($47)>, atom()} | {'case', {integer(), integer()}, $65, list($111)} | {'var', {integer(), integer()}, atom()} | {'op', {integer(), integer()}, <'>=' | '!' | '+'>, $65, $65} | {'integer', {integer(), integer()}, integer()} | {'call', <{integer(), integer()} | list($47)>, <$65 | {'remote', {integer(), integer()}, $65, $65}>, list(<{'fun', {integer(), integer()}, {'clauses', list($111)}} | $65>)} | {'tuple', {integer(), integer()}, list($65)} | {'string', <{integer(), integer()} | list($47)>, list(integer())}>
+$11 -> atom() | {'outdir', list(integer())}
+$14 -> {'lint', 'start' | 'attribute' | 'function', '' | 'bead', list(_), {integer(), {$3, {$3, 'nil', 'nil'}, 'nil'}}, list(_), list($11), #{}, {integer(), {$9, {$8, {$6, 'nil', 'nil'}, 'nil'}, {$6, 'nil', 'nil'}}} | {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$3, {$3, {$6, 'nil', 'nil'}, 'nil'}, {$3, 'nil', {$6, 'nil', 'nil'}}}} | {integer(), {$3, {$3, 'nil', 'nil'}, {$3, 'nil', {$6, 'nil', 'nil'}}}} | {integer(), {$3, {$3, 'nil', 'nil'}, {$3, 'nil', 'nil'}}}, list(_), integer(), list(_), list(_), {integer(), 'nil'}, $6, list(_), integer(), list(atom()), list(_), list(_), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list({any(), any()}), 'undefined', {'usage', #{}, list(_), {integer(), 'nil'}, #{}}, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
+$47 -> {'location', {integer(), integer()}} | {'file', list(integer())}
+$65 -> {'match', {integer(), integer()}, $65, $65} | {'lc', {integer(), integer()}, $65, list({'generate', {integer(), integer()}, $65, $65})} | {'receive', {integer(), integer()}, list($111)} | {'if', {integer(), integer()}, list($111)} | {'atom', {integer(), integer()} | list($47), atom()} | {'case', {integer(), integer()}, $65, list($111)} | {'var', {integer(), integer()}, atom()} | {'op', {integer(), integer()}, '>=' | '!' | '+', $65, $65} | {'integer', {integer(), integer()}, integer()} | {'call', {integer(), integer()} | list($47), $65 | {'remote', {integer(), integer()}, $65, $65}, list({'fun', {integer(), integer()}, {'clauses', list($111)}} | $65)} | {'tuple', {integer(), integer()}, list($65)} | {'string', {integer(), integer()} | list($47), list(integer())}
 $111 -> {'clause', {integer(), integer()}, list($65), list(list($65)), list(any())}
-$121 -> <{'eof', {integer(), integer()}} | {'attribute', <{integer(), integer()} | list($47)>, <'module' | 'file' | 'compile'>, <{list(integer()), integer()} | 'export_all' | 'bead'>} | {'function', <{integer(), integer()} | list($47)>, atom(), integer(), list($111)}>
-$143 -> {<'cd' | 'c'>, integer()}
-$379 -> {atom(), {'bound', <'used' | 'unused'>, list({integer(), integer()})}}
-$1889 -> {'ok', list(?)}
-$3069 -> {<'if' | 'receive' | 'case'>, {integer(), integer()}}
+$121 -> {'eof', {integer(), integer()}} | {'attribute', {integer(), integer()} | list($47), 'module' | 'file' | 'compile', {list(integer()), integer()} | 'export_all' | 'bead'} | {'function', {integer(), integer()} | list($47), atom(), integer(), list($111)}
+$143 -> {'cd' | 'c', integer()}
+$379 -> {atom(), {'bound', 'used' | 'unused', list({integer(), integer()})}}
+$1889 -> {'ok', list(_)}
+$3069 -> {'if' | 'receive' | 'case', {integer(), integer()}}
 
 Functions:
 add_lint_warning({{integer(), integer()}, 'erl_lint', 'export_all'}, list(integer()), $14) -> $14
@@ -24,13 +24,13 @@ auto_import_suppressed(list($11)) -> {integer(), 'nil'}
 bif_clash_specifically_disabled($14, $143) -> 'false'
 bif_clashes(list($121), $14) -> $14
 bool_option(atom(), atom(), boolean(), list($11)) -> boolean()
-call_function(list($47), <'cd' | 'c'>, integer(), $14) -> $14
+call_function(list($47), 'cd' | 'c', integer(), $14) -> $14
 check_module_name('bead', list($47), $14) -> $14
-check_unused_vars(list($379), list(?), $14) -> {list($379), $14}
+check_unused_vars(list($379), list(_), $14) -> {list($379), $14}
 clause($111, $14) -> {list($379), $14}
 clauses(list($111), $14) -> $14
 compiler_options(list($121)) -> list('export_all')
-define_function(list($47), <'worker' | 'collector'>, integer(), $14) -> $14
+define_function(list($47), 'worker' | 'collector', integer(), $14) -> $14
 disallowed_compile_flags(list($121), $14) -> $14
 do_expr_var(atom(), {integer(), integer()}, list($379), $14) -> {list($379), $14}
 eval_file_attr(list($121), list(integer())) -> list($121)
@@ -39,11 +39,11 @@ expr($65, list($379), $14) -> {list($379), $14}
 expr_list(list($65), list($379), $14) -> {list($379), $14}
 expr_var(atom(), {integer(), integer()}, list($379), $14) -> {list($379), $14}
 exprs(list($65), list($379), $14) -> {list($379), $14}
-exprs_opt(list($65), list({'Pid', pid()}), list(<'bitlevel_binaries' | 'binary_comprehension'>)) -> $1889
+exprs_opt(list($65), list({'Pid', pid()}), list('bitlevel_binaries' | 'binary_comprehension')) -> $1889
 feature_keywords() -> #{}
 form($121, $14) -> $14
-forms(list($121), $14) -> ?
-function(list($47), <'worker' | 'collector'>, integer(), list($111), $14) -> $14
+forms(list($121), $14) -> _
+function(list($47), 'worker' | 'collector', integer(), list($111), $14) -> $14
 function_check_max_args(list($47), integer(), $14) -> $14
 function_state($121, $14) -> $14
 gexpr($65, list($379), $14) -> {list($379), $14}
@@ -52,8 +52,8 @@ guard(list(list($65)), list($379), $14) -> {list($379), $14}
 guard_test($65, list($379), $14) -> {list($379), $14}
 guard_test2($65, list($379), $14) -> {list($379), $14}
 guard_tests(list($65), list($379), $14) -> {list($379), $14}
-head(list($65), list($379), $14) -> {list(?), list($379), $14}
-head(list($65), list($379), list($379), $14) -> {list(?), list($379), $14}
+head(list($65), list($379), $14) -> {list(_), list($379), $14}
+head(list($65), list($379), list($379), $14) -> {list(_), list($379), $14}
 icrt_clause($111, list($379), $14) -> {list($379), $14}
 icrt_clauses(list($111), list($379), $14) -> {list(list($379)), $14}
 icrt_clauses(list($111), $3069, list($379), $14) -> {list($379), $14}
@@ -65,24 +65,24 @@ is_autoimport_suppressed({integer(), 'nil'}, $143) -> 'false'
 is_gexpr_op('>=', integer()) -> 'true'
 is_local_function({integer(), 'nil'}, $143) -> 'false'
 is_valid_call($65) -> 'true'
-is_warn_enabled(<'export_all' | 'keyword_warning' | 'bif_clash'>, $14) -> boolean()
-keyword_warning(<{integer(), integer()} | list($47)>, atom(), $14) -> $14
-loc(<{integer(), integer()} | list($47)>, $14) -> {list(integer()), {integer(), integer()}}
+is_warn_enabled('export_all' | 'keyword_warning' | 'bif_clash', $14) -> boolean()
+keyword_warning({integer(), integer()} | list($47), atom(), $14) -> $14
+loc({integer(), integer()} | list($47), $14) -> {list(integer()), {integer(), integer()}}
 local_functions(list($121)) -> {integer(), {$9, {$8, {$6, 'nil', 'nil'}, 'nil'}, {$6, 'nil', 'nil'}}}
-maps_prepend(list(?), $143, #{}) -> #{}
+maps_prepend(list(_), $143, #{}) -> #{}
 merge_annos(list({integer(), integer()}), list({integer(), integer()})) -> list({integer(), integer()})
 merge_state('bound', 'bound') -> 'bound'
-merge_used('used', <'used' | 'unused'>) -> 'used'
-module(list($121), list(integer()), list($11)) -> ?
+merge_used('used', 'used' | 'unused') -> 'used'
+module(list($121), list(integer()), list($11)) -> _
 not_deprecated(list($121), $14) -> $14
 not_removed(list($121), $14) -> $14
-nowarn_function('nowarn_bif_clash', list($11)) -> list(?)
+nowarn_function('nowarn_bif_clash', list($11)) -> list(_)
 obsolete_guard($65, $14) -> $14
-pack_errors(list(?)) -> list(?)
-pack_warnings(list(?)) -> list(?)
-pat_var(atom(), {integer(), integer()}, list($379), list(?), $14) -> {list(?), list($379), $14}
-pattern($65, list($379), list($379), $14) -> {list(?), list($379), $14}
-pattern_list(list($65), list($379), list($379), $14) -> {list(?), list($379), $14}
+pack_errors(list(_)) -> list(_)
+pack_warnings(list(_)) -> list(_)
+pat_var(atom(), {integer(), integer()}, list($379), list(_), $14) -> {list(_), list($379), $14}
+pattern($65, list($379), list($379), $14) -> {list(_), list($379), $14}
+pattern_list(list($65), list($379), list($379), $14) -> {list(_), list($379), $14}
 pre_scan(list($121), $14) -> $14
 pseudolocals() -> list($3)
 remove_non_visible(list(integer())) -> list(integer())
@@ -91,11 +91,11 @@ set_file(list($65), list(integer())) -> list($65)
 set_form_file($121, list(integer())) -> $121
 start(list(integer()), list($11)) -> $14
 start_state($121, $14) -> $14
-unused_vars(list($379), list(?), $14) -> list(?)
+unused_vars(list($379), list(_), $14) -> list(_)
 value_option('warn_format', integer(), 'warn_format', integer(), 'nowarn_format', integer(), list($11)) -> integer()
 vtmerge(list($379), list($379)) -> list($379)
 vtmerge_pat(list($379), list($379), $14) -> {list($379), $14}
-vtnew(list(?), list(?)) -> list(?)
+vtnew(list(_), list(_)) -> list(_)
 vtupdate(list($379), list($379)) -> list($379)
 warn_invalid_call({integer(), integer()}, $65, $14) -> $14
-warn_unused_vars(list(?), list($379), $14) -> {list($379), $14}
+warn_unused_vars(list(_), list($379), $14) -> {list($379), $14}

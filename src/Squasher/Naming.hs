@@ -15,8 +15,8 @@ data Name = Record Text
           | Alias Text
           deriving (Eq, Ord, Show)
 
-nameAll :: AliasEnv -> IntMap Name
-nameAll MkAliasEnv{..} = IntMap.foldlWithKey nameAlias IntMap.empty aliasMap
+nameAll :: SquashConfig -> IntMap Name
+nameAll SquashConfig{aliasEnv=MkAliasEnv{..}} = IntMap.foldlWithKey nameAlias IntMap.empty aliasMap
 
 nameAlias :: IntMap Name -> Int -> ErlType -> IntMap Name
 nameAlias names i t = case t of
