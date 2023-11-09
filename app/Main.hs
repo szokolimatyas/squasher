@@ -5,38 +5,108 @@ import           Control.Monad.Trans.Except (runExcept)
 import           Data.Binary                (decodeOrFail, encode)
 import qualified Data.ByteString.Lazy       as BS
 import           Foreign.Erlang.Term
+import           Options.Applicative
 import           Squasher.Common
 import           Squasher.Naming
 import           Squasher.Output
 import           Squasher.Squasher
-import           System.Environment         (getArgs)
 import           System.Process.Typed
--- import qualified Data.Text as Text
 
 main :: IO ()
 main = do
-    args <- getArgs
-    bytes <- BS.readFile (head args)
+    o <- execParser opts
+    bytes <- BS.readFile $ inputPath o
+    putStrLn "Input read"
     case decodeOrFail bytes of
-        Left (_, _, str) -> error $ "Could not parse bytestring, error: " ++ str
+        Left (_, _, err) -> error $ "Could not parse bytestring, error: " ++ err
         Right (_, _, MkExternalTerm (List terms Nil)) -> do
             putStrLn "Started..."
-            case runExcept (runner terms) of
+            case runExcept (runner o terms) of
                 Left err -> error err
                 Right resNew -> do
                     writeFile "outnew.txt" ("Aliases:\n" ++ show (aliasEnv resNew) ++ "\nFunctions:\n" ++ show (tyEnv resNew))
                     BS.writeFile "out.bin" $ encode $ MkExternalTerm $ out (nameAll resNew) resNew
-                    writePretty
+                    writePretty $ prettyOutputPath o
                     return ()
         Right (_, _, MkExternalTerm terms) -> error $ "Terms are in a wrong format: " ++ show terms
+    where
+        opts = info (optionsP <**> helper)
+            ( fullDesc
+            <> progDesc "Format specs from runtime debugging results"
+            <> header "Squasher - dynamic inference for Erlang" )
 
-writePretty :: IO ()
-writePretty = do
+writePretty :: String -> IO ()
+writePretty path = do
     putStrLn "Writing formatted results to file..."
-    let p = proc "erl" ["-noshell", "-eval", "{ok, B} = file:read_file(\"out.bin\"), L = binary_to_term(B), S = lists:flatmap(fun(F) -> erl_pp:form(F) ++ \"\n\" end, L), file:write_file(\"pretty.erl\", S), init:stop()."]
+    let p = proc "erl" ["-noshell", "-eval", "{ok, B} = file:read_file(\"out.bin\"), L = binary_to_term(B), S = lists:flatmap(fun(F) -> erl_pp:form(F) ++ \"\n\" end, L), file:write_file(\"" <> path <> "\", S), init:stop()."]
     code <- runProcess p
     case code of
         ExitSuccess -> do
             putStrLn "Done"
             return ()
         _ -> error "Could not pretty print results"
+
+strategyP :: Parser Strategy
+strategyP = option auto
+    (  long "strategy"
+    <> short 's'
+    <> metavar "S1|S2|S3"
+    <> help "Global squashing strategy"
+    <> showDefault
+    <> value S2
+    )
+
+optionsP :: Parser Options
+optionsP = Options
+    <$> strategyP
+    <*> option auto
+        ( long "mixedAtoms"
+        <> help "Upcast mixed atom unions"
+        <> metavar "BOOL"
+        <> showDefault
+        <> value True
+        )
+    <*> option auto
+        ( long "mixedTuples"
+        <> help "Upcast mixed tuple unions"
+        <> metavar "BOOL"
+        <> showDefault
+        <> value True
+        )
+    <*> option auto
+        ( long "atomSize"
+        <> short 'a'
+        <> metavar "INT"
+        <> help "Upcast atom unions larger than this"
+        <> showDefault
+        <> value 3
+        )
+    <*> option auto
+        ( long "tupleSize"
+        <> short 't'
+        <> metavar "INT"
+        <> help "Upcast similar tuple unions larger than this"
+        <> showDefault
+        <> value 0
+        )
+    <*> option auto
+        ( long "recordSize"
+        <> short 'r'
+        <> metavar "INT"
+        <> help "Recordify tagged tuples with as least this many fields"
+        <> showDefault
+        <> value 3
+        )
+    <*> switch
+        ( long "unformatted"
+        <> short 'u'
+        <> help "Dump unformatted debug info"
+        )
+    <*> option str
+        ( long "out"
+        <> short 'o'
+        <> metavar "FILE"
+        <> help "Where to put pretty printed output"
+        )
+    <*> argument str
+        (metavar "FILE")

@@ -33,6 +33,7 @@ dependencies:
 - STMonadTrans >= 0.4.7
 - algebraic-graphs >= 0.7
 - typed-process >= 0.2.11.0
+- optparse-applicative >= 0.17.1.0 
 
 ghc-options:
 - -Wall

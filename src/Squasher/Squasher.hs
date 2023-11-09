@@ -8,7 +8,7 @@ import           Data.ByteString.Lazy                    (ByteString)
 import           Data.IntMap.Strict                      (IntMap)
 import           Data.IntSet                             (IntSet)
 import qualified Data.IntSet                             as IntSet
-import           Data.List                               (partition, foldl')
+import           Data.List                               (foldl', partition)
 import qualified Data.Map.Strict                         as Map
 --import Data.Generics.Uniplate.Operations (transformM)
 import           Algebra.Graph.AdjacencyIntMap           (AdjacencyIntMap)
@@ -30,11 +30,11 @@ import           Squasher.Local
 import           Squasher.Types
 
 
-runner :: [Term] -> Except String SquashConfig
-runner terms = do
+runner :: Options -> [Term] -> Except String SquashConfig
+runner opts terms = do
     entries <- mapM entryFromTerm terms
     let env = foldl' (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-    let env' = pruneAliases $ removeProxyAliases $ squashLocal env
+    let env' = pruneAliases $ removeProxyAliases $ squashLocal opts env
     return $ squashGlobal env'
 
 -- Clean up the multiple uses of removeSingleUnions, why do we need multiples of them?
@@ -143,8 +143,6 @@ getReachable SquashConfig{aliasEnv=MkAliasEnv aliasMap _, tyEnv=MkTyEnv funs} = 
         visit _ is              = concat is
 
 -- | Inline aliases that have only one reference to them.
--- todo: this is not good enough, circular substituting references should be avoided!
--- todo: some should be inlined, but they are not! why??
 inlineAliases :: SquashConfig -> SquashConfig
 inlineAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newTyEnv } where
@@ -221,7 +219,7 @@ removeSubsets conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} 
     getAliased _ = HashSet.empty
 
 upcastAtomUnions :: SquashConfig -> SquashConfig
-upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs, atomUnionSize=size} =
+upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv funs, options=Options{..}} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
         newAliasMap = IntMap.map equateElements aliasMap
         newFuns = Map.map equateElements funs
@@ -233,7 +231,7 @@ upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv fu
         visit (EUnion ts) =
             let (atoms, other) = partition isAtomLike $ HashSet.toList ts in
             -- maybe make this switchable, so mixed unions don't get upcast
-            if length atoms > size then
+            if length atoms > atomUnionSize then
                 if null other then
                     EAnyAtom
                 else

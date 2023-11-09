@@ -302,3 +302,11 @@ or just do subset checks
 
 
 {ok, B} = file:read_file("out.bin"), L = binary_to_term(B), S = lists:flatmap(fun(F) -> erl_pp:form(F) ++ "\n" end, L), file:write_file("pretty.erl", S).
+
+Options:
+- atom limit (upcast): Integer
+- upcast mixed: Bool (e.g 'a' | 'b' | 'c' | integer() --?--> atom() | integer())
+- Squashing strategy: 1-3 strictness 
+- SmallestRecordSize
+
+ stack run squasher-exe -- --out myerl.erl C:\Users\User\source\repos\squasher\erlang\src\out_erl_lint.bin

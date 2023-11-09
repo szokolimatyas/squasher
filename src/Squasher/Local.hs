@@ -54,9 +54,9 @@ squashAll conf0 t = confn where
     as = aliases t
     confn = IntSet.foldl' (\conf' i -> squash conf' [i] IntSet.empty) conf0 as
 
-squashLocal :: TyEnv -> SquashConfig
-squashLocal tEnv = Map.foldlWithKey h initialConf (unTyEnv tEnv) where
-    initialConf = SquashConfig (MkAliasEnv IntMap.empty 0) (MkTyEnv Map.empty) 3 -- TODO: make this a parameter
+squashLocal :: Options -> TyEnv -> SquashConfig
+squashLocal opts tEnv = Map.foldlWithKey h initialConf (unTyEnv tEnv) where
+    initialConf = SquashConfig (MkAliasEnv IntMap.empty 0) (MkTyEnv Map.empty) opts
 
     h conf n t = addFunction n t1 conf2 where
         (conf1, t1) = aliasTuple conf t

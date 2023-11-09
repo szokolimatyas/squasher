@@ -70,11 +70,6 @@ instance FromTerm PathPart where
         Atom _ "array_element" -> Just ArrayElement
         Tuple [Atom _ "map_element", key] ->
             MapElement <$> fromTerm key
-        -- TODO: what about when the tuple index is not an atom?
-        -- Tuple [Atom _ "rec", Atom _ "undefined", Integer i, Integer j] ->
-        --     Just $ Rec Nothing (fromInteger i) (fromInteger j)
-        -- Tuple [Atom _ "rec", String key, Integer i, Integer j] ->
-        --     Just $ Rec (Just key) (fromInteger i) (fromInteger j)
         _ -> Nothing
 
 instance FromTerm Path where
@@ -286,10 +281,25 @@ instance Show AliasEnv where
 lookupAlias :: Int -> SquashConfig -> ErlType
 lookupAlias i SquashConfig{aliasEnv=MkAliasEnv{..}} = aliasMap IntMap.! i
 
+data Strategy = S1 | S2 | S3
+    deriving(Eq, Ord, Show, Read)
+
+data Options = Options
+    { strategy          :: Strategy
+    , upcastMixedAtoms  :: Bool
+    , upcastMixedTuples :: Bool
+    , atomUnionSize     :: Int
+    , tupleUnionSize    :: Int
+    , recordSize        :: Int
+    , printUnformatted  :: Bool
+    , prettyOutputPath  :: String
+    , inputPath         :: String
+    } deriving(Eq, Ord, Show)
+
 data SquashConfig = SquashConfig
-                  { aliasEnv      :: AliasEnv
-                  , tyEnv         :: TyEnv
-                  , atomUnionSize :: Int
+                  { aliasEnv :: AliasEnv
+                  , tyEnv    :: TyEnv
+                  , options  :: Options
                   } deriving(Show)
 
 addFunction :: FunName -> ErlType -> SquashConfig -> SquashConfig
@@ -400,16 +410,3 @@ postwalk conf_ t_ f = postwalk' conf_ t_ where
             in
                 f conf'' (EContainer $ CGbTree t1' t2')
 
-
-
--- maybe do this in the trace collector instead?
--- that way it stays compatible with the stdlib if it changes in any way
-toContainer :: ErlType -> Maybe (Container ErlType)
-toContainer (ETuple [EInt, ENamedAtom "nil"]) = Just CGb
-toContainer (ETuple [ENamedAtom "array", EInt, EInt, _, _]) =
-    undefined
-toContainer (ETuple [ENamedAtom "dict", EInt, EInt, EInt, EInt, EInt, EInt, _, _]) =
-    undefined
-toContainer (ETuple [ENamedAtom "set", EInt, EInt, EInt, EInt, EInt, EInt, _, _]) =
-    undefined
-toContainer _ = Nothing
