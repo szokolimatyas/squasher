@@ -34,41 +34,45 @@ runner :: Options -> [Term] -> Except String SquashConfig
 runner opts terms = do
     entries <- mapM entryFromTerm terms
     let env = foldl' (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
+    Debug.Trace.traceM $ show $ strategy opts
+    let global = 
+            case strategy opts of
+                S1 -> squashGlobal1
+                S2 -> squashGlobal2
+                S3 -> squashGlobal3
     let env' = pruneAliases $ removeProxyAliases $ squashLocal opts env
-    return $ squashGlobal env'
+    return $ post $ global env'
 
--- Clean up the multiple uses of removeSingleUnions, why do we need multiples of them?
--- Could we unify proxy removal, pruning, etc?
-squashGlobal :: SquashConfig -> SquashConfig
-squashGlobal = compose [ aliasSingleRec
+squashGlobal1, squashGlobal2, squashGlobal3, post :: SquashConfig -> SquashConfig
+squashGlobal1 = compose [ aliasSingleRec
+                        -- horizontal squash, single
+                        , squash
+                        , removeProxyAliases
+                        , pruneAliases
+                        , squashMulti
+                        -- horizontal squash, multi
+                        ]
+squashGlobal2 = compose [ aliasSingleRec
                        -- horizontal squash, single
-                       , strictSquashHorizontally
-                       , removeProxyAliases
-                       , pruneAliases
-                       , strictSquash
-                       , removeProxyAliases
-                       , pruneAliases
-                       , inlineAliases
-                       , tryRemoveUnknowns
-                       , squashTuples
-                       , removeSubsets
-                       , upcastAtomUnions
-                       , inlineAliases
-                       , pruneAliases
-                       ]
--- squashGlobal = compose [ aliasSingleRec
---                        -- horizontal squash, single
---                        , squashHorizontally
---                        , removeProxyAliases
---                        , pruneAliases
---                        -- horizontal squash, multi
---                        , squashHorizontallyMulti
---                        , removeProxyAliases
---                        , pruneAliases
---                        , inlineAliases
---                        , pruneAliases
---                        , tryRemoveUnknowns
---                        ]
+                        , strictSquashMulti
+                       -- , removeProxyAliases
+                       -- , pruneAliases
+                       -- , strictSquashMulti
+                        ]
+squashGlobal3 = compose [ aliasSingleRec
+                        , strictestSquashMulti
+                        ]
+post = compose [ removeProxyAliases
+               , pruneAliases
+               , inlineAliases
+               , tryRemoveUnknowns
+               , squashTuples
+               , removeSubsets
+               , upcastAtomUnions
+               , inlineAliases
+               , pruneAliases
+               ]
+
 -- foldl'?
 compose :: [a -> a] -> a -> a
 compose = foldl (flip (.)) id
@@ -164,7 +168,7 @@ inlineAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} 
     newTyEnv = Map.map (substTy' sub) funs
 
 squashTuples :: SquashConfig -> SquashConfig
-squashTuples conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
+squashTuples conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs, options=Options{..}} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newFuns} where
 
     newAliasMap = IntMap.map equateElements aliasMap
@@ -180,7 +184,8 @@ squashTuples conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
     squashUnions :: [ErlType] -> Maybe ErlType
     squashUnions ts = do
         let (tuples, other) = partition isTuple ts
-        guard $ not $ null tuples
+        guard $ length tuples > tupleUnionSize
+        guard $ null other || upcastMixedTuples
         tuples' <- foldM f EUnknown tuples
         return $ mkUnion $ HashSet.fromList $ tuples' : other
 
@@ -234,8 +239,10 @@ upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv fu
             if length atoms > atomUnionSize then
                 if null other then
                     EAnyAtom
-                else
+                else if upcastMixedAtoms then
                     EUnion $ HashSet.fromList $ EAnyAtom:other
+                else
+                    EUnion ts
             else
                 EUnion ts
         visit t = t

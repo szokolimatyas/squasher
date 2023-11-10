@@ -1,7 +1,11 @@
 {-# LANGUAGE LambdaCase    #-}
 {-# LANGUAGE RankNTypes    #-}
 {-# LANGUAGE TupleSections #-}
-module Squasher.Global(squashHorizontally, squashHorizontallyMulti, aliasSingleRec, strictSquashHorizontally, strictSquash) where
+module Squasher.Global( aliasSingleRec
+                      , squash, squashMulti
+                      , strictSquashMulti --, strictSquash
+                      , strictestSquashMulti
+                      ) where
 
 import qualified Control.Monad.ST.Trans    as STT
 import           Data.Containers.ListUtils (nubInt)
@@ -102,12 +106,12 @@ groupSimilarRecs conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} =
                 Map.insertWith (++) theTag [key] acc
             _ -> acc
 
-squashHorizontally :: SquashConfig -> SquashConfig
-squashHorizontally conf =
+squash :: SquashConfig -> SquashConfig
+squash conf =
     Map.foldl' mergeAliases conf (groupSimilarRecs conf)
 
-squashHorizontallyMulti :: SquashConfig -> SquashConfig
-squashHorizontallyMulti conf =
+squashMulti :: SquashConfig -> SquashConfig
+squashMulti conf =
     foldl' mergeAliases conf (getEq (tagsToAliases conf) conf)
 
 tagMulti :: SquashConfig -> ErlType -> Set Tag
@@ -156,19 +160,17 @@ tagsToAliases conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = Map.map nubInt g
 -- LESS AGRESSIVE SQUASHING
 -------------------------------------------------------------------------------
 
-strictSquash :: SquashConfig -> SquashConfig
-strictSquash conf = foldl' iter conf groups where
-    --groups = aliasesToGroups conf
-    --(conf', maps) = squashSameTagsInUnion conf groups
-    groups = groupSimilarRecs conf
+-- strictSquash :: SquashConfig -> SquashConfig
+-- strictSquash conf = foldl' iter conf groups where
+--     groups = groupSimilarRecs conf
 
-    iter conf' []     = conf'
-    iter conf' (a:as) = iter (oneIteration a as conf') as
+--     iter conf' []     = conf'
+--     iter conf' (a:as) = iter (oneIteration a as conf') as
 
-    oneIteration :: Int -> [Int] -> SquashConfig -> SquashConfig
-    oneIteration a as conf' = mergeAliases conf' $ a : toMerge where
-        toMerge = filter f as
-        f = typesAreSimilar conf a
+--     oneIteration :: Int -> [Int] -> SquashConfig -> SquashConfig
+--     oneIteration a as conf' = mergeAliases conf' $ a : toMerge where
+--         toMerge = filter f as
+--         f = typesAreSimilar conf a
 
 typesAreSimilar :: SquashConfig -> Int -> Int -> Bool
 typesAreSimilar conf i1 i2 = case (lookupAlias i1 conf, lookupAlias i2 conf) of
@@ -184,32 +186,9 @@ typesAreSimilar conf i1 i2 = case (lookupAlias i1 conf, lookupAlias i2 conf) of
 count :: (a -> Bool) -> [a] -> Int
 count f = foldl' (\acc a -> if f a then acc + 1 else acc) 0
 
--- squashSameTagsInUnion :: SquashConfig -> [[(Tag, Int)]] -> (SquashConfig, [Map Tag Int])
--- squashSameTagsInUnion conf = foldl' go (conf, []) where
---     go (conf', ms) ps =
---         let (conf'', m) = foldl' add (conf', Map.empty) ps in
---             (conf'', m:ms)
-
---     add (conf', m) (tg, a) = case Map.lookup tg m of
---         Just a' -> (mergeAliases conf' [a', a], m)
---         Nothing -> (conf', Map.insert tg a m)
-
--- the unions are not created sadly...
--- we need another way
-strictSquashHorizontally :: SquashConfig -> SquashConfig
-strictSquashHorizontally conf =
+strictSquashMulti :: SquashConfig -> SquashConfig
+strictSquashMulti conf =
     foldl' mergeAliases conf (getEq' (tagsToAliases conf) conf)
-
-
--- an alias can have multiple entries for int
--- aliasesToTags :: SquashConfig -> [(Int, Tag)]
--- aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = groups where
---     groups = IntMap.foldlWithKey visit [] aliasM
-
---     visit :: [(Int, Tag)] -> Int -> ErlType -> [(Int, Tag)]
---     visit acc alias _ =
---         let tags = Set.toList $ tagMulti conf (EAliasMeta alias) in
---             map (alias,) tags ++ acc
 
 getEq' :: Map Tag [Int] -> SquashConfig -> [[Int]]
 getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ STT.runSTT $ do
@@ -227,6 +206,10 @@ getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ ST
         setup st (i, t) = do
             let children = topLevelAliases t
             Equiv.equateAll st (i:children)
+
+strictestSquashMulti :: SquashConfig -> SquashConfig
+strictestSquashMulti conf =
+    foldl' mergeAliases conf (getEq'' (tagsToAliases conf) conf)
 
 -- equate similar types, but also have a threshold of 3 on different tags
 getEq'' :: Map Tag [Int] -> SquashConfig -> [[Int]]

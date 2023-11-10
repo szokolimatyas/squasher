@@ -11,6 +11,7 @@ import           Squasher.Naming
 import           Squasher.Output
 import           Squasher.Squasher
 import           System.Process.Typed
+import           Control.Monad(when)
 
 main :: IO ()
 main = do
@@ -24,7 +25,8 @@ main = do
             case runExcept (runner o terms) of
                 Left err -> error err
                 Right resNew -> do
-                    writeFile "outnew.txt" ("Aliases:\n" ++ show (aliasEnv resNew) ++ "\nFunctions:\n" ++ show (tyEnv resNew))
+                    when (printUnformatted o) $
+                        writeFile "outnew.txt" ("Aliases:\n" ++ show (aliasEnv resNew) ++ "\nFunctions:\n" ++ show (tyEnv resNew))
                     BS.writeFile "out.bin" $ encode $ MkExternalTerm $ out (nameAll resNew) resNew
                     writePretty $ prettyOutputPath o
                     return ()
@@ -37,8 +39,9 @@ main = do
 
 writePretty :: String -> IO ()
 writePretty path = do
-    putStrLn "Writing formatted results to file..."
-    let p = proc "erl" ["-noshell", "-eval", "{ok, B} = file:read_file(\"out.bin\"), L = binary_to_term(B), S = lists:flatmap(fun(F) -> erl_pp:form(F) ++ \"\n\" end, L), file:write_file(\"" <> path <> "\", S), init:stop()."]
+    putStrLn $ "Writing formatted results to " ++ path
+    -- todo: don't crash
+    let p = proc "erl" ["-noinput", "-eval", "{ok, B} = file:read_file(\"out.bin\"), L = binary_to_term(B), S = lists:flatmap(fun(F) -> erl_pp:form(F) ++ \"\n\" end, L), file:write_file(\"" <> path <> "\", S), init:stop()."]
     code <- runProcess p
     case code of
         ExitSuccess -> do

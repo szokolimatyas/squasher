@@ -10,17 +10,20 @@ import qualified Data.Text       as Text
 import           Squasher.Common
 import           Squasher.Types
 
--- tuples that have 3 non-tag fields are record candidates, this is a hardcoded value, TODO
 data Name = Record Text
           | Alias Text
           deriving (Eq, Ord, Show)
 
 nameAll :: SquashConfig -> IntMap Name
-nameAll SquashConfig{aliasEnv=MkAliasEnv{..}} = IntMap.foldlWithKey nameAlias IntMap.empty aliasMap
+nameAll SquashConfig{aliasEnv=MkAliasEnv{..}, options=o} = IntMap.foldlWithKey (nameAlias o) initialNames aliasMap
 
-nameAlias :: IntMap Name -> Int -> ErlType -> IntMap Name
-nameAlias names i t = case t of
-    (ETuple (ENamedAtom txt : ts)) | length ts >= 3 ->
+initialNames :: IntMap Name
+initialNames = IntMap.fromList $ zip [-1, -2..] $ map Alias
+    [ "any", "none", "dynamic", "pid", "port", "reference", "atom",  "float", "fun", "integer", "list", "map", "tuple"]
+
+nameAlias :: Options -> IntMap Name -> Int -> ErlType -> IntMap Name
+nameAlias Options{..} names i t = case t of
+    (ETuple (ENamedAtom txt : ts)) | length ts >= recordSize ->
         insertNew i (Record txt) names
     (ETuple (ENamedAtom txt : _)) ->
         insertNew i (Alias txt) names
