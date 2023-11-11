@@ -70,6 +70,8 @@ post = compose [ removeProxyAliases
                , removeSubsets
                , upcastAtomUnions
                , inlineAliases
+               , tryRemoveUnknowns
+               , inlineAliases
                , pruneAliases
                ]
 
@@ -94,7 +96,6 @@ tryRemoveUnknowns conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv f
         visit :: ErlType -> ErlType
         visit (EUnion ts) = mkUnion $ HashSet.foldl' combineUnion HashSet.empty ts
         visit t           = t
-
 
 -- | Remove "proxy" aliases like $1 in: $1 -> $2 -> {'rec', integer()}
 removeProxyAliases :: SquashConfig -> SquashConfig
@@ -147,6 +148,7 @@ getReachable SquashConfig{aliasEnv=MkAliasEnv aliasMap _, tyEnv=MkTyEnv funs} = 
         visit _ is              = concat is
 
 -- | Inline aliases that have only one reference to them.
+-- TODO: use the graphs
 inlineAliases :: SquashConfig -> SquashConfig
 inlineAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newTyEnv } where

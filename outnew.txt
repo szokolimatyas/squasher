@@ -1,101 +1,137 @@
 Aliases:
-$3 -> {'record_info' | 'module_info', integer()}
-$6 -> list(_) | {'worker' | 'collector', integer()}
-$8 -> {'pany', integer()}
-$9 -> {'test', integer()}
-$11 -> atom() | {'outdir', list(integer())}
-$14 -> {'lint', 'start' | 'attribute' | 'function', '' | 'bead', list(_), {integer(), {$3, {$3, 'nil', 'nil'}, 'nil'}}, list(_), list($11), #{}, {integer(), {$9, {$8, {$6, 'nil', 'nil'}, 'nil'}, {$6, 'nil', 'nil'}}} | {integer(), 'nil'}, {integer(), 'nil'}, {integer(), {$3, {$3, {$6, 'nil', 'nil'}, 'nil'}, {$3, 'nil', {$6, 'nil', 'nil'}}}} | {integer(), {$3, {$3, 'nil', 'nil'}, {$3, 'nil', {$6, 'nil', 'nil'}}}} | {integer(), {$3, {$3, 'nil', 'nil'}, {$3, 'nil', 'nil'}}}, list(_), integer(), list(_), list(_), {integer(), 'nil'}, $6, list(_), integer(), list(atom()), list(_), list(_), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list({any(), any()}), 'undefined', {'usage', #{}, list(_), {integer(), 'nil'}, #{}}, #{}, #{}, #{}, #{}, {integer(), 'nil'}, #{}, 'none', 'guard', 'false'}
-$47 -> {'location', {integer(), integer()}} | {'file', list(integer())}
-$65 -> {'match', {integer(), integer()}, $65, $65} | {'lc', {integer(), integer()}, $65, list({'generate', {integer(), integer()}, $65, $65})} | {'receive', {integer(), integer()}, list($111)} | {'if', {integer(), integer()}, list($111)} | {'atom', {integer(), integer()} | list($47), atom()} | {'case', {integer(), integer()}, $65, list($111)} | {'var', {integer(), integer()}, atom()} | {'op', {integer(), integer()}, '>=' | '!' | '+', $65, $65} | {'integer', {integer(), integer()}, integer()} | {'call', {integer(), integer()} | list($47), $65 | {'remote', {integer(), integer()}, $65, $65}, list({'fun', {integer(), integer()}, {'clauses', list($111)}} | $65)} | {'tuple', {integer(), integer()}, list($65)} | {'string', {integer(), integer()} | list($47), list(integer())}
-$111 -> {'clause', {integer(), integer()}, list($65), list(list($65)), list(any())}
-$121 -> {'eof', {integer(), integer()}} | {'attribute', {integer(), integer()} | list($47), 'module' | 'file' | 'compile', {list(integer()), integer()} | 'export_all' | 'bead'} | {'function', {integer(), integer()} | list($47), atom(), integer(), list($111)}
-$143 -> {'cd' | 'c', integer()}
-$379 -> {atom(), {'bound', 'used' | 'unused', list({integer(), integer()})}}
-$1889 -> {'ok', list(_)}
-$3069 -> {'if' | 'receive' | 'case', {integer(), integer()}}
+$1 -> {atom(), integer()} | list(_)
+$4 -> atom() | {'outdir', list(integer())}
+$5 -> {'lint', 'start' | 'attribute' | 'function', '' | 'bead', list(_), gb_trees:tree(_, _), list(_), list(any()), #{}, gb_sets:set(_), gb_sets:set(?) | gb_trees:tree(?), gb_sets:set(_), list(_), integer(), list(_), list(_), gb_sets:set(?) | gb_trees:tree(?), any(), list(_), integer(), list(atom()), list(_), list(_), list({list(integer()), {{integer(), integer()}, 'erl_lint', 'export_all'}}), list(integer()), 'false', 'false', list({any(), any()}), 'undefined', any(), #{}, #{}, #{}, #{}, gb_sets:set(?) | gb_trees:tree(?), #{}, 'none', 'guard', 'false'}
+$20 -> {'location', {integer(), integer()}} | {'file', list(integer())}
+$53 -> {'receive', {integer(), integer()}, list($90)} | {'if', {integer(), integer()}, list($90)} | {'match', {integer(), integer()}, $53, $53} | {'string', {integer(), integer()} | list($20), list(integer())} | {'tuple', {integer(), integer()}, list($53)} | {'call', {integer(), integer()} | list($20), $53, list($53)} | {'var', {integer(), integer()}, atom()} | {'op', {integer(), integer()}, '>=' | '!' | '+', $53, $53} | {'lc', {integer(), integer()}, $53, list($324)} | {'atom', {integer(), integer()} | list($20), atom()} | {'fun', {integer(), integer()}, {'clauses', list($90)}} | {'integer', {integer(), integer()}, integer()} | {'case', {integer(), integer()}, $53, list($90)} | {'remote', {integer(), integer()}, $53, $53}
+$90 -> {'clause', {integer(), integer()}, list($53), list(list($53)), list(any())}
+$100 -> {'function', {integer(), integer()} | list($20), atom(), integer(), list($90)} | {'eof', {integer(), integer()}} | {'attribute', {integer(), integer()} | list($20), 'module' | 'file' | 'compile', {list(integer()), integer()} | 'export_all' | 'bead'}
+$324 -> {'generate', {integer(), integer()}, $53, $53}
+$922 -> {atom(), {$1263 | 'bound', 'used' | 'unused', list({integer(), integer()})}}
+$1262 -> {'if' | 'receive' | 'case', {integer(), integer()}}
+$1263 -> {'unsafe', $1262}
+$3306 -> {'ok', list(_)}
 
 Functions:
-add_lint_warning({{integer(), integer()}, 'erl_lint', 'export_all'}, list(integer()), $14) -> $14
-add_warning(list($47), 'export_all', $14) -> $14
-anno_set_file($65, list(integer())) -> $65
+add_lint_warning({{integer(), integer()}, 'erl_lint', 'export_all'}, list(integer()), $5) -> $5
+add_warning(list($20), 'export_all', $5) -> $5
+all_behaviour_callbacks(list(_), list(_), $5) -> {list(_), $5}
+anno_set_file($53, list(integer())) -> $53
 any_control_characters(list(integer())) -> 'false'
-attribute_state($121, $14) -> $14
-auto_import_suppressed(list($11)) -> {integer(), 'nil'}
-bif_clash_specifically_disabled($14, $143) -> 'false'
-bif_clashes(list($121), $14) -> $14
-bool_option(atom(), atom(), boolean(), list($11)) -> boolean()
-call_function(list($47), 'cd' | 'c', integer(), $14) -> $14
-check_module_name('bead', list($47), $14) -> $14
-check_unused_vars(list($379), list(_), $14) -> {list($379), $14}
-clause($111, $14) -> {list($379), $14}
-clauses(list($111), $14) -> $14
-compiler_options(list($121)) -> list('export_all')
-define_function(list($47), 'worker' | 'collector', integer(), $14) -> $14
-disallowed_compile_flags(list($121), $14) -> $14
-do_expr_var(atom(), {integer(), integer()}, list($379), $14) -> {list($379), $14}
-eval_file_attr(list($121), list(integer())) -> list($121)
-eval_file_attribute(list($121), $14) -> list($121)
-expr($65, list($379), $14) -> {list($379), $14}
-expr_list(list($65), list($379), $14) -> {list($379), $14}
-expr_var(atom(), {integer(), integer()}, list($379), $14) -> {list($379), $14}
-exprs(list($65), list($379), $14) -> {list($379), $14}
-exprs_opt(list($65), list({'Pid', pid()}), list('bitlevel_binaries' | 'binary_comprehension')) -> $1889
+attribute_state($100, $5) -> $5
+auto_import_suppressed(list($4)) -> gb_sets:set(?) | gb_trees:tree(?)
+behaviour_add_conflicts(list(_), $5) -> $5
+behaviour_check(list(_), $5) -> $5
+behaviour_conflicting(list(_), $5) -> $5
+behaviour_missing_callbacks(list(_), $5) -> $5
+bif_clash_specifically_disabled($5, $1) -> 'false'
+bif_clashes(list($100), $5) -> $5
+bool_option(atom(), atom(), boolean(), list($4)) -> boolean()
+call_function({integer(), integer()} | list($20), atom(), integer(), $5) -> $5
+check_behaviour($5) -> $5
+check_deprecated(list($100), $5) -> $5
+check_imports(list($100), $5) -> $5
+check_inlines(list($100), $5) -> $5
+check_load_nif({integer(), integer()}, 'lists', 'flatlength' | 'sort', list($53), $5) -> $5
+check_module_name('lists' | 'bead', {integer(), integer()} | list($20), $5) -> $5
+check_old_unused_vars(list($922), list(_), $5) -> {list($922), $5}
+check_option_functions(list($100), 'inline', 'bad_inline', $5) -> $5
+check_qlc_hrl({integer(), integer()}, 'lists', 'flatlength' | 'sort', list($53), $5) -> $5
+check_remote_function({integer(), integer()}, 'lists', 'flatlength' | 'sort', list($53), $5) -> $5
+check_undefined_functions($5) -> $5
+check_unused_functions(list($100), _) -> _
+check_unused_vars(list($922), list($922), $5) -> {list($922), $5}
+clause($90, $5) -> {list($922), $5}
+clauses(list($90), $5) -> $5
+compiler_options(list($100)) -> list('export_all')
+define_function(list($20), atom(), integer(), $5) -> $5
+deprecated_function({integer(), integer()}, 'lists' | 'erlang', atom(), list($53), $5) -> $5
+disallowed_compile_flags(list($100), $5) -> $5
+do_expr_var(atom(), {integer(), integer()}, list($922), $5) -> {list($922), $5}
+eof({integer(), integer()}, $5) -> $5
+eval_file_attr(list($100), list(integer())) -> list($100)
+eval_file_attribute(list($100), $5) -> list($100)
+exports($5) -> gb_sets:set(_)
+expr($53, list($922), $5) -> {list($922), $5}
+expr_list(list($53), list($922), $5) -> {list($922), $5}
+expr_var(atom(), {integer(), integer()}, list($922), $5) -> {list($922), $5}
+exprs(list($53), list($922), $5) -> {list($922), $5}
+exprs_opt(list($53), list({'Pid', pid()}), list('bitlevel_binaries' | 'binary_comprehension')) -> $3306
 feature_keywords() -> #{}
-form($121, $14) -> $14
-forms(list($121), $14) -> _
-function(list($47), 'worker' | 'collector', integer(), list($111), $14) -> $14
-function_check_max_args(list($47), integer(), $14) -> $14
-function_state($121, $14) -> $14
-gexpr($65, list($379), $14) -> {list($379), $14}
-gexpr_list(list($65), list($379), $14) -> {list($379), $14}
-guard(list(list($65)), list($379), $14) -> {list($379), $14}
-guard_test($65, list($379), $14) -> {list($379), $14}
-guard_test2($65, list($379), $14) -> {list($379), $14}
-guard_tests(list($65), list($379), $14) -> {list($379), $14}
-head(list($65), list($379), $14) -> {list(_), list($379), $14}
-head(list($65), list($379), list($379), $14) -> {list(_), list($379), $14}
-icrt_clause($111, list($379), $14) -> {list($379), $14}
-icrt_clauses(list($111), list($379), $14) -> {list(list($379)), $14}
-icrt_clauses(list($111), $3069, list($379), $14) -> {list($379), $14}
-icrt_export(list(list($379)), list($379), $3069, $14) -> list($379)
-icrt_export(list($379), list($379), $3069, integer(), list($379)) -> list($379)
-imported(atom(), integer(), $14) -> 'no'
-includes_qlc_hrl(list($121), $14) -> $14
-is_autoimport_suppressed({integer(), 'nil'}, $143) -> 'false'
+form($100, $5) -> $5
+format_function({integer(), integer()}, 'lists', 'flatlength' | 'sort', list($53), $5) -> $5
+forms(list($100), $5) -> _
+fun_clause($90, list($922), $5) -> {list($922), $5}
+fun_clauses(list($90), list($922), $5) -> {list($922), $5}
+fun_clauses1(list($90), list($922), $5) -> {list($922), $5}
+func_location_error('bad_inline', list(_), $5) -> $5
+function(list($20), atom(), integer(), list($90), $5) -> $5
+function_check_max_args(list($20), integer(), $5) -> $5
+function_state($100, $5) -> $5
+gexpr($53, list($922), $5) -> {list($922), $5}
+gexpr_list(list($53), list($922), $5) -> {list($922), $5}
+guard(list(list($53)), list($922), $5) -> {list($922), $5}
+guard_test($53, list($922), $5) -> {list($922), $5}
+guard_test2($53, list($922), $5) -> {list($922), $5}
+guard_tests(list($53), list($922), $5) -> {list($922), $5}
+handle_comprehension($53, list($324), list($922), $5) -> {list($922), $5}
+handle_generator($53, $53, list($922), list(_), $5) -> {list($922), list(_), $5}
+head(list($53), list($922), $5) -> {list(_), list($922), $5}
+head(list($53), list($922), list($922), $5) -> {list(_), list($922), $5}
+icrt_clause($90, list($922), $5) -> {list($922), $5}
+icrt_clauses(list($90), list($922), $5) -> {list(list($922)), $5}
+icrt_clauses(list($90), $1262, list($922), $5) -> {list($922), $5}
+icrt_export(list(list($922)), list($922), $1262, $5) -> list($922)
+icrt_export(list($922), list($922), $1262, integer(), list($922)) -> list($922)
+ignore_predefined_funcs(list($1)) -> list($1)
+imported(atom(), integer(), $5) -> 'no'
+includes_qlc_hrl(list($100), $5) -> $5
+is_autoimport_suppressed(gb_sets:set(?) | gb_trees:tree(?), $1) -> 'false'
+is_format_function('lists', 'flatlength' | 'sort') -> 'false'
 is_gexpr_op('>=', integer()) -> 'true'
-is_local_function({integer(), 'nil'}, $143) -> 'false'
-is_valid_call($65) -> 'true'
-is_warn_enabled('export_all' | 'keyword_warning' | 'bif_clash', $14) -> boolean()
-keyword_warning({integer(), integer()} | list($47), atom(), $14) -> $14
-loc({integer(), integer()} | list($47), $14) -> {list(integer()), {integer(), integer()}}
-local_functions(list($121)) -> {integer(), {$9, {$8, {$6, 'nil', 'nil'}, 'nil'}, {$6, 'nil', 'nil'}}}
-maps_prepend(list(_), $143, #{}) -> #{}
+is_local_function(gb_sets:set(_), $1) -> boolean()
+is_valid_call($53) -> 'true'
+is_warn_enabled(atom(), $5) -> boolean()
+keyword_warning({integer(), integer()} | list($20), atom(), $5) -> $5
+lc_quals(list($324), list($922), $5) -> {list($922), list(_), $5}
+lc_quals(list($324), list($922), list(_), $5) -> {list($922), list(_), $5}
+loc({integer(), integer()} | list($20), $5) -> {list(integer()), {integer(), integer()}}
+local_functions(list($100)) -> gb_sets:set(_)
+maps_prepend($1, $1, #{}) -> #{}
 merge_annos(list({integer(), integer()}), list({integer(), integer()})) -> list({integer(), integer()})
 merge_state('bound', 'bound') -> 'bound'
-merge_used('used', 'used' | 'unused') -> 'used'
-module(list($121), list(integer()), list($11)) -> _
-not_deprecated(list($121), $14) -> $14
-not_removed(list($121), $14) -> $14
-nowarn_function('nowarn_bif_clash', list($11)) -> list(_)
-obsolete_guard($65, $14) -> $14
+merge_used('used' | 'unused', 'used' | 'unused') -> 'used'
+module(list($100), list(integer()), list($4)) -> _
+not_deprecated(list($100), $5) -> $5
+not_removed(list($100), $5) -> $5
+nowarn_function('nowarn_bif_clash', list($4)) -> list(_)
+obsolete_guard($53, $5) -> $5
 pack_errors(list(_)) -> list(_)
 pack_warnings(list(_)) -> list(_)
-pat_var(atom(), {integer(), integer()}, list($379), list(_), $14) -> {list(_), list($379), $14}
-pattern($65, list($379), list($379), $14) -> {list(_), list($379), $14}
-pattern_list(list($65), list($379), list($379), $14) -> {list(_), list($379), $14}
-pre_scan(list($121), $14) -> $14
-pseudolocals() -> list($3)
+pat_var(atom(), {integer(), integer()}, list($922), list(_), $5) -> {list(_), list($922), $5}
+pattern($53, list($922), $5) -> {list(_), list($922), $5}
+pattern($53, list($922), list($922), $5) -> {list(_), list($922), $5}
+pattern_list(list($53), list($922), list($922), $5) -> {list(_), list($922), $5}
+post_traversal_check(list($100), $5) -> _
+pre_scan(list($100), $5) -> $5
+pseudolocals() -> list($1)
+reject_invalid_alias_expr($53, $53, list($922), $5) -> $5
 remove_non_visible(list(integer())) -> list(integer())
-return_status($14) -> $1889
-set_file(list($65), list(integer())) -> list($65)
-set_form_file($121, list(integer())) -> $121
-start(list(integer()), list($11)) -> $14
-start_state($121, $14) -> $14
-unused_vars(list($379), list(_), $14) -> list(_)
-value_option('warn_format', integer(), 'warn_format', integer(), 'nowarn_format', integer(), list($11)) -> integer()
-vtmerge(list($379), list($379)) -> list($379)
-vtmerge_pat(list($379), list($379), $14) -> {list($379), $14}
-vtnew(list(_), list(_)) -> list(_)
-vtupdate(list($379), list($379)) -> list($379)
-warn_invalid_call({integer(), integer()}, $65, $14) -> $14
-warn_unused_vars(list(_), list($379), $14) -> {list($379), $14}
+return_status($5) -> $3306
+set_file(list($53), list(integer())) -> list($53)
+set_form_file($100, list(integer())) -> $100
+shadow_vars(list($922), list($922), 'generate' | 'fun', $5) -> $5
+start(list(integer()), list($4)) -> $5
+start_state($100, $5) -> $5
+unused_vars(list($922), list($922), $5) -> list(_)
+value_option('warn_format', integer(), 'warn_format', integer(), 'nowarn_format', integer(), list($4)) -> integer()
+vt_no_unsafe(list($922)) -> list($922)
+vt_no_unused(list($922)) -> list($922)
+vtmerge(list($922), list($922)) -> list($922)
+vtmerge_pat(list($922), list($922), $5) -> {list($922), $5}
+vtnew(list($922), list($922)) -> list($922)
+vtold(list($922), list($922)) -> list($922)
+vtsubtract(list($922), list($922)) -> list($922)
+vtupdate(list($922), list($922)) -> list($922)
+warn_invalid_call({integer(), integer()}, $53, $5) -> $5
+warn_unused_vars(list(_), list($922), $5) -> {list($922), $5}

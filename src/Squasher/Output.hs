@@ -84,7 +84,10 @@ remoteType n m f args =
     Erlang.Tuple [ atom "remote_type"
                  , Erlang.Nil
                  , Erlang.List
-                    [atom m, atom f, Erlang.List (map (toTerm n) args) Erlang.Nil]
+                    [ taggedTuple n "atom" [atom m]
+                    , taggedTuple n "atom" [atom f]
+                    , Erlang.List (map (toTerm n) args) Erlang.Nil
+                    ]
                     Erlang.Nil
                  ]
 

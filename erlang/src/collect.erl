@@ -4,11 +4,12 @@
 
 -define(DEFAULT_FUEL, 100).
 -define(TRACE_TAB, traces).
+-define(HORIZONTAL_FUEL, 100).
 
 -export([prepare_trace/0, track/2, get_traces/0]).
 
 -export([start_erlang_trace/1,
-         stop_erlang_trace/1]).
+         stop_erlang_trace/2]).
 
 -export([collect_loop/0]).
 
@@ -35,11 +36,11 @@ start_erlang_trace(InModule) ->
     erlang:trace_pattern({InModule, '_', '_'}, [{'_', [], [{return_trace}]}], [local]),
     Pid.
 
-stop_erlang_trace(Pid) ->
+stop_erlang_trace(Pid, FileName) ->
     erlang:trace(all, false, [call]),
     Pid ! stop,
     Traces = get_traces(),
-    file:write_file("out1.bin", term_to_binary(lists:uniq(Traces))).
+    file:write_file(FileName, term_to_binary(lists:uniq(Traces))).
 
 collect_loop() -> 
     receive
@@ -97,6 +98,7 @@ track(V, P) ->
 %%% refactoring using the results -->
 %%% spec functions, convert tups to records
 
+%%% avoid exceptions caused by track
 track(V, P, _F) when is_integer(V) ->
     put_trace(integer, P),
     V;
@@ -109,24 +111,33 @@ track(V, P, _F) when is_atom(V) ->
 track({}, P, _F) ->
     put_trace({tuple, []}, P),
     {};
+track({0, nil}, P, _F) ->
+    put_trace(gb_empty, P),
+    {0, nil};
 track(Tup, P, F) when is_tuple(Tup) ->
-    Vals = erlang:tuple_to_list(Tup),
-    TupSize = erlang:tuple_size(Tup),
-    Vals1 = 
-        case Vals of
-            [A | Rest] when is_atom(A) ->
-                [A | map_with_index(
-                        fun(V, I) -> 
-                            track(V, [#tuple_index{key = {atom, A}, 
-                                                   tuple_size = TupSize, index = I + 1} | P], F - 1)
-                        end, Rest)];
-            _ ->
-                map_with_index(
-                    fun(V, I) -> 
-                        track(V, [#tuple_index{tuple_size = TupSize, index = I} | P], F - 1)
-                    end, Vals)
-        end,
-    erlang:list_to_tuple(Vals1);
+    B1 = array:is_array(Tup),
+    B2 = sets:is_set(Tup),
+    B3 = (element(1, Tup) == dict) andalso tuple_size(Tup) == 9,
+    case {B1, B2, B3} of
+        {true, _, _} ->
+            put_trace({array, unknown}, P), Tup;
+        {_, true, _} ->
+            put_trace({set, unknown}, P), Tup;
+        {_, _, true} ->
+            put_trace({dict, unknown}, P), Tup;
+        _ ->
+            case is_gb_tree(Tup) of
+                true ->
+                    put_trace({gb_tree, unknown, unknown}, P), Tup;
+                _ ->
+                    case is_gb_set(Tup) of
+                        true ->
+                            put_trace({gb_set, unknown}, P), Tup;
+                        _ -> 
+                            track_raw_tuple(Tup, P, F)
+                    end
+                end
+    end;
 track(V, P, _F) when is_function(V) ->
     make_proxy(V, P);
 track(V, P, _F) when is_binary(V) ->
@@ -135,29 +146,21 @@ track(V, P, _F) when is_binary(V) ->
 track(V, P, _F) when is_bitstring(V) ->
     put_trace(binary, P),
     V;
-%%% really naive implementation, but good for now?
-%%% we need to limit some of the recursion!
 track([], P, _) ->
     %% maybe a {list, none} or {list, ?}
     put_trace({list, unknown}, P),
     [];
-%%% todo: maybe_improper_list
 track(Vals, P, F) when is_list(Vals) ->
-    lists:map(
+    safe_map(
         fun(V) -> 
             track(V, [list_element | P], F - 1)
         end, Vals);
 %%% really naive implementation, but good for now?
 %%% we need to limit some of the recursion!
 %%% ALSO: shapemaps?
-track(#{}, P, _) ->
+track(Map, P, _) when is_map(Map) ->
     put_trace({map, []}, P),
-    #{};
-track(Vals, P, F) when is_map(Vals) ->
-    maps:map(
-        fun(K, V) ->
-            track(V, [{map_element, K} | P], F - 1) 
-        end, Vals);
+    Map;
 track(V, P, _F) when is_pid(V) ->
     put_trace(pid, P),
     V;
@@ -171,12 +174,63 @@ track(V, P, _F) ->
     put_trace(unknown, P),
     V.
 
+track_raw_tuple(Tup, P, F) ->
+    Vals = erlang:tuple_to_list(Tup),
+    TupSize = erlang:tuple_size(Tup),
+    Vals1 = 
+        case Vals of
+            [A | Rest] when is_atom(A) ->
+                [A | map_with_index(
+                        fun(V, I) -> 
+                            track(V, [#tuple_index{key = {atom, A}, 
+                                                tuple_size = TupSize, index = I + 1} | P], F - 1)
+                        end, Rest)];
+            _ ->
+                map_with_index(
+                    fun(V, I) -> 
+                        track(V, [#tuple_index{tuple_size = TupSize, index = I} | P], F - 1)
+                    end, Vals)
+        end,
+    erlang:list_to_tuple(Vals1).
+
 map_with_index(F, L) ->
     map_with_index(F, L, 1).
+map_with_index(_, L, I) when I >= ?HORIZONTAL_FUEL -> L;
 map_with_index(F, [H | T], I) ->
     [F(H, I) | map_with_index(F, T, I + 1)];
-map_with_index(_, [], _) ->
-    [].
+map_with_index(_, Other, _) ->
+    Other.
+
+safe_map(F, L) ->
+    safe_map(F, L, 1).
+safe_map(_, L, I) when I >= ?HORIZONTAL_FUEL -> L;
+safe_map(F, [H | T], I) ->
+    [F(H) | safe_map(F, T, I + 1)];
+safe_map(_, Other, _) ->
+    Other.
+
+is_gb_set({I, Tree}) when is_integer(I) ->
+    is_gb_set_tree(Tree);
+is_gb_set(_) -> false.
+
+%%% tailrec?
+is_gb_set_tree({_, nil, _}) -> true;
+is_gb_set_tree({_, _, nil}) -> true;
+is_gb_set_tree({_, T1, T2}) ->
+    is_gb_set_tree(T1) orelse is_gb_set_tree(T2);
+is_gb_set_tree(_) -> false.
+
+
+is_gb_tree({I, Tree}) when is_integer(I) ->
+    is_gb_tree_tree(Tree);
+is_gb_tree(_) -> false.
+
+%%% tailrec?
+is_gb_tree_tree({_, nil, _}) -> true;
+is_gb_tree_tree({_, _, nil}) -> true;
+is_gb_tree_tree({_, _, T1, T2}) ->
+    is_gb_tree_tree(T1) orelse is_gb_tree_tree(T2);
+is_gb_tree_tree(_) -> false.
 
 %%% do we need to wrap bifs?
 %%% we have type info for them, and they should be cheap to use

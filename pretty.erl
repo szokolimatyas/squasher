@@ -1,48 +1,24 @@
--type rec_mod_tuple() :: {record_info | module_info, integer()}.
-
--type list_tuple() :: list() | {worker | collector, integer()}.
-
--type pany() :: {pany, integer()}.
-
--type test() :: {test, integer()}.
+-type tuple_list() :: {atom(), integer()} | list().
 
 -type atom_outdir() :: atom() | {outdir, [integer()]}.
 
 -record(lint,{field1 :: start | attribute | function,
               field2 :: '' | bead,
               field3 :: list(),
-              field4 ::
-                  {integer(),
-                   {rec_mod_tuple(), {rec_mod_tuple(), nil, nil}, nil}},
+              field4 :: gb_trees:tree(_, _),
               field5 :: list(),
-              field6 :: [atom_outdir()],
+              field6 :: list(),
               field7 :: map(),
-              field8 ::
-                  {integer(),
-                   {test(),
-                    {pany(), {list_tuple(), nil, nil}, nil},
-                    {list_tuple(), nil, nil}}} |
-                  {integer(), nil},
-              field9 :: {integer(), nil},
-              field10 ::
-                  {integer(),
-                   {rec_mod_tuple(),
-                    {rec_mod_tuple(), {list_tuple(), nil, nil}, nil},
-                    {rec_mod_tuple(), nil, {list_tuple(), nil, nil}}}} |
-                  {integer(),
-                   {rec_mod_tuple(),
-                    {rec_mod_tuple(), nil, nil},
-                    {rec_mod_tuple(), nil, {list_tuple(), nil, nil}}}} |
-                  {integer(),
-                   {rec_mod_tuple(),
-                    {rec_mod_tuple(), nil, nil},
-                    {rec_mod_tuple(), nil, nil}}},
+              field8 :: gb_sets:set(_),
+              field9 :: gb_sets:set(any()) | gb_trees:tree(any(), any()),
+              field10 :: gb_sets:set(_),
               field11 :: list(),
               field12 :: integer(),
               field13 :: list(),
               field14 :: list(),
-              field15 :: {integer(), nil},
-              field16 :: list_tuple(),
+              field15 ::
+                  gb_sets:set(any()) | gb_trees:tree(any(), any()),
+              field16 :: any(),
               field17 :: list(),
               field18 :: integer(),
               field19 :: [atom()],
@@ -56,12 +32,13 @@
               field25 :: false,
               field26 :: [{any(), any()}],
               field27 :: undefined,
-              field28 :: {usage, map(), list(), {integer(), nil}, map()},
+              field28 :: any(),
               field29 :: map(),
               field30 :: map(),
               field31 :: map(),
               field32 :: map(),
-              field33 :: {integer(), nil},
+              field33 ::
+                  gb_sets:set(any()) | gb_trees:tree(any(), any()),
               field34 :: map(),
               field35 :: none,
               field36 :: guard,
@@ -71,58 +48,61 @@
           {location, {integer(), integer()}} | {file, [integer()]}.
 
 -type union() ::
-          {match, {integer(), integer()}, union(), union()} |
-          {lc,
-           {integer(), integer()},
-           union(),
-           [{generate, {integer(), integer()}, union(), union()}]} |
           {'receive', {integer(), integer()}, [#clause{}]} |
           {'if', {integer(), integer()}, [#clause{}]} |
-          {atom, {integer(), integer()} | [location_file()], atom()} |
-          {'case', {integer(), integer()}, union(), [#clause{}]} |
+          {match, {integer(), integer()}, union(), union()} |
+          {string,
+           {integer(), integer()} | [location_file()],
+           [integer()]} |
+          {tuple, {integer(), integer()}, [union()]} |
+          {call,
+           {integer(), integer()} | [location_file()],
+           union(),
+           [union()]} |
           {var, {integer(), integer()}, atom()} |
           {op,
            {integer(), integer()},
            '>=' | '!' | '+',
            union(),
            union()} |
+          {lc, {integer(), integer()}, union(), [#generate{}]} |
+          {atom, {integer(), integer()} | [location_file()], atom()} |
+          {'fun', {integer(), integer()}, {clauses, [#clause{}]}} |
           {integer, {integer(), integer()}, integer()} |
-          {call,
-           {integer(), integer()} | [location_file()],
-           union() | {remote, {integer(), integer()}, union(), union()},
-           [{'fun', {integer(), integer()}, {clauses, [#clause{}]}} |
-            union()]} |
-          {tuple, {integer(), integer()}, [union()]} |
-          {string,
-           {integer(), integer()} | [location_file()],
-           [integer()]}.
+          {'case', {integer(), integer()}, union(), [#clause{}]} |
+          {remote, {integer(), integer()}, union(), union()}.
 
 -record(clause,{field1 :: {integer(), integer()},
                 field2 :: [union()],
                 field3 :: [[union()]],
                 field4 :: list()}).
 
--type eof_attribute_function() ::
-          {eof, {integer(), integer()}} |
-          {attribute,
-           {integer(), integer()} | [location_file()],
-           module | file | compile,
-           {[integer()], integer()} | export_all | bead} |
+-type function_eof_attribute() ::
           {function,
            {integer(), integer()} | [location_file()],
            atom(),
            integer(),
-           [#clause{}]}.
+           [#clause{}]} |
+          {eof, {integer(), integer()}} |
+          {attribute,
+           {integer(), integer()} | [location_file()],
+           module | file | compile,
+           {[integer()], integer()} | export_all | bead}.
 
--type cd_c_tuple() :: {cd | c, integer()}.
+-record(generate,{field1 :: {integer(), integer()},
+                  field2 :: union(),
+                  field3 :: union()}).
 
--type tuple() ::
-          {atom(), {bound, used | unused, [{integer(), integer()}]}}.
-
--type ok() :: {ok, list()}.
+-type tuple922() ::
+          {atom(),
+           {unsafe() | bound, used | unused, [{integer(), integer()}]}}.
 
 -type if_receive_case_tuple() ::
           {'if' | 'receive' | 'case', {integer(), integer()}}.
+
+-type unsafe() :: {unsafe, if_receive_case_tuple()}.
+
+-type ok() :: {ok, list()}.
 
 -spec add_lint_warning({{integer(), integer()}, erl_lint, export_all},
                        [integer()],
@@ -131,61 +111,130 @@
 
 -spec add_warning([location_file()], export_all, #lint{}) -> #lint{}.
 
+-spec all_behaviour_callbacks(list(), list(), #lint{}) ->
+                                 {list(), #lint{}}.
+
 -spec anno_set_file(union(), [integer()]) -> union().
 
 -spec any_control_characters([integer()]) -> false.
 
--spec attribute_state(eof_attribute_function(), #lint{}) -> #lint{}.
+-spec attribute_state(function_eof_attribute(), #lint{}) -> #lint{}.
 
--spec auto_import_suppressed([atom_outdir()]) -> {integer(), nil}.
+-spec auto_import_suppressed([atom_outdir()]) ->
+                                gb_sets:set(any()) |
+                                gb_trees:tree(any(), any()).
 
--spec bif_clash_specifically_disabled(#lint{}, cd_c_tuple()) -> false.
+-spec behaviour_add_conflicts(list(), #lint{}) -> #lint{}.
 
--spec bif_clashes([eof_attribute_function()], #lint{}) -> #lint{}.
+-spec behaviour_check(list(), #lint{}) -> #lint{}.
+
+-spec behaviour_conflicting(list(), #lint{}) -> #lint{}.
+
+-spec behaviour_missing_callbacks(list(), #lint{}) -> #lint{}.
+
+-spec bif_clash_specifically_disabled(#lint{}, tuple_list()) -> false.
+
+-spec bif_clashes([function_eof_attribute()], #lint{}) -> #lint{}.
 
 -spec bool_option(atom(), atom(), boolean(), [atom_outdir()]) ->
                      boolean().
 
--spec call_function([location_file()], cd | c, integer(), #lint{}) ->
+-spec call_function({integer(), integer()} | [location_file()],
+                    atom(),
+                    integer(),
+                    #lint{}) ->
                        #lint{}.
 
--spec check_module_name(bead, [location_file()], #lint{}) -> #lint{}.
+-spec check_behaviour(#lint{}) -> #lint{}.
 
--spec check_unused_vars([tuple()], list(), #lint{}) ->
-                           {[tuple()], #lint{}}.
+-spec check_deprecated([function_eof_attribute()], #lint{}) -> #lint{}.
 
--spec clause(#clause{}, #lint{}) -> {[tuple()], #lint{}}.
+-spec check_imports([function_eof_attribute()], #lint{}) -> #lint{}.
+
+-spec check_inlines([function_eof_attribute()], #lint{}) -> #lint{}.
+
+-spec check_load_nif({integer(), integer()},
+                     lists,
+                     flatlength | sort,
+                     [union()],
+                     #lint{}) ->
+                        #lint{}.
+
+-spec check_module_name(lists | bead,
+                        {integer(), integer()} | [location_file()],
+                        #lint{}) ->
+                           #lint{}.
+
+-spec check_old_unused_vars([tuple922()], list(), #lint{}) ->
+                               {[tuple922()], #lint{}}.
+
+-spec check_option_functions([function_eof_attribute()],
+                             inline, bad_inline,
+                             #lint{}) ->
+                                #lint{}.
+
+-spec check_qlc_hrl({integer(), integer()},
+                    lists,
+                    flatlength | sort,
+                    [union()],
+                    #lint{}) ->
+                       #lint{}.
+
+-spec check_remote_function({integer(), integer()},
+                            lists,
+                            flatlength | sort,
+                            [union()],
+                            #lint{}) ->
+                               #lint{}.
+
+-spec check_undefined_functions(#lint{}) -> #lint{}.
+
+-spec check_unused_functions([function_eof_attribute()], _) -> _.
+
+-spec check_unused_vars([tuple922()], [tuple922()], #lint{}) ->
+                           {[tuple922()], #lint{}}.
+
+-spec clause(#clause{}, #lint{}) -> {[tuple922()], #lint{}}.
 
 -spec clauses([#clause{}], #lint{}) -> #lint{}.
 
--spec compiler_options([eof_attribute_function()]) -> [export_all].
+-spec compiler_options([function_eof_attribute()]) -> [export_all].
 
--spec define_function([location_file()],
-                      worker | collector,
-                      integer(),
-                      #lint{}) ->
+-spec define_function([location_file()], atom(), integer(), #lint{}) ->
                          #lint{}.
 
--spec disallowed_compile_flags([eof_attribute_function()], #lint{}) ->
+-spec deprecated_function({integer(), integer()},
+                          lists | erlang,
+                          atom(),
+                          [union()],
+                          #lint{}) ->
+                             #lint{}.
+
+-spec disallowed_compile_flags([function_eof_attribute()], #lint{}) ->
                                   #lint{}.
 
--spec do_expr_var(atom(), {integer(), integer()}, [tuple()], #lint{}) ->
-                     {[tuple()], #lint{}}.
+-spec do_expr_var(atom(), {integer(), integer()}, [tuple922()], #lint{}) ->
+                     {[tuple922()], #lint{}}.
 
--spec eval_file_attr([eof_attribute_function()], [integer()]) ->
-                        [eof_attribute_function()].
+-spec eof({integer(), integer()}, #lint{}) -> #lint{}.
 
--spec eval_file_attribute([eof_attribute_function()], #lint{}) ->
-                             [eof_attribute_function()].
+-spec eval_file_attr([function_eof_attribute()], [integer()]) ->
+                        [function_eof_attribute()].
 
--spec expr(union(), [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec eval_file_attribute([function_eof_attribute()], #lint{}) ->
+                             [function_eof_attribute()].
 
--spec expr_list([union()], [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec exports(#lint{}) -> gb_sets:set(_).
 
--spec expr_var(atom(), {integer(), integer()}, [tuple()], #lint{}) ->
-                  {[tuple()], #lint{}}.
+-spec expr(union(), [tuple922()], #lint{}) -> {[tuple922()], #lint{}}.
 
--spec exprs([union()], [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec expr_list([union()], [tuple922()], #lint{}) ->
+                   {[tuple922()], #lint{}}.
+
+-spec expr_var(atom(), {integer(), integer()}, [tuple922()], #lint{}) ->
+                  {[tuple922()], #lint{}}.
+
+-spec exprs([union()], [tuple922()], #lint{}) -> {[tuple922()], #lint{}}.
 
 -spec exprs_opt([union()],
                 [{'Pid', pid()}],
@@ -194,12 +243,30 @@
 
 -spec feature_keywords() -> map().
 
--spec form(eof_attribute_function(), #lint{}) -> #lint{}.
+-spec form(function_eof_attribute(), #lint{}) -> #lint{}.
 
--spec forms([eof_attribute_function()], #lint{}) -> _.
+-spec format_function({integer(), integer()},
+                      lists,
+                      flatlength | sort,
+                      [union()],
+                      #lint{}) ->
+                         #lint{}.
+
+-spec forms([function_eof_attribute()], #lint{}) -> _.
+
+-spec fun_clause(#clause{}, [tuple922()], #lint{}) ->
+                    {[tuple922()], #lint{}}.
+
+-spec fun_clauses([#clause{}], [tuple922()], #lint{}) ->
+                     {[tuple922()], #lint{}}.
+
+-spec fun_clauses1([#clause{}], [tuple922()], #lint{}) ->
+                      {[tuple922()], #lint{}}.
+
+-spec func_location_error(bad_inline, list(), #lint{}) -> #lint{}.
 
 -spec function([location_file()],
-               worker | collector,
+               atom(),
                integer(),
                [#clause{}],
                #lint{}) ->
@@ -208,94 +275,117 @@
 -spec function_check_max_args([location_file()], integer(), #lint{}) ->
                                  #lint{}.
 
--spec function_state(eof_attribute_function(), #lint{}) -> #lint{}.
+-spec function_state(function_eof_attribute(), #lint{}) -> #lint{}.
 
--spec gexpr(union(), [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec gexpr(union(), [tuple922()], #lint{}) -> {[tuple922()], #lint{}}.
 
--spec gexpr_list([union()], [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec gexpr_list([union()], [tuple922()], #lint{}) ->
+                    {[tuple922()], #lint{}}.
 
--spec guard([[union()]], [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec guard([[union()]], [tuple922()], #lint{}) ->
+               {[tuple922()], #lint{}}.
 
--spec guard_test(union(), [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec guard_test(union(), [tuple922()], #lint{}) ->
+                    {[tuple922()], #lint{}}.
 
--spec guard_test2(union(), [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec guard_test2(union(), [tuple922()], #lint{}) ->
+                     {[tuple922()], #lint{}}.
 
--spec guard_tests([union()], [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec guard_tests([union()], [tuple922()], #lint{}) ->
+                     {[tuple922()], #lint{}}.
 
--spec head([union()], [tuple()], #lint{}) ->
-              {list(), [tuple()], #lint{}}.
+-spec handle_comprehension(union(),
+                           [#generate{}],
+                           [tuple922()],
+                           #lint{}) ->
+                              {[tuple922()], #lint{}}.
 
--spec head([union()], [tuple()], [tuple()], #lint{}) ->
-              {list(), [tuple()], #lint{}}.
+-spec handle_generator(union(), union(), [tuple922()], list(), #lint{}) ->
+                          {[tuple922()], list(), #lint{}}.
 
--spec icrt_clause(#clause{}, [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec head([union()], [tuple922()], #lint{}) ->
+              {list(), [tuple922()], #lint{}}.
 
--spec icrt_clauses([#clause{}], [tuple()], #lint{}) ->
-                      {[[tuple()]], #lint{}}.
+-spec head([union()], [tuple922()], [tuple922()], #lint{}) ->
+              {list(), [tuple922()], #lint{}}.
+
+-spec icrt_clause(#clause{}, [tuple922()], #lint{}) ->
+                     {[tuple922()], #lint{}}.
+
+-spec icrt_clauses([#clause{}], [tuple922()], #lint{}) ->
+                      {[[tuple922()]], #lint{}}.
 
 -spec icrt_clauses([#clause{}],
                    if_receive_case_tuple(),
-                   [tuple()],
+                   [tuple922()],
                    #lint{}) ->
-                      {[tuple()], #lint{}}.
+                      {[tuple922()], #lint{}}.
 
--spec icrt_export([[tuple()]],
-                  [tuple()],
+-spec icrt_export([[tuple922()]],
+                  [tuple922()],
                   if_receive_case_tuple(),
                   #lint{}) ->
-                     [tuple()].
+                     [tuple922()].
 
--spec icrt_export([tuple()],
-                  [tuple()],
+-spec icrt_export([tuple922()],
+                  [tuple922()],
                   if_receive_case_tuple(),
                   integer(),
-                  [tuple()]) ->
-                     [tuple()].
+                  [tuple922()]) ->
+                     [tuple922()].
+
+-spec ignore_predefined_funcs([tuple_list()]) -> [tuple_list()].
 
 -spec imported(atom(), integer(), #lint{}) -> no.
 
--spec includes_qlc_hrl([eof_attribute_function()], #lint{}) -> #lint{}.
+-spec includes_qlc_hrl([function_eof_attribute()], #lint{}) -> #lint{}.
 
--spec is_autoimport_suppressed({integer(), nil}, cd_c_tuple()) -> false.
+-spec is_autoimport_suppressed(gb_sets:set(any()) |
+                               gb_trees:tree(any(), any()),
+                               tuple_list()) ->
+                                  false.
+
+-spec is_format_function(lists, flatlength | sort) -> false.
 
 -spec is_gexpr_op('>=', integer()) -> true.
 
--spec is_local_function({integer(), nil}, cd_c_tuple()) -> false.
+-spec is_local_function(gb_sets:set(_), tuple_list()) -> boolean().
 
 -spec is_valid_call(union()) -> true.
 
--spec is_warn_enabled(export_all | keyword_warning | bif_clash, #lint{}) ->
-                         boolean().
+-spec is_warn_enabled(atom(), #lint{}) -> boolean().
 
 -spec keyword_warning({integer(), integer()} | [location_file()],
                       atom(),
                       #lint{}) ->
                          #lint{}.
 
+-spec lc_quals([#generate{}], [tuple922()], #lint{}) ->
+                  {[tuple922()], list(), #lint{}}.
+
+-spec lc_quals([#generate{}], [tuple922()], list(), #lint{}) ->
+                  {[tuple922()], list(), #lint{}}.
+
 -spec loc({integer(), integer()} | [location_file()], #lint{}) ->
              {[integer()], {integer(), integer()}}.
 
--spec local_functions([eof_attribute_function()]) ->
-                         {integer(),
-                          {test(),
-                           {pany(), {list_tuple(), nil, nil}, nil},
-                           {list_tuple(), nil, nil}}}.
+-spec local_functions([function_eof_attribute()]) -> gb_sets:set(_).
 
--spec maps_prepend(list(), cd_c_tuple(), map()) -> map().
+-spec maps_prepend(tuple_list(), tuple_list(), map()) -> map().
 
 -spec merge_annos([{integer(), integer()}], [{integer(), integer()}]) ->
                      [{integer(), integer()}].
 
 -spec merge_state(bound, bound) -> bound.
 
--spec merge_used(used, used | unused) -> used.
+-spec merge_used(used | unused, used | unused) -> used.
 
--spec module([eof_attribute_function()], [integer()], [atom_outdir()]) ->
+-spec module([function_eof_attribute()], [integer()], [atom_outdir()]) ->
                 _.
 
--spec not_deprecated([eof_attribute_function()], #lint{}) -> #lint{}.
+-spec not_deprecated([function_eof_attribute()], #lint{}) -> #lint{}.
 
--spec not_removed([eof_attribute_function()], #lint{}) -> #lint{}.
+-spec not_removed([function_eof_attribute()], #lint{}) -> #lint{}.
 
 -spec nowarn_function(nowarn_bif_clash, [atom_outdir()]) -> list().
 
@@ -307,20 +397,28 @@
 
 -spec pat_var(atom(),
               {integer(), integer()},
-              [tuple()],
+              [tuple922()],
               list(),
               #lint{}) ->
-                 {list(), [tuple()], #lint{}}.
+                 {list(), [tuple922()], #lint{}}.
 
--spec pattern(union(), [tuple()], [tuple()], #lint{}) ->
-                 {list(), [tuple()], #lint{}}.
+-spec pattern(union(), [tuple922()], #lint{}) ->
+                 {list(), [tuple922()], #lint{}}.
 
--spec pattern_list([union()], [tuple()], [tuple()], #lint{}) ->
-                      {list(), [tuple()], #lint{}}.
+-spec pattern(union(), [tuple922()], [tuple922()], #lint{}) ->
+                 {list(), [tuple922()], #lint{}}.
 
--spec pre_scan([eof_attribute_function()], #lint{}) -> #lint{}.
+-spec pattern_list([union()], [tuple922()], [tuple922()], #lint{}) ->
+                      {list(), [tuple922()], #lint{}}.
 
--spec pseudolocals() -> [rec_mod_tuple()].
+-spec post_traversal_check([function_eof_attribute()], #lint{}) -> _.
+
+-spec pre_scan([function_eof_attribute()], #lint{}) -> #lint{}.
+
+-spec pseudolocals() -> [tuple_list()].
+
+-spec reject_invalid_alias_expr(union(), union(), [tuple922()], #lint{}) ->
+                                   #lint{}.
 
 -spec remove_non_visible([integer()]) -> [integer()].
 
@@ -328,14 +426,17 @@
 
 -spec set_file([union()], [integer()]) -> [union()].
 
--spec set_form_file(eof_attribute_function(), [integer()]) ->
-                       eof_attribute_function().
+-spec set_form_file(function_eof_attribute(), [integer()]) ->
+                       function_eof_attribute().
+
+-spec shadow_vars([tuple922()], [tuple922()], generate | 'fun', #lint{}) ->
+                     #lint{}.
 
 -spec start([integer()], [atom_outdir()]) -> #lint{}.
 
--spec start_state(eof_attribute_function(), #lint{}) -> #lint{}.
+-spec start_state(function_eof_attribute(), #lint{}) -> #lint{}.
 
--spec unused_vars([tuple()], list(), #lint{}) -> list().
+-spec unused_vars([tuple922()], [tuple922()], #lint{}) -> list().
 
 -spec value_option(warn_format,
                    integer(),
@@ -346,17 +447,26 @@
                    [atom_outdir()]) ->
                       integer().
 
--spec vtmerge([tuple()], [tuple()]) -> [tuple()].
+-spec vt_no_unsafe([tuple922()]) -> [tuple922()].
 
--spec vtmerge_pat([tuple()], [tuple()], #lint{}) -> {[tuple()], #lint{}}.
+-spec vt_no_unused([tuple922()]) -> [tuple922()].
 
--spec vtnew(list(), list()) -> list().
+-spec vtmerge([tuple922()], [tuple922()]) -> [tuple922()].
 
--spec vtupdate([tuple()], [tuple()]) -> [tuple()].
+-spec vtmerge_pat([tuple922()], [tuple922()], #lint{}) ->
+                     {[tuple922()], #lint{}}.
+
+-spec vtnew([tuple922()], [tuple922()]) -> [tuple922()].
+
+-spec vtold([tuple922()], [tuple922()]) -> [tuple922()].
+
+-spec vtsubtract([tuple922()], [tuple922()]) -> [tuple922()].
+
+-spec vtupdate([tuple922()], [tuple922()]) -> [tuple922()].
 
 -spec warn_invalid_call({integer(), integer()}, union(), #lint{}) ->
                            #lint{}.
 
--spec warn_unused_vars(list(), [tuple()], #lint{}) ->
-                          {[tuple()], #lint{}}.
+-spec warn_unused_vars(list(), [tuple922()], #lint{}) ->
+                          {[tuple922()], #lint{}}.
 
