@@ -2,10 +2,17 @@
 
 -export([parse_transform/2]).
 
+-define(SYN, erl_syntax).
+
+%%% use this as example: https://github.com/saleyn/etran/blob/master/src/str.erl
+%%% and this: https://github.com/erlang/otp/blob/master/lib/syntax_tools/src/erl_syntax_lib.erl
 -spec parse_transform(Forms, Options) -> Forms when
     Forms :: [erl_parse:abstract_form() | erl_parse:form_info()],
     Options :: [compile:option()].
-parse_transform(Forms, _Options) -> replace(Forms).
+parse_transform(Forms, _Options) -> 
+    Tree = erl_syntax:form_list(Forms),
+    ModifiedTree = replace(?SYN:form_list_elements(Tree)),
+    erl_syntax:revert_forms(ModifiedTree).
 
 -spec replace(Forms) -> Forms when
     Forms :: [erl_parse:abstract_form() | erl_parse:form_info()].
@@ -13,7 +20,7 @@ replace([H|T]) ->
     case erl_syntax:type(H) of
         function ->
             replace_function(H) ++ replace(T);
-        _ ->
+        T1 ->
             [H | replace(T)]
     end;
 replace(L) -> L.
@@ -37,22 +44,29 @@ replace(L) -> L.
 %     foo(Args2...).
 -spec replace_function(Function) -> [Function] when
     Function :: erl_syntax:syntaxTree().
-replace_function({function, ANNO, Name, Arity, Clauses}) ->
-    % Clauses1 = [replace_clause(Name, Arity, Clause) || Clause <- Clauses],
-    [{function, ANNO, Name, Arity, [proxy_fun_clause(ANNO, Name, Arity)]}, 
-     {function, ANNO, mocked_function_name(Name), Arity, Clauses}].
-%%% optimize_clauses(Name, Arity, Clauses)
+replace_function(F) ->
+    {Name, Arity} = erl_syntax_lib:analyze_function(F),
+    Clauses = ?SYN:function_clauses(F),
+    Original = ?SYN:function(?SYN:function_name(F), [proxy_fun_clause(Name, Arity)]),
+    %% not sure about the name
+    New = ?SYN:function(new_function_name(Name), optimize_clauses(Name, Arity, Clauses)),
+    [Original, New].
 
 optimize_clauses(_OrigName, _Arity, []) -> [];
-optimize_clauses(OrigName, Arity, [{clause,ANNO,Vars,Guards,Exprs} | Clauses]) ->
+optimize_clauses(OrigName, Arity, [Clause | Clauses]) ->
+    Vars = ?SYN:clause_patterns(Clause),
+    Guards = ?SYN:clause_guard(Clause),
+    Exprs = ?SYN:clause_body(Clause),
     Exprs1 = 
         [map_calls_in_expr({OrigName, Arity}, 
                            fun(E) -> optimize_call(OrigName, Arity, Vars, E) end, 
                            Expr) || Expr <- Exprs],
-    [{clause, ANNO, Vars, Guards, Exprs1} | optimize_clauses(OrigName, Arity, Clauses)].
+    NewClause = ?SYN:clause(Vars, Guards, Exprs1),
+    [NewClause | optimize_clauses(OrigName, Arity, Clauses)].
 
-optimize_call(OrigName, Arity, FormalParams, {call,ANN1,Ex1,Params}) ->
+optimize_call(OrigName, Arity, FormalParams, Application) ->
     %%% warning! shadowing in funs :(, might not handle it just yet
+    Params = ?SYN:application_arguments(Application),
     F = 
         fun(P, FP) -> 
             %%% P is part of the formal parameters of the original function
@@ -64,60 +78,49 @@ optimize_call(OrigName, Arity, FormalParams, {call,ANN1,Ex1,Params}) ->
     TaggedParams = lists:zipwith(F, Params, FormalParams),
     case lists:any(fun({_, A}) -> A == '$no_track' end, TaggedParams) of
         true -> 
-            mocker_fun_call(ANN1, OrigName, Arity, TaggedParams);
+            mocker_fun_call(OrigName, Arity, TaggedParams);
         _ -> 
-            {call, ANN1, Ex1, Params}
-    end;
-optimize_call(_OrigName, _Arity, _FormalParams, Expr) -> Expr. 
+            Application
+    end. 
 
--spec proxy_fun_clause(ANNO, Name, Arity) -> Clause when
-    ANNO :: term(),
+-spec proxy_fun_clause(Name, Arity) -> Clause when
     Name :: atom(),
     Arity :: integer(),
     Clause :: erl_syntax:syntaxTree().
-proxy_fun_clause(ANNO, Name, Arity) ->
-    Vars = [{var, ANNO, list_to_atom("V" ++ integer_to_list(I))}|| 
+proxy_fun_clause(Name, Arity) ->
+    Vars = [?SYN:variable("V" ++ integer_to_list(I)) || 
             I <- lists:seq(1, Arity)],
     TaggedParams = [ {V, '$track'} || V <- Vars ],
-    Call = mocker_fun_call(ANNO, Name, Arity, TaggedParams),
-    {clause, ANNO, Vars, [], [Call]}.
+    Call = mocker_fun_call(Name, Arity, TaggedParams),
+    ?SYN:clause(Vars, none, [Call]).
 
-mocker_fun_call(ANNO, Name, Arity, TaggedParams) ->
+mocker_fun_call(Name, Arity, TaggedParams) ->
     %% collect:track(V_i, P)
-    Args = [ tracked_var(Index, TV, ANNO, Name, Arity) || {Index, TV} <- lists:enumerate(TaggedParams)],
+    Args = [ tracked_var(Index, TV, Name, Arity) || {Index, TV} <- lists:enumerate(TaggedParams)],
     %% foo'(collect:track(V_i, P)...)
-    Call = {call, ANNO, {atom, ANNO, mocked_function_name(Name)}, Args},
-
+    Call = ?SYN:application(none, new_function_name(Name), Args),
     %% Path = [{rng, Arity}, {name, atom_to_list(Name), Arity}],
     %% collect:track(foo'(collect:track(V_i, P)...), P')
-    Path = range(ANNO, Name, Arity),
-    {call,ANNO,{remote,ANNO,{atom,ANNO,collect},{atom,ANNO,track}},[Call, Path]}.
+    Path = range(Name, Arity),
+    ?SYN:application(?SYN:atom(collect),?SYN:atom(track), [Call, Path]).
 
 %%% collect:track(V, Path) if track, V if no_track
-tracked_var(_Index, {V, '$no_track'}, _ANNO, _Name, _Arity) -> V;
-tracked_var(Index, {V, '$track'}, ANNO, Name, Arity) ->
+tracked_var(_Index, {V, '$no_track'}, _Name, _Arity) -> V;
+tracked_var(Index, {V, '$track'}, Name, Arity) ->
     %Path [{dom, Index, Arity}, {name, atom_to_list(Name), Arity}],
-    Path = dom(Index, ANNO, Name, Arity),
-    {call,ANNO,{remote,ANNO,{atom,ANNO,collect},{atom,ANNO,track}},[V, Path]}.
+    Path = dom(Index, Name, Arity),
+    ?SYN:application(?SYN:atom(collect), ?SYN:atom(track), [V, Path]).
 
-range(ANNO, Name, Arity) ->
-    {cons,ANNO,
-    {tuple,ANNO,[{atom,ANNO,rng},{integer,ANNO,Arity}]},
-    {cons,ANNO,
-            {tuple,ANNO,[{atom,ANNO,name},{string,ANNO,atom_to_list(Name)},{integer,ANNO,Arity}]},
-            {nil,ANNO}}}.
+range(Name, Arity) ->
+    ?SYN:abstract([{rng, Arity}, {name, atom_to_list(Name), Arity}]).
 
--spec mocked_function_name(atom()) -> atom().
-mocked_function_name(Name) ->
-    list_to_atom("squasher_mocked_fun_" ++ atom_to_list(Name)).
+-spec new_function_name(atom()) -> erl_syntax:syntaxTree().
+new_function_name(Name) ->
+    ?SYN:atom(list_to_atom("squasher_mocked_fun_" ++ atom_to_list(Name))).
 
 
-dom(Index, ANNO, Name, Arity) ->
-    {cons,ANNO,
-    {tuple,ANNO,[{atom,ANNO,dom},{integer,ANNO,Index},{integer,ANNO,Arity}]},
-    {cons,ANNO,
-          {tuple,ANNO,[{atom,ANNO,name},{string,ANNO,atom_to_list(Name)},{integer,ANNO,Arity}]},
-          {nil,ANNO}}}.
+dom(Index, Name, Arity) ->
+    ?SYN:abstract([{dom, Index, Arity}, {name, atom_to_list(Name), Arity}]).
 
 %%% optimization:
 %%% for each clause of the intercepted function:
@@ -192,10 +195,14 @@ is_in_expr(Elem, InExpr) ->
 
 do_is_in_expr(_, _, true) -> true;
 do_is_in_expr(Elem1, Elem2, false) ->
-    (erl_syntax:type(Elem1) == erl_syntax:type(Elem2)) andalso (Elem1 == Elem2).
+    (erl_syntax:type(Elem1) == erl_syntax:type(Elem2)) andalso (delete_posinfo(Elem1) == delete_posinfo(Elem2)).
+
+delete_posinfo(Expr) ->
+    erl_syntax_lib:map(fun(T) -> case element(2, T) of {_, _} -> setelement(2, T, {0, 0}); _ -> T end end, Expr).
 
 map_calls_in_expr(FunName, F, Expr) ->
-    erl_syntax_lib:map(fun(Elem) -> do_map_call(FunName, F, Elem) end, Expr).
+    Tree = erl_syntax_lib:map(fun(Elem) -> do_map_call(FunName, F, Elem) end, Expr),
+    erl_syntax:revert(Tree).
 
 %%% do erl_syntax:application_arguments on the results
 %%% TODO: qualified calls!! M:F:A (in the same module)

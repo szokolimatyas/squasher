@@ -63,7 +63,19 @@ squasher_mocked_fun_collector(MainPid, FinishedNum, MaxNum) ->
                 FinishedNum >= MaxNum ->
                     MainPid ! false;
                 true ->
-                    collector(MainPid, FinishedNum + 1, MaxNum)
+                    collect:track(squasher_mocked_fun_collector(MainPid,
+                                                                collect:track(FinishedNum
+                                                                              +
+                                                                              1,
+                                                                              [{dom,
+                                                                                2,
+                                                                                3},
+                                                                               {name,
+                                                                                "colle"
+                                                                                "ctor",
+                                                                                3}]),
+                                                                MaxNum),
+                                  [{rng, 3}, {name, "collector", 3}])
             end
     end.
 
