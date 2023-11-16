@@ -1,6 +1,6 @@
 -module(bead).
 -compile(export_all).
-
+-compile({parse_transform, squasher_trans}).
 
 worker(Pid,F,E) ->
   %  io:format("Worker starts~n"),

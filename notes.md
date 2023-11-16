@@ -153,6 +153,7 @@ collect:stop_erlang_trace(Pid).
 {ok, B} = file:read_file("out.bin"), file:write_file("out1.erlterm", io_lib:print(binary_to_term(B))).
 
 
+Pid = collect:start_erlang_trace(constraints).
 
 
 Pid = collect:start_erlang_trace(erl_lint).
@@ -165,3 +166,106 @@ collect:stop_erlang_trace(Pid).
 
 
 c(collect, [{i, "../include"}]).
+
+
+To see what a parse transform does with your code use the -P compilation flag either directly as "erlc -P" or in the shell as "c("filename.erl", ['P'])". This flag will give you the code after preprocessing and the parse transforms have been applied.
+
+c("erlang/src/bead.erl", ['P']).
+
+7> bead:pany(fun(A) -> A end, [false, false, true, true, true]).
+{true,true}
+8> collect:get_traces().
+[{pid,[{dom,1,3},{name,"collector",3}]},
+ {pid,[{dom,1,3},{name,"worker",3}]},
+ {{atom,false},[list_element,{dom,2,2},{name,"pany",2}]},
+ {{atom,false},[{dom,3,3},{name,"worker",3}]},
+ {{atom,false},[{dom,1,1},{dom,2,3},{name,"worker",3}]},
+ {{atom,false},[{dom,1,1},{dom,1,2},{name,"pany",2}]},
+ {{atom,false},[{rng,1},{dom,1,2},{name,"pany",2}]},
+ {{atom,false},[{rng,1},{dom,2,3},{name,"worker",3}]},
+ {{atom,false},[{rng,3},{name,"worker",3}]},
+ {integer,[{dom,2,3},{name,"collector",3}]},
+ {integer,[{dom,3,3},{name,"collector",3}]},
+ {{atom,true},[list_element,{dom,2,2},{name,"pany",2}]},
+ {{atom,true},[{dom,3,3},{name,"worker",3}]},
+ {{atom,true},[{dom,1,1},{dom,2,3},{name,"worker",3}]},
+ {{atom,true},[{dom,1,1},{dom,1,2},{name,"pany",2}]},
+ {{atom,true},[{rng,1},{dom,1,2},{name,"pany",2}]},
+ {{atom,true},[{rng,1},{dom,2,3},{name,"worker",3}]},
+ {{atom,true},
+  [{tuple_index,{atom,true},2,2},{rng,3},{name,"worker",3}]},
+ {{atom,true},
+  [{tuple_index,{atom,true},2,2},
+   {rng,3},
+   {name,"collector",3}]},
+ {{atom,true},
+  [{tuple_index,{atom,true},2,2},{rng,2},{name,"pany",2}]}]
+
+Hack instead of flow analysis?
+
+erl_syntax:is_literal/1
+
+Returns true if Node represents a literal term, otherwise false. This function returns true if and only if the value of concrete(Node) is defined. 
+
+The parameter is in the same position, part of a term, but not under a function call.
+
+
+ Pid = collect:start_erlang_trace(constraints).
+ collect:get_traces().
+ 
+ 
+ $ make shell
+
+1> gradualizer:type_check_file("path/to/some_file.erl").
+
+You can also use the Rebar3 shell.
+
+gradualizer:type_check_file("test/should_pass/any.erl").
+
+ collect:start_erlang_trace(constraints).
+
+ Fs = filelib:wildcard("test/should_pass/*.erl").
+ 
+ lists:foreach(fun gradualizer:type_check_file/1, Fs).
+ collect:stop_erlang_trace("out2.bin").
+ 
+ 
+ 
+ https://github.com/Feuerlabs/exometer_core
+ https://github.com/rabbitmq/ra/tree/main/test
+ https://github.com/rabbitmq/khepri
+ https://github.com/ninenines/cowboy/blob/master/test/compress_SUITE.erl
+ 
+ free_vars({var, _, '_'}, Vars) ->
+    Vars;
+free_vars({var, _, X}, Vars) ->
+    Vars#{ X => true };
+free_vars([H | T], Vars) ->
+    free_vars(T, free_vars(H, Vars));
+free_vars({type, _, _, Args}, Vars) ->
+    free_vars(Args, Vars);
+free_vars(_, Vars) -> Vars.
+
+
+rewrites to: (naive algo does not accept Vars to be optimized)
+first parameter shrinks
+
+or can Vars be accepted?
+- if we extend valid_term to accept recursive calls, then it is!
+  Vars is in:  free_vars(T, free_vars(H, Vars));
+  and: free_vars(H, Vars);
+
+	map update would change the subterm if we had proper support for maps
+	in the same vein, does the record update operation invalidate things??
+
+free_vars(P1, P2) -> track(free_vars(track(P1), track(P2)))
+
+free_vars_({var, _, '_'}, Vars) ->
+    Vars;
+free_vars_({var, _, X}, Vars) ->
+    Vars#{ X => true };
+free_vars_([H | T], Vars) ->
+    free_vars_(T, track(track(free_vars_(H, track(Vars)))));
+free_vars_({type, _, _, Args}, Vars) ->
+    free_vars_(track(Args), Vars);
+free_vars_(_, Vars) -> Vars.

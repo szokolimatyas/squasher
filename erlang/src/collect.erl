@@ -6,18 +6,21 @@
 -define(TRACE_TAB, traces).
 -define(HORIZONTAL_FUEL, 100).
 
--export([prepare_trace/0, track/2, get_traces/0]).
+-export([prepare_trace/0, track/2, save_traces/1, get_traces/0]).
 
 -export([start_erlang_trace/1,
-         stop_erlang_trace/2]).
+         stop_erlang_trace/1]).
 
 -export([collect_loop/0]).
 
 put_trace(T, P) -> 
     ets:insert(?TRACE_TAB, {T, P}).
-
 get_traces() ->
     ets:tab2list(?TRACE_TAB).
+
+save_traces(FileName) ->
+    Traces = ets:tab2list(?TRACE_TAB),
+    file:write_file(FileName, term_to_binary(lists:uniq(Traces))).
 
 prepare_trace() ->
     case ets:info(?TRACE_TAB) of
@@ -34,13 +37,17 @@ start_erlang_trace(InModule) ->
     Pid = spawn_link(fun collect_loop/0),
     erlang:trace(all, true, [call, {tracer, Pid}]),
     erlang:trace_pattern({InModule, '_', '_'}, [{'_', [], [{return_trace}]}], [local]),
-    Pid.
+    global:register_name(squasher_tracer, Pid),
+	ok.
 
-stop_erlang_trace(Pid, FileName) ->
+stop_erlang_trace(FileName) ->
     erlang:trace(all, false, [call]),
-    Pid ! stop,
-    Traces = get_traces(),
-    file:write_file(FileName, term_to_binary(lists:uniq(Traces))).
+	case global:whereis_name(squasher_tracer) of
+		Pid when is_pid(Pid) ->
+			Pid ! stop;
+		_ -> ok
+	end,
+    save_traces(FileName).
 
 collect_loop() -> 
     receive
