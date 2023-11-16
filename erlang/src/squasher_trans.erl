@@ -41,6 +41,7 @@ replace_function({function, ANNO, Name, Arity, Clauses}) ->
     % Clauses1 = [replace_clause(Name, Arity, Clause) || Clause <- Clauses],
     [{function, ANNO, Name, Arity, [proxy_fun_clause(ANNO, Name, Arity)]}, 
      {function, ANNO, mocked_function_name(Name), Arity, Clauses}].
+%%% optimize_clauses(Name, Arity, Clauses)
 
 optimize_clauses(_OrigName, _Arity, []) -> [];
 optimize_clauses(OrigName, Arity, [{clause,ANNO,Vars,Guards,Exprs} | Clauses]) ->
@@ -52,8 +53,21 @@ optimize_clauses(OrigName, Arity, [{clause,ANNO,Vars,Guards,Exprs} | Clauses]) -
 
 optimize_call(OrigName, Arity, FormalParams, {call,ANN1,Ex1,Params}) ->
     %%% warning! shadowing in funs :(, might not handle it just yet
-    Params1 = lists:zipwith(fun(P, FP) -> {P, is_in_expr(P, FP)} end, Params, FormalParams),
-    ok;
+    F = 
+        fun(P, FP) -> 
+            %%% P is part of the formal parameters of the original function
+            case is_in_expr(P, FP) of 
+                true -> {P, '$no_track'}; 
+                false -> {P, '$track'} 
+            end 
+        end,
+    TaggedParams = lists:zipwith(F, Params, FormalParams),
+    case lists:any(fun({_, A}) -> A == '$no_track' end, TaggedParams) of
+        true -> 
+            mocker_fun_call(ANN1, OrigName, Arity, TaggedParams);
+        _ -> 
+            {call, ANN1, Ex1, Params}
+    end;
 optimize_call(_OrigName, _Arity, _FormalParams, Expr) -> Expr. 
 
 -spec proxy_fun_clause(ANNO, Name, Arity) -> Clause when
@@ -62,22 +76,29 @@ optimize_call(_OrigName, _Arity, _FormalParams, Expr) -> Expr.
     Arity :: integer(),
     Clause :: erl_syntax:syntaxTree().
 proxy_fun_clause(ANNO, Name, Arity) ->
-    Call = mocker_fun_call(ANNO, Name, Arity),
+    Vars = [{var, ANNO, list_to_atom("V" ++ integer_to_list(I))}|| 
+            I <- lists:seq(1, Arity)],
+    TaggedParams = [ {V, '$track'} || V <- Vars ],
+    Call = mocker_fun_call(ANNO, Name, Arity, TaggedParams),
     {clause, ANNO, Vars, [], [Call]}.
 
-mocker_fun_call(ANNO, Name, Arity) ->
-    Vars = [{var, ANNO, list_to_atom("V" ++ integer_to_list(I))} || 
-            I <- lists:seq(1, Arity)],
+mocker_fun_call(ANNO, Name, Arity, TaggedParams) ->
     %% collect:track(V_i, P)
-    Args = [ tracked_var(I, ANNO, Name, Arity) || I <- lists:seq(1, Arity)],
+    Args = [ tracked_var(Index, TV, ANNO, Name, Arity) || {Index, TV} <- lists:enumerate(TaggedParams)],
     %% foo'(collect:track(V_i, P)...)
     Call = {call, ANNO, {atom, ANNO, mocked_function_name(Name)}, Args},
 
     %% Path = [{rng, Arity}, {name, atom_to_list(Name), Arity}],
     %% collect:track(foo'(collect:track(V_i, P)...), P')
     Path = range(ANNO, Name, Arity),
-    Call1 = {call,ANNO,{remote,ANNO,{atom,ANNO,collect},{atom,ANNO,track}},[Call, Path]},
+    {call,ANNO,{remote,ANNO,{atom,ANNO,collect},{atom,ANNO,track}},[Call, Path]}.
 
+%%% collect:track(V, Path) if track, V if no_track
+tracked_var(_Index, {V, '$no_track'}, _ANNO, _Name, _Arity) -> V;
+tracked_var(Index, {V, '$track'}, ANNO, Name, Arity) ->
+    %Path [{dom, Index, Arity}, {name, atom_to_list(Name), Arity}],
+    Path = dom(Index, ANNO, Name, Arity),
+    {call,ANNO,{remote,ANNO,{atom,ANNO,collect},{atom,ANNO,track}},[V, Path]}.
 
 range(ANNO, Name, Arity) ->
     {cons,ANNO,
@@ -90,12 +111,6 @@ range(ANNO, Name, Arity) ->
 mocked_function_name(Name) ->
     list_to_atom("squasher_mocked_fun_" ++ atom_to_list(Name)).
 
-%%% collect:track(V, Path)
-tracked_var(Index, ANNO, Name, Arity) ->
-    V = {var, ANNO, list_to_atom("V" ++ integer_to_list(Index))},
-    %Path [{dom, Index, Arity}, {name, atom_to_list(Name), Arity}],
-    Path = dom(Index, ANNO, Name, Arity),
-    {call,ANNO,{remote,ANNO,{atom,ANNO,collect},{atom,ANNO,track}},[V, Path]}.
 
 dom(Index, ANNO, Name, Arity) ->
     {cons,ANNO,
@@ -134,16 +149,17 @@ is_variable_subterm(Var, Expr) ->
     is_legal_expr(Expr).
 
 is_legal_expr(Expr) ->
-    erl_syntax_lib:fold(fun do_is_legal_expr/2, true, Expr)
+    erl_syntax_lib:fold(fun do_is_legal_expr/2, true, Expr).
 
 do_is_legal_expr(_, false) -> false;
 do_is_legal_expr({op, _, Op, _, _}, true) ->
-    ValidOps = sets:from_list(['++', '+', '-', '*', '/', '=', div, rem, band, and, bor, bxor, bsl, bsr, or, xor], [{version, 2}]),
+    ValidOps = sets:from_list(['++', '+', '-', '*', '/', '=', 'div', 'rem', 
+                               'band', 'and', 'bor', 'bxor', 'bsl', 'bsr', 'or', 'xor'], [{version, 2}]),
     sets:is_element(Op, ValidOps);
 do_is_legal_expr(Expr, true) ->
     T = erl_syntax:type(Expr),
     Bad = sets:from_list([application, if_expr, case_expr, catch_expr, else_expr, block_expr, conjunction, disjunction,
-                          maybe_expr maybe_match_expr receive_expr, try_expr, generator, list_comp, named_fun_expr, 
+                          maybe_expr, maybe_match_expr, receive_expr, try_expr, generator, list_comp, named_fun_expr, 
                           prefix_expr, clause, function, fun_expr, infix_expr], [{version, 2}]),
     not sets:is_element(T, Bad).
 
@@ -158,7 +174,7 @@ find_calls_in_expr(FunName, Expr) ->
 do_find_call(FunName, Ex, Acc) ->
     case erl_syntax:type(Ex) of
         application -> 
-            case erl_syntax:analyze_application(Ex) of
+            case erl_syntax_lib:analyze_application(Ex) of
                 FunName ->
                     [Ex|Acc];
                 _ ->
@@ -190,7 +206,7 @@ map_calls_in_expr(FunName, F, Expr) ->
 do_map_call(FunName, F, Expr) ->
     case erl_syntax:type(Expr) of
         application -> 
-            case erl_syntax:analyze_application(Expr) of
+            case erl_syntax_lib:analyze_application(Expr) of
                 FunName ->
                     F(Expr);
                 _ ->
