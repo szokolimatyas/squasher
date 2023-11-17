@@ -20,7 +20,7 @@ replace([H|T]) ->
     case erl_syntax:type(H) of
         function ->
             replace_function(H) ++ replace(T);
-        T1 ->
+        _ ->
             [H | replace(T)]
     end;
 replace(L) -> L.
@@ -61,8 +61,79 @@ optimize_clauses(OrigName, Arity, [Clause | Clauses]) ->
         [map_calls_in_expr({OrigName, Arity}, 
                            fun(E) -> optimize_call(OrigName, Arity, Vars, E) end, 
                            Expr) || Expr <- Exprs],
-    NewClause = ?SYN:clause(Vars, Guards, Exprs1),
+    NewClause = ?SYN:clause(Vars, Guards, opt_tail_calls_in_exprs(OrigName, Arity, Exprs1)),
     [NewClause | optimize_clauses(OrigName, Arity, Clauses)].
+
+opt_tail_calls_in_exprs(_OrigName, _Arity, []) -> [];
+opt_tail_calls_in_exprs(OrigName, Arity, Exprs) ->
+    EndExpr = lists:last(Exprs),
+    Type = ?SYN:type(EndExpr),
+    lists:droplast(Exprs) ++ [do_opt_tail_call(OrigName, Arity, Type, EndExpr)].
+
+opt_tail_calls_in_clauses(_OrigName, _Arity, []) -> [];
+opt_tail_calls_in_clauses(OrigName, Arity, [Clause|Clauses]) ->
+    Vars = ?SYN:clause_patterns(Clause),
+    Guards = ?SYN:clause_guard(Clause),
+    Exprs = ?SYN:clause_body(Clause),
+    NewExprs = opt_tail_calls_in_exprs(OrigName, Arity, Exprs),
+    NewClause = ?SYN:clause(Vars, Guards, NewExprs),
+    [NewClause | opt_tail_calls_in_clauses(OrigName, Arity, Clauses)].    
+
+%%% todo: make it accept term contruction that only contains recursive calls
+do_opt_tail_call(OrigName, Arity, application, Expr) ->
+    %%% change the original function call to bring in the collect:track call
+    Expr1 =
+        case erl_syntax_lib:analyze_application(Expr) of
+            {OrigName, Arity} ->
+                Args = ?SYN:application_arguments(Expr),
+                TaggedArgs = [ {A, '$track'} || A <- Args ],
+                mocker_fun_call(OrigName, Arity, TaggedArgs);
+            _ ->
+                Expr
+        end,
+    io:format("Expr:~p~n", [Expr]),
+    %%% remove unnecessary collect:track call
+    case erl_syntax_lib:analyze_application(Expr1) of
+        {collect, {track, 2}} ->
+            %% _Arg2 is the path
+            [Arg1, _Arg2] = ?SYN:application_arguments(Expr1),
+            NewName = new_function_name_atom(OrigName),
+            io:format("NewName:~p~n", [NewName]),
+            case erl_syntax:type(Arg1) of
+                application ->        
+                    case erl_syntax_lib:analyze_application(Arg1) of
+                        {NewName, Arity} ->
+                            Arg1;
+                        _ ->
+                            Expr
+                    end;
+                _ ->
+                    Expr
+            end;
+        _ ->
+            Expr
+    end;
+do_opt_tail_call(OrigName, Arity, block_expr, Expr) ->
+    Exprs = ?SYN:block_expr_body(Expr),
+    NewExprs = opt_tail_calls_in_exprs(OrigName, Arity, Exprs),
+    ?SYN:block_expr(NewExprs);
+do_opt_tail_call(OrigName, Arity, case_expr, Expr) ->
+    Arg = ?SYN:case_expr_argument(Expr),
+    Clauses = ?SYN:case_expr_clauses(Expr),
+    NewClauses = opt_tail_calls_in_clauses(OrigName, Arity, Clauses),
+    ?SYN:case_expr(Arg, NewClauses);
+do_opt_tail_call(OrigName, Arity, if_expr, Expr) ->
+    Clauses = ?SYN:if_expr_clauses(Expr),
+    NewClauses = opt_tail_calls_in_clauses(OrigName, Arity, Clauses),
+    ?SYN:if_expr(NewClauses);
+do_opt_tail_call(OrigName, Arity, receive_expr, Expr) ->
+    Clauses = ?SYN:receive_expr_clauses(Expr),
+    Timeout = ?SYN:receive_expr_timeout(Expr),
+    Action = ?SYN:receive_expr_action(Expr),
+    NewClauses = opt_tail_calls_in_clauses(OrigName, Arity, Clauses),
+    ?SYN:receive_expr(NewClauses, Timeout, Action);
+do_opt_tail_call(_OrigName, _Arity, _Type, Expr) ->
+    Expr.
 
 optimize_call(OrigName, Arity, FormalParams, Application) ->
     %%% warning! shadowing in funs :(, might not handle it just yet
@@ -116,8 +187,10 @@ range(Name, Arity) ->
 
 -spec new_function_name(atom()) -> erl_syntax:syntaxTree().
 new_function_name(Name) ->
-    ?SYN:atom(list_to_atom("squasher_mocked_fun_" ++ atom_to_list(Name))).
+    ?SYN:atom(new_function_name_atom(Name)).
 
+new_function_name_atom(Name) ->
+    list_to_atom("squasher_mocked_fun_" ++ atom_to_list(Name)).
 
 dom(Index, Name, Arity) ->
     ?SYN:abstract([{dom, Index, Arity}, {name, atom_to_list(Name), Arity}]).
@@ -143,14 +216,6 @@ dom(Index, Name, Arity) ->
 %%% tail call elim: if a recursive call is the last expr in a block, use the intercepted function name to call, without the track()
 %%% reverse(P1, P2) -> track(reverse_(track(P1), track(P2)))  reverse_([], Acc_) -> Acc=track(Acc_), Acc  reverse_([H|T], Acc) -> reverse_(T, [H|T])
 
-%%% The set of variable subterms is much larger, this is a naive impl.
--spec is_variable_subterm(atom(), erl_syntax:syntaxTree()) -> boolean().
-%%% to make this broader: custom inclusion check instead of erl_syntax_lib:variables,
-%%% which is a fold (check if node types match, then equality).
-is_variable_subterm(Var, Expr) ->
-    sets:is_element(Var, erl_syntax_lib:variables(Expr)) andalso
-    is_legal_expr(Expr).
-
 is_legal_expr(Expr) ->
     erl_syntax_lib:fold(fun do_is_legal_expr/2, true, Expr).
 
@@ -165,26 +230,6 @@ do_is_legal_expr(Expr, true) ->
                           maybe_expr, maybe_match_expr, receive_expr, try_expr, generator, list_comp, named_fun_expr, 
                           prefix_expr, clause, function, fun_expr, infix_expr], [{version, 2}]),
     not sets:is_element(T, Bad).
-
-find_calls_in_expr(FunName, Expr) ->
-    erl_syntax_lib:fold(fun(Elem, Acc) -> do_find_call(FunName, Elem, Acc) end, [], Expr).
-
-%%% do erl_syntax:application_arguments on the results
--spec do_find_call(FunName, Ex, Acc) -> Acc when
-    FunName :: {atom(), arity()} | {atom(), {atom(), integer()}},
-    Ex :: erl_syntax:syntaxTree(),
-    Acc :: [Ex].
-do_find_call(FunName, Ex, Acc) ->
-    case erl_syntax:type(Ex) of
-        application -> 
-            case erl_syntax_lib:analyze_application(Ex) of
-                FunName ->
-                    [Ex|Acc];
-                _ ->
-                    Acc
-            end;
-        _ -> Acc
-    end.
 
 is_expr_subterm(Expr, InExpr) ->
     is_legal_expr(InExpr) andalso

@@ -269,3 +269,29 @@ free_vars_([H | T], Vars) ->
 free_vars_({type, _, _, Args}, Vars) ->
     free_vars_(track(Args), Vars);
 free_vars_(_, Vars) -> Vars.
+
+All-or-none, but easy optimization:
+if all recursive calls are subterms in result position,
+then we do not track the recursive call's results
+
+we also need to handle growing parameters
+
+
+c("erlang/src/bead.erl", ['P']).
+
+shrinking parameters are ok, tail calls are ok
+
+this is the problem:
+
+
+collect:track(FinishedNum + 1, [{dom,   2, 3}])
+
+we retrack the subterms multiple times,
+if we had a growing param A -> {nest, A}, we would have
+
+    A, {nest, A}, {nest, {nest, A}}, ...
+    but this is reflected in the types!
+
+    the param type (before squashing) looks like:
+    A | {nest, A} | {nest, {nest, A}} | ...
+    which finally leads to a recursive type
