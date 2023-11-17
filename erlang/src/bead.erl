@@ -32,6 +32,13 @@ rev(L) when is_list(L) -> rev(L, []).
 rev([H|T], Acc) -> rev(T, [H|Acc]);
 rev([], Acc) -> Acc.
     
+dup([H|T]) -> [{H, H} | dup(T)];
+dup([]) -> [].
+
+%% tail recursive is better of course
+len([ _ | T]) -> 1 + len(T);
+len([]) -> 0.
+
 pany(F,L) ->
 %    rand:seed_s(exsss),
     MyPid = self(),

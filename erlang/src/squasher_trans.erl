@@ -4,6 +4,13 @@
 
 -define(SYN, erl_syntax).
 
+-define(BAD_COMPOUND, sets:from_list([application, if_expr, case_expr, catch_expr, else_expr, block_expr, conjunction, disjunction,
+                                      maybe_expr, maybe_match_expr, receive_expr, try_expr, generator, list_comp, named_fun_expr, 
+                                      prefix_expr, clause, function, fun_expr, infix_expr], [{version, 2}])).
+
+-define(VALID_OPS, sets:from_list(['++', '+', '-', '*', '/', '=', 'div', 'rem', 
+                                   'band', 'and', 'bor', 'bxor', 'bsl', 'bsr', 'or', 'xor'], [{version, 2}])).
+
 %%% use this as example: https://github.com/saleyn/etran/blob/master/src/str.erl
 %%% and this: https://github.com/erlang/otp/blob/master/lib/syntax_tools/src/erl_syntax_lib.erl
 -spec parse_transform(Forms, Options) -> Forms when
@@ -130,8 +137,31 @@ do_opt_tail_call(OrigName, Arity, receive_expr, Expr) ->
     Action = ?SYN:receive_expr_action(Expr),
     NewClauses = opt_tail_calls_in_clauses(OrigName, Arity, Clauses),
     ?SYN:receive_expr(NewClauses, Timeout, Action);
-do_opt_tail_call(_OrigName, _Arity, _Type, Expr) ->
-    Expr.
+do_opt_tail_call(OrigName, Arity, infix_expr, Tree) ->
+    Left = ?SYN:infix_expr_left(Tree),
+    Op = ?SYN:infix_expr_operator(Tree),
+    Right = ?SYN:infix_expr_right(Tree),
+    case sets:is_element(?SYN:operator_name(Op), ?VALID_OPS) of
+        true ->
+            NewLeft = do_opt_tail_call(OrigName, Arity, ?SYN:type(Left), Left), 
+            NewRight = do_opt_tail_call(OrigName, Arity, ?SYN:type(Right), Right), 
+            ?SYN:infix_expr(NewLeft, Op, NewRight);
+        false -> Tree
+    end;
+do_opt_tail_call(OrigName, Arity, Type, Tree) ->
+    case sets:is_element(Type, ?BAD_COMPOUND) of
+        true -> Tree;
+        false ->
+            case ?SYN:subtrees(Tree) of
+                [] ->
+                    Tree;
+                Gs ->
+                    Tree1 = ?SYN:make_tree(?SYN:type(Tree),
+                                                [[do_opt_tail_call(OrigName, Arity, ?SYN:type(T), T) || T <- G]
+                                                    || G <- Gs]),
+                    ?SYN:copy_attrs(Tree, Tree1)
+            end
+    end.
 
 optimize_call(OrigName, Arity, FormalParams, Application) ->
     %%% warning! shadowing in funs :(, might not handle it just yet
@@ -188,7 +218,7 @@ new_function_name(Name) ->
     ?SYN:atom(new_function_name_atom(Name)).
 
 new_function_name_atom(Name) ->
-    list_to_atom("squasher_mocked_fun_" ++ atom_to_list(Name)).
+    list_to_atom(atom_to_list(Name) ++ "__").
 
 dom(Index, Name, Arity) ->
     ?SYN:abstract([{dom, Index, Arity}, {name, atom_to_list(Name), Arity}]).
@@ -219,14 +249,11 @@ is_legal_expr(Expr) ->
 
 do_is_legal_expr(_, false) -> false;
 do_is_legal_expr({op, _, Op, _, _}, true) ->
-    ValidOps = sets:from_list(['++', '+', '-', '*', '/', '=', 'div', 'rem', 
-                               'band', 'and', 'bor', 'bxor', 'bsl', 'bsr', 'or', 'xor'], [{version, 2}]),
+    ValidOps = ?VALID_OPS,
     sets:is_element(Op, ValidOps);
 do_is_legal_expr(Expr, true) ->
     T = erl_syntax:type(Expr),
-    Bad = sets:from_list([application, if_expr, case_expr, catch_expr, else_expr, block_expr, conjunction, disjunction,
-                          maybe_expr, maybe_match_expr, receive_expr, try_expr, generator, list_comp, named_fun_expr, 
-                          prefix_expr, clause, function, fun_expr, infix_expr], [{version, 2}]),
+    Bad = ?BAD_COMPOUND,
     not sets:is_element(T, Bad).
 
 is_expr_subterm(Expr, InExpr) ->

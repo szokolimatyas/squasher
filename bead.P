@@ -5,24 +5,18 @@
 -compile(export_all).
 
 worker(V1, V2, V3) ->
-    collect:track(squasher_mocked_fun_worker(collect:track(V1,
-                                                           [{dom, 1, 3},
-                                                            {name,
-                                                             "worker",
-                                                             3}]),
-                                             collect:track(V2,
-                                                           [{dom, 2, 3},
-                                                            {name,
-                                                             "worker",
-                                                             3}]),
-                                             collect:track(V3,
-                                                           [{dom, 3, 3},
-                                                            {name,
-                                                             "worker",
-                                                             3}])),
+    collect:track(worker__(collect:track(V1,
+                                         [{dom, 1, 3},
+                                          {name, "worker", 3}]),
+                           collect:track(V2,
+                                         [{dom, 2, 3},
+                                          {name, "worker", 3}]),
+                           collect:track(V3,
+                                         [{dom, 3, 3},
+                                          {name, "worker", 3}])),
                   [{rng, 3}, {name, "worker", 3}]).
 
-squasher_mocked_fun_worker(Pid, F, E) ->
+worker__(Pid, F, E) ->
     case F(E) of
         true ->
             Pid ! {true, E};
@@ -31,30 +25,18 @@ squasher_mocked_fun_worker(Pid, F, E) ->
     end.
 
 collector(V1, V2, V3) ->
-    collect:track(squasher_mocked_fun_collector(collect:track(V1,
-                                                              [{dom, 1,
-                                                                3},
-                                                               {name,
-                                                                "collec"
-                                                                "tor",
-                                                                3}]),
-                                                collect:track(V2,
-                                                              [{dom, 2,
-                                                                3},
-                                                               {name,
-                                                                "collec"
-                                                                "tor",
-                                                                3}]),
-                                                collect:track(V3,
-                                                              [{dom, 3,
-                                                                3},
-                                                               {name,
-                                                                "collec"
-                                                                "tor",
-                                                                3}])),
+    collect:track(collector__(collect:track(V1,
+                                            [{dom, 1, 3},
+                                             {name, "collector", 3}]),
+                              collect:track(V2,
+                                            [{dom, 2, 3},
+                                             {name, "collector", 3}]),
+                              collect:track(V3,
+                                            [{dom, 3, 3},
+                                             {name, "collector", 3}])),
                   [{rng, 3}, {name, "collector", 3}]).
 
-squasher_mocked_fun_collector(MainPid, FinishedNum, MaxNum) ->
+collector__(MainPid, FinishedNum, MaxNum) ->
     receive
         {true, E} ->
             MainPid ! {true, E};
@@ -63,66 +45,62 @@ squasher_mocked_fun_collector(MainPid, FinishedNum, MaxNum) ->
                 FinishedNum >= MaxNum ->
                     MainPid ! false;
                 true ->
-                    squasher_mocked_fun_collector(MainPid,
-                                                  collect:track(FinishedNum
-                                                                +
-                                                                1,
-                                                                [{dom,
-                                                                  2, 3},
-                                                                 {name,
-                                                                  "colle"
-                                                                  "ctor",
-                                                                  3}]),
-                                                  MaxNum)
+                    collector__(MainPid,
+                                collect:track(FinishedNum + 1,
+                                              [{dom, 2, 3},
+                                               {name, "collector", 3}]),
+                                MaxNum)
             end
     end.
 
 rev(V1) ->
-    collect:track(squasher_mocked_fun_rev(collect:track(V1,
-                                                        [{dom, 1, 1},
-                                                         {name,
-                                                          "rev",
-                                                          1}])),
+    collect:track(rev__(collect:track(V1,
+                                      [{dom, 1, 1}, {name, "rev", 1}])),
                   [{rng, 1}, {name, "rev", 1}]).
 
-squasher_mocked_fun_rev(L) when is_list(L) ->
+rev__(L) when is_list(L) ->
     rev(L, []).
 
 rev(V1, V2) ->
-    collect:track(squasher_mocked_fun_rev(collect:track(V1,
-                                                        [{dom, 1, 2},
-                                                         {name,
-                                                          "rev",
-                                                          2}]),
-                                          collect:track(V2,
-                                                        [{dom, 2, 2},
-                                                         {name,
-                                                          "rev",
-                                                          2}])),
+    collect:track(rev__(collect:track(V1,
+                                      [{dom, 1, 2}, {name, "rev", 2}]),
+                        collect:track(V2,
+                                      [{dom, 2, 2}, {name, "rev", 2}])),
                   [{rng, 2}, {name, "rev", 2}]).
 
-squasher_mocked_fun_rev([H | T], Acc) ->
-    squasher_mocked_fun_rev(T,
-                            collect:track([H | Acc],
-                                          [{dom, 2, 2},
-                                           {name, "rev", 2}]));
-squasher_mocked_fun_rev([], Acc) ->
+rev__([H | T], Acc) ->
+    rev__(T, collect:track([H | Acc], [{dom, 2, 2}, {name, "rev", 2}]));
+rev__([], Acc) ->
     Acc.
 
+dup(V1) ->
+    collect:track(dup__(collect:track(V1,
+                                      [{dom, 1, 1}, {name, "dup", 1}])),
+                  [{rng, 1}, {name, "dup", 1}]).
+
+dup__([H | T]) ->
+    [{H, H} | dup__(T)];
+dup__([]) ->
+    [].
+
+len(V1) ->
+    collect:track(len__(collect:track(V1,
+                                      [{dom, 1, 1}, {name, "len", 1}])),
+                  [{rng, 1}, {name, "len", 1}]).
+
+len__([_ | T]) ->
+    1 + len__(T);
+len__([]) ->
+    0.
+
 pany(V1, V2) ->
-    collect:track(squasher_mocked_fun_pany(collect:track(V1,
-                                                         [{dom, 1, 2},
-                                                          {name,
-                                                           "pany",
-                                                           2}]),
-                                           collect:track(V2,
-                                                         [{dom, 2, 2},
-                                                          {name,
-                                                           "pany",
-                                                           2}])),
+    collect:track(pany__(collect:track(V1,
+                                       [{dom, 1, 2}, {name, "pany", 2}]),
+                         collect:track(V2,
+                                       [{dom, 2, 2}, {name, "pany", 2}])),
                   [{rng, 2}, {name, "pany", 2}]).
 
-squasher_mocked_fun_pany(F, L) ->
+pany__(F, L) ->
     MyPid = self(),
     Collector =
         spawn(fun() ->
@@ -148,14 +126,11 @@ squasher_mocked_fun_pany(F, L) ->
     end.
 
 test(V1) ->
-    collect:track(squasher_mocked_fun_test(collect:track(V1,
-                                                         [{dom, 1, 1},
-                                                          {name,
-                                                           "test",
-                                                           1}])),
+    collect:track(test__(collect:track(V1,
+                                       [{dom, 1, 1}, {name, "test", 1}])),
                   [{rng, 1}, {name, "test", 1}]).
 
-squasher_mocked_fun_test(L) ->
+test__(L) ->
     lists:sort(L).
 
 
