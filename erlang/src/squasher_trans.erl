@@ -91,14 +91,12 @@ do_opt_tail_call(OrigName, Arity, application, Expr) ->
             _ ->
                 Expr
         end,
-    io:format("Expr:~p~n", [Expr]),
     %%% remove unnecessary collect:track call
     case erl_syntax_lib:analyze_application(Expr1) of
         {collect, {track, 2}} ->
             %% _Arg2 is the path
             [Arg1, _Arg2] = ?SYN:application_arguments(Expr1),
             NewName = new_function_name_atom(OrigName),
-            io:format("NewName:~p~n", [NewName]),
             case erl_syntax:type(Arg1) of
                 application ->        
                     case erl_syntax_lib:analyze_application(Arg1) of

@@ -77,6 +77,38 @@ squasher_mocked_fun_collector(MainPid, FinishedNum, MaxNum) ->
             end
     end.
 
+rev(V1) ->
+    collect:track(squasher_mocked_fun_rev(collect:track(V1,
+                                                        [{dom, 1, 1},
+                                                         {name,
+                                                          "rev",
+                                                          1}])),
+                  [{rng, 1}, {name, "rev", 1}]).
+
+squasher_mocked_fun_rev(L) when is_list(L) ->
+    rev(L, []).
+
+rev(V1, V2) ->
+    collect:track(squasher_mocked_fun_rev(collect:track(V1,
+                                                        [{dom, 1, 2},
+                                                         {name,
+                                                          "rev",
+                                                          2}]),
+                                          collect:track(V2,
+                                                        [{dom, 2, 2},
+                                                         {name,
+                                                          "rev",
+                                                          2}])),
+                  [{rng, 2}, {name, "rev", 2}]).
+
+squasher_mocked_fun_rev([H | T], Acc) ->
+    squasher_mocked_fun_rev(T,
+                            collect:track([H | Acc],
+                                          [{dom, 2, 2},
+                                           {name, "rev", 2}]));
+squasher_mocked_fun_rev([], Acc) ->
+    Acc.
+
 pany(V1, V2) ->
     collect:track(squasher_mocked_fun_pany(collect:track(V1,
                                                          [{dom, 1, 2},

@@ -295,3 +295,8 @@ if we had a growing param A -> {nest, A}, we would have
     the param type (before squashing) looks like:
     A | {nest, A} | {nest, {nest, A}} | ...
     which finally leads to a recursive type
+
+if A is integer()
+A -> {A, A} with a depth limit of 1
+
+{integer(), integer()}  | {{integer(), integer()}, {integer(), integer()}}

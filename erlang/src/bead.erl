@@ -27,7 +27,10 @@ collector(MainPid,FinishedNum,MaxNum)->
             end
     end.
 
+rev(L) when is_list(L) -> rev(L, []).
 
+rev([H|T], Acc) -> rev(T, [H|Acc]);
+rev([], Acc) -> Acc.
     
 pany(F,L) ->
 %    rand:seed_s(exsss),
