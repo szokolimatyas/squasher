@@ -11,8 +11,6 @@
 -define(VALID_OPS, sets:from_list(['++', '+', '-', '*', '/', '=', 'div', 'rem', 
                                    'band', 'and', 'bor', 'bxor', 'bsl', 'bsr', 'or', 'xor'], [{version, 2}])).
 
-%%% use this as example: https://github.com/saleyn/etran/blob/master/src/str.erl
-%%% and this: https://github.com/erlang/otp/blob/master/lib/syntax_tools/src/erl_syntax_lib.erl
 -spec parse_transform(Forms, Options) -> Forms when
     Forms :: [erl_parse:abstract_form() | erl_parse:form_info()],
     Options :: [compile:option()].
@@ -32,23 +30,6 @@ replace([H|T]) ->
     end;
 replace(L) -> L.
 
-
-% foo(Args...) ->
-%     ...
-%     foo(Args1...)
-%     ...
-%     foo(Args2...).
-
-% to:
-
-% foo(Args...) ->
-%     track(foo'(track(Args)...))
-
-% foo'(Args...) ->
-%     ...
-%     foo(Args1...)
-%     ...
-%     foo(Args2...).
 -spec replace_function(Function) -> [Function] when
     Function :: erl_syntax:syntaxTree().
 replace_function(F) ->
@@ -161,26 +142,64 @@ do_opt_tail_call(OrigName, Arity, Type, Tree) ->
                                                     || G <- Gs]),
                     ?SYN:copy_attrs(Tree, Tree1)
             end
-    end.
+    end. 
 
 optimize_call(OrigName, Arity, FormalParams, Application) ->
     %%% warning! shadowing in funs :(, might not handle it just yet
     Params = ?SYN:application_arguments(Application),
     F = 
-        fun(P, FP) -> 
+        fun(Index, P, FP) -> 
             %%% P is part of the formal parameters of the original function
-            case is_in_expr(P, FP) of 
-                true -> {P, '$no_track'}; 
-                false -> {P, '$track'} 
-            end 
+            {optimize_growing_param(OrigName, Arity, Index, P, FP), '$no_track'}
         end,
-    TaggedParams = lists:zipwith(F, Params, FormalParams),
-    case lists:any(fun({_, A}) -> A == '$no_track' end, TaggedParams) of
-        true -> 
-            mocker_fun_call(OrigName, Arity, TaggedParams);
-        _ -> 
-            Application
-    end. 
+    TaggedParams = indexedZipWith(F, Params, FormalParams),
+    mocker_fun_call(OrigName, Arity, TaggedParams). 
+
+indexedZipWith(F, L1, L2) -> indexedZipWith(F, L1, L2, 1).
+
+indexedZipWith(F, [H1|T1], [H2|T2], I) -> [F(I, H1, H2) | indexedZipWith(F, T1, T2, I + 1)];
+indexedZipWith(_, _, _, _) -> [].
+
+%%% growing parameters special case: list building
+%%% e.g. [E1, E2, E3 | L1] or L1 ++ (L2 ++ L3)
+optimize_growing_param(Name, Arity, Index, Param, FormalParam) ->
+    Path = dom(Index, Name, Arity),
+    Wrapper = fun(What) ->
+        case is_in_expr(What, FormalParam) of 
+            true -> What;
+            false -> 
+                %% optimization
+                ?SYN:application(?SYN:atom(collect), 
+                                 ?SYN:atom(track), 
+                                 [What, Path, ?SYN:integer(10), ?SYN:integer(10)])
+        end
+    end,
+    case ?SYN:type(Param) of
+        list ->
+            Prefixes = ?SYN:list_prefix(Param),
+            NewPrefixes = [ optimize_growing_param(Name, Arity, Index, P, FormalParam) || P  <- Prefixes],
+            Suffix = ?SYN:list_suffix(Param),
+            NewSuffix = case Suffix of
+                none -> none;
+                _ -> optimize_growing_param(Name, Arity, Index, Suffix, FormalParam)
+            end,
+            ?SYN:list(NewPrefixes, NewSuffix);
+        infix_expr ->
+            Path = dom(Index, Name, Arity),
+            Op = ?SYN:infix_expr_operator(Param),
+            case ?SYN:operator_name(Op) of
+                '++' ->
+                    Left = ?SYN:infix_expr_left(Param),
+                    Right = ?SYN:infix_expr_right(Param),
+                    NewLeft = optimize_growing_param(Name, Arity, Index, Left, FormalParam),
+                    NewRight = optimize_growing_param(Name, Arity, Index, Right, FormalParam),
+                    ?SYN:infix_expr(NewLeft, Op, NewRight);
+                _ ->
+                    Wrapper(Param)
+            end;
+        _ ->
+            Wrapper(Param)
+    end.
 
 -spec proxy_fun_clause(Name, Arity) -> Clause when
     Name :: atom(),
@@ -222,43 +241,6 @@ new_function_name_atom(Name) ->
 
 dom(Index, Name, Arity) ->
     ?SYN:abstract([{dom, Index, Arity}, {name, atom_to_list(Name), Arity}]).
-
-%%% optimization:
-%%% for each clause of the intercepted function:
-%%% recursive calls are changed so that
-%%% if a parameter is shrinking or equal in all recursive calls in that clause
-%%% then call the intercepted (not original function) with that parameter untracked
-
-%%% for shrinking parameters, it is ok :: we only track the first occurrence of it
-%%% for growing parameters, it is not! :: we have to track only the last occurrence of it, how?
-
-%%% for growing params: if (in all clauses!!!) a parameter is equals or growing,
-%%% find all the clauses where it is not used again, track there::
-%%% rename the parameter to something else, and do :: OrigName = track(SynthesizedName, ...)
-%%% (further opt: if this parameter is subterm in the returned term, this is unnecessary)
-
-%%% reverse([], Acc) -> Acc   reverse([H|T], Acc) -> reverse(T, [H| Acc]) becomes
-%%% reverse(P1, P2) -> track(reverse_(track(P1), track(P2)))  reverse_([], Acc_) -> Acc=track(Acc_), Acc  reverse_([H|T], Acc) -> track(reverse_(T, [H|T]))
-%%%
-%%% this does not make tail calls ok yet! that is a separate analysis step, this removes unnecessary tracking of variables!
-%%% tail call elim: if a recursive call is the last expr in a block, use the intercepted function name to call, without the track()
-%%% reverse(P1, P2) -> track(reverse_(track(P1), track(P2)))  reverse_([], Acc_) -> Acc=track(Acc_), Acc  reverse_([H|T], Acc) -> reverse_(T, [H|T])
-
-is_legal_expr(Expr) ->
-    erl_syntax_lib:fold(fun do_is_legal_expr/2, true, Expr).
-
-do_is_legal_expr(_, false) -> false;
-do_is_legal_expr({op, _, Op, _, _}, true) ->
-    ValidOps = ?VALID_OPS,
-    sets:is_element(Op, ValidOps);
-do_is_legal_expr(Expr, true) ->
-    T = erl_syntax:type(Expr),
-    Bad = ?BAD_COMPOUND,
-    not sets:is_element(T, Bad).
-
-is_expr_subterm(Expr, InExpr) ->
-    is_legal_expr(InExpr) andalso
-    is_in_expr(Expr, InExpr).
 
 is_in_expr(Elem, InExpr) ->
     erl_syntax_lib:fold(fun(Elem2, Acc) -> do_is_in_expr(Elem, Elem2, Acc) end, false, InExpr).

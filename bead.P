@@ -48,7 +48,8 @@ collector__(MainPid, FinishedNum, MaxNum) ->
                     collector__(MainPid,
                                 collect:track(FinishedNum + 1,
                                               [{dom, 2, 3},
-                                               {name, "collector", 3}]),
+                                               {name, "collector", 3}],
+                                              10, 10),
                                 MaxNum)
             end
     end.
@@ -69,7 +70,9 @@ rev(V1, V2) ->
                   [{rng, 2}, {name, "rev", 2}]).
 
 rev__([H | T], Acc) ->
-    rev__(T, collect:track([H | Acc], [{dom, 2, 2}, {name, "rev", 2}]));
+    rev__(T,
+          [collect:track(H, [{dom, 2, 2}, {name, "rev", 2}], 10, 10) |
+           Acc]);
 rev__([], Acc) ->
     Acc.
 
