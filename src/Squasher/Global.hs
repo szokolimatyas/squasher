@@ -1,18 +1,18 @@
-{-# LANGUAGE LambdaCase    #-}
 {-# LANGUAGE RankNTypes    #-}
-{-# LANGUAGE TupleSections #-}
 module Squasher.Global( aliasSingleRec
                       , squash, squashMulti
                       , strictSquashMulti --, strictSquash
                       , strictestSquashMulti
                       ) where
 
+import           Control.Monad             (when)
 import qualified Control.Monad.ST.Trans    as STT
 import           Data.Containers.ListUtils (nubInt)
 import qualified Data.Equivalence.STT      as Equiv
 import           Data.Foldable             (foldl')
 import           Data.Functor.Identity     (runIdentity)
 import qualified Data.HashSet              as HashSet
+import           Data.IntMap.Strict        (IntMap)
 import qualified Data.IntMap.Strict        as IntMap
 import qualified Data.IntSet               as IntSet
 import           Data.Map.Strict           (Map)
@@ -156,6 +156,11 @@ tagsToAliases conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = Map.map nubInt g
 
     addTag alias tg = Map.insertWith (++) tg [alias]
 
+aliasesToTags :: SquashConfig -> IntMap (Set Tag)
+aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = imap where
+    imap = IntMap.mapWithKey visit aliasM
+
+    visit i _ = tagMulti conf (EAliasMeta i) 
 -------------------------------------------------------------------------------
 -- LESS AGRESSIVE SQUASHING
 -------------------------------------------------------------------------------
@@ -209,32 +214,37 @@ getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ ST
 
 strictestSquashMulti :: SquashConfig -> SquashConfig
 strictestSquashMulti conf =
-    foldl' mergeAliases conf (getEq'' (tagsToAliases conf) conf)
+    foldl' mergeAliases conf (getEq'' (aliasesToTags conf) conf)
 
 -- equate similar types, but also have a threshold of 3 on different tags
-getEq'' :: Map Tag [Int] -> SquashConfig -> [[Int]]
+getEq'' :: IntMap (Set Tag) -> SquashConfig -> [[Int]]
 getEq'' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ STT.runSTT $ do
     st <- Equiv.leastEquiv IntSet.singleton IntSet.union
-    mapM_ (setup st) $ IntMap.toList aliasM
-    mapM_ (visit st) tagMap
+    mapM_ (setup st) $ IntMap.keys aliasM
+    mapM_ (visit st) $ IntMap.keys aliasM
     clss <- Equiv.classes st
     -- Equiv.desc st
     mapM (fmap IntSet.toList . Equiv.desc st) clss where
-        visit _  []     = return ()
-        visit st (i:is) = Equiv.equateAll st (i : filter (fits i) is) >> visit st is
+        visit st i = mapM_ (doVisit st i) (IntMap.keys aliasM)
 
-        setup st (i, t) = do
-            let children = topLevelAliases t
+        doVisit _ i1 i2 | i1 == i2 = return ()
+        doVisit st i1 i2 = do
+            let tgs1 = tagMap IntMap.! i1
+            let tgs2 = tagMap IntMap.! i2
+            let inter = Set.intersection tgs1 tgs2
+            let sizeDif s1 s2 = abs (Set.size s1 - Set.size s2) 
+            let sd1 = sizeDif tgs1 inter
+            let sd2 = sizeDif tgs2 inter
+            if typesAreSimilar conf i1 i2 then
+                Equiv.equate st i1 i2
+            else
+                when ((Set.size inter > 1) && not (sd1 > 1  || sd2 > 1)) $
+                    Equiv.equate st i1 i2
+
+        setup st i = do
+            let children = topLevelAliases (EAliasMeta i)
             Equiv.equateAll st (i:children)
 
-        fits i i' =
-            let 
-                tgs = tagMulti conf $ EAliasMeta i
-                tgs' = tagMulti conf $ EAliasMeta i'
-                inter = Set.intersection tgs tgs' in
-            -- builtin parameter for threshold
-            typesAreSimilar conf i i' &&
-            not (null inter) && not (Set.size tgs - Set.size inter > 3 || Set.size tgs' - Set.size inter > 3)
 
 topLevelAliases :: ErlType -> [Int]
 topLevelAliases (EAliasMeta i) = [i]
