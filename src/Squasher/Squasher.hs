@@ -111,7 +111,11 @@ removeProxyAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv 
         resolveProxy (EAliasMeta i) =
             case lookupAlias i conf of
                 EAliasMeta j -> resolveProxy (EAliasMeta j)
-                _            -> EAliasMeta i
+                EUnion{}     -> EAliasMeta i
+                ETuple{}     -> EAliasMeta i
+                EContainer{} -> EAliasMeta i
+                EFun{}       -> EAliasMeta i
+                t            -> t
         resolveProxy  t = t
 
         go set (EUnion ts) = ts <> set
