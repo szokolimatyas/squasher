@@ -300,3 +300,13 @@ if A is integer()
 A -> {A, A} with a depth limit of 1
 
 {integer(), integer()}  | {{integer(), integer()}, {integer(), integer()}}
+
+TODO: S3 is not good, NAMING!
+the type and expression adts somehow intersect!
+maybe examine the aliases after the local squash for some ideas
+
+stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testdata\gradualizer_int.bin   
+
+stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testdata\out1.bin
+
+stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testdata\gradualizer_typechecker.bin
