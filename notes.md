@@ -310,3 +310,13 @@ stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testda
 stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testdata\out1.bin
 
 stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testdata\gradualizer_typechecker.bin
+
+
+[{{worker,3},[[{name,"Pid"},{name,"F"},{name,"E"}]]},
+ {{collector,3},[[{name,"MainPid"},{name,"FinishedNum"},{name,"MaxNum"}]]},
+ {{rev,1},[[{name,"L"}]]},
+ {{rev,2},[[{name,"H"},{name,"Acc"}],[no_name,{name,"Acc"}]]},
+ {{dup,1},[[{name,"H"}],[no_name]]},
+ {{len,1},[[no_name],[no_name]]},
+ {{pany,2},[[{name,"F"},{name,"L"}]]},
+ {{test,1},[[{name,"L"}]]}]

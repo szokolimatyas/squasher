@@ -16,8 +16,76 @@
     Options :: [compile:option()].
 parse_transform(Forms, _Options) -> 
     Tree = erl_syntax:form_list(Forms),
-    ModifiedTree = replace(?SYN:form_list_elements(Tree)),
+    TreeList = ?SYN:form_list_elements(Tree),
+    save_formal_parameters(TreeList), 
+    ModifiedTree = replace(TreeList),
     erl_syntax:revert_forms(ModifiedTree).
+
+save_formal_parameters(TreeList) ->
+    case lists:search(fun is_module_attribute/1, TreeList) of
+        {value, Tree} ->
+            case erl_syntax_lib:analyze_attribute(Tree) of
+                {module, ModName} when is_atom(ModName) ->
+                    Ps = get_formal_parameters(TreeList),
+                    file:write_file(atom_to_list(ModName) ++ "_args.bin", term_to_binary(Ps));
+                {module, {ModName, _}} when is_atom(ModName) ->
+                    Ps = get_formal_parameters(TreeList),
+                    file:write_file(atom_to_list(ModName) ++ "_args.bin", term_to_binary(Ps));
+                _ ->
+                    ok
+            end;
+        _ ->
+            ok
+    end.
+
+is_module_attribute(Tree) ->
+    case ?SYN:type(Tree) of
+        attribute ->
+            case erl_syntax_lib:analyze_attribute(Tree) of
+                {module, _} -> true;
+                _ -> false
+            end;
+        _ ->
+            false
+    end.
+
+get_formal_parameters([]) -> [];
+get_formal_parameters([Tree|TreeList]) ->
+    case ?SYN:type(Tree) of
+        function ->
+            Name = erl_syntax_lib:analyze_function(Tree),
+            Pack = {Name, formal_parameters_of_clauses(?SYN:function_clauses(Tree))},
+            [ Pack | get_formal_parameters(TreeList)];
+        _ ->
+            get_formal_parameters(TreeList) 
+    end.
+
+formal_parameters_of_clauses([]) -> [];
+formal_parameters_of_clauses([Clause|Clauses]) ->
+    Pats = ?SYN:clause_patterns(Clause),
+    Names = [ name_of_parameter(P) || P <- Pats],
+    [Names | formal_parameters_of_clauses(Clauses)].
+
+name_of_parameter(P) ->
+    P1 = case ?SYN:type(P) of
+        list ->
+            Prefix = ?SYN:list_prefix(P),
+            case Prefix of
+                [Single] ->
+                    Single;
+                _ ->
+                    P
+            end;
+        _ ->
+            P
+    end,            
+    case ?SYN:type(P1) of
+        variable -> 
+            Str = atom_to_list(?SYN:variable_name(P1)),
+            %% what if it is all underscores? empty name?
+            {name, string:trim(Str, leading, "_")};  
+        _ -> no_name
+    end.
 
 -spec replace(Forms) -> Forms when
     Forms :: [erl_parse:abstract_form() | erl_parse:form_info()].
@@ -25,7 +93,8 @@ replace([H|T]) ->
     case erl_syntax:type(H) of
         function ->
             replace_function(H) ++ replace(T);
-        _ ->
+        Type ->
+            io:format("~p~n", [Type]),
             [H | replace(T)]
     end;
 replace(L) -> L.

@@ -42,11 +42,7 @@ start_erlang_trace(InModule) ->
 
 stop_erlang_trace(FileName) ->
     erlang:trace(all, false, [call]),
-	case global:whereis_name(squasher_tracer) of
-		Pid when is_pid(Pid) ->
-			Pid ! stop;
-		_ -> ok
-	end,
+	catch global:send(squasher_tracer, stop),
     save_traces(FileName).
 
 collect_loop() -> 
