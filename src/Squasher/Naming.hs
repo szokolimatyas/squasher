@@ -41,7 +41,7 @@ insertNew :: Int -> Name -> IntMap Name -> IntMap Name
 insertNew i (Record txt) m =
     if Record txt `elem` m then
         -- I know there is a better way
-        IntMap.insert i (Record $ txt <> Text.pack (show i)) m
+        IntMap.insert i (Alias $ txt <> Text.pack (show i)) m
     else
         IntMap.insert i (Record txt) m
 insertNew i (Alias txt) m =
