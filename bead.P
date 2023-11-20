@@ -4,6 +4,8 @@
 
 -compile(export_all).
 
+-save_to("C:/Users/User/source/repos/squasher/args.bin").
+
 worker(V1, V2, V3) ->
     collect:track(worker__(collect:track(V1,
                                          [{dom, 1, 3},

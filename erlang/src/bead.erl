@@ -1,6 +1,7 @@
 -module(bead).
 -compile(export_all).
 -compile({parse_transform, squasher_trans}).
+-save_to("C:/Users/User/source/repos/squasher/args.bin").
 
 worker(Pid,F,E) ->
   %  io:format("Worker starts~n"),

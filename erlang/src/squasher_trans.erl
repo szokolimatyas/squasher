@@ -25,12 +25,9 @@ save_formal_parameters(TreeList) ->
     case lists:search(fun is_module_attribute/1, TreeList) of
         {value, Tree} ->
             case erl_syntax_lib:analyze_attribute(Tree) of
-                {module, ModName} when is_atom(ModName) ->
+                {save_to, Str} ->
                     Ps = get_formal_parameters(TreeList),
-                    file:write_file(atom_to_list(ModName) ++ "_args.bin", term_to_binary(Ps));
-                {module, {ModName, _}} when is_atom(ModName) ->
-                    Ps = get_formal_parameters(TreeList),
-                    file:write_file(atom_to_list(ModName) ++ "_args.bin", term_to_binary(Ps));
+                    file:write_file(Str, term_to_binary(Ps));
                 _ ->
                     ok
             end;
@@ -42,7 +39,7 @@ is_module_attribute(Tree) ->
     case ?SYN:type(Tree) of
         attribute ->
             case erl_syntax_lib:analyze_attribute(Tree) of
-                {module, _} -> true;
+                {save_to, _} -> true;
                 _ -> false
             end;
         _ ->
@@ -66,24 +63,12 @@ formal_parameters_of_clauses([Clause|Clauses]) ->
     Names = [ name_of_parameter(P) || P <- Pats],
     [Names | formal_parameters_of_clauses(Clauses)].
 
-name_of_parameter(P) ->
-    P1 = case ?SYN:type(P) of
-        list ->
-            Prefix = ?SYN:list_prefix(P),
-            case Prefix of
-                [Single] ->
-                    Single;
-                _ ->
-                    P
-            end;
-        _ ->
-            P
-    end,            
-    case ?SYN:type(P1) of
+name_of_parameter(P) ->           
+    case ?SYN:type(P) of
         variable -> 
-            Str = atom_to_list(?SYN:variable_name(P1)),
+            Str = atom_to_list(?SYN:variable_name(P)),
             %% what if it is all underscores? empty name?
-            {name, string:trim(Str, leading, "_")};  
+            {name, list_to_atom(string:trim(Str, leading, "_"))};  
         _ -> no_name
     end.
 
@@ -93,8 +78,7 @@ replace([H|T]) ->
     case erl_syntax:type(H) of
         function ->
             replace_function(H) ++ replace(T);
-        Type ->
-            io:format("~p~n", [Type]),
+        _ ->
             [H | replace(T)]
     end;
 replace(L) -> L.
