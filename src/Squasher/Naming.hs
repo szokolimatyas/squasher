@@ -119,7 +119,7 @@ simpleContName c = case c of
 
 paramsFromTerm :: Erlang.Term -> [(FunName, [[Maybe Text]])]
 paramsFromTerm (Erlang.List ts Erlang.Nil) = mapMaybe go ts where
-    go (Erlang.Tuple (Erlang.Atom _ n : Erlang.Integer i : clauses)) =
+    go (Erlang.Tuple [Erlang.Tuple [Erlang.Atom _ n, Erlang.Integer i], Erlang.List clauses Erlang.Nil]) =
         Just (MkFunName n (fromIntegral i), doClauses clauses)
     go _ = Nothing
 

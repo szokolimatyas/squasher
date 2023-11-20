@@ -42,6 +42,7 @@ main = do
 
 parameters :: SquashConfig -> IO (IntMap Text)
 parameters conf@SquashConfig{options=Options{parametersPath=Just path}} = do
+    putStrLn $ "Reading parameter names from: " ++ path
     bytes <- BS.readFile path
     case decodeOrFail bytes of
         Left (_, _, err) -> error $ "Could not parse bytestring, error: " ++ err
