@@ -68,7 +68,8 @@ name_of_parameter(P) ->
         variable -> 
             Str = atom_to_list(?SYN:variable_name(P)),
             %% what if it is all underscores? empty name?
-            {name, list_to_atom(string:trim(Str, leading, "_"))};  
+            %% _Foo -> Foo, asd(Foo1, Foo2) -> Foo
+            {name, list_to_atom(string:trim(string:trim(Str, leading, "_"), trailing, "0123456789"))};  
         _ -> no_name
     end.
 
