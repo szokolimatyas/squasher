@@ -6,6 +6,8 @@ import           Data.Binary                (decodeOrFail, encode)
 import qualified Data.ByteString.Lazy       as BS
 import           Foreign.Erlang.Term
 import           Options.Applicative
+import           Data.IntMap                (IntMap)
+import           Data.Text                  (Text)
 import           Squasher.Common
 import           Squasher.Naming
 import           Squasher.Output
@@ -27,7 +29,8 @@ main = do
                 Right resNew -> do
                     when (printUnformatted o) $
                         writeFile "outnew.txt" ("Aliases:\n" ++ show (aliasEnv resNew) ++ "\nFunctions:\n" ++ show (tyEnv resNew))
-                    BS.writeFile "out.bin" $ encode $ MkExternalTerm $ out (nameAll resNew) resNew
+                    names <- parameters resNew
+                    BS.writeFile "out.bin" $ encode $ MkExternalTerm $ out (nameAll names resNew) resNew
                     writePretty $ prettyOutputPath o
                     return ()
         Right (_, _, MkExternalTerm terms) -> error $ "Terms are in a wrong format: " ++ show terms
@@ -36,6 +39,15 @@ main = do
             ( fullDesc
             <> progDesc "Format specs from runtime debugging results"
             <> header "Squasher - dynamic inference for Erlang" )
+
+parameters :: SquashConfig -> IO (IntMap Text)
+parameters conf@SquashConfig{options=Options{parametersPath=Just path}} = do
+    bytes <- BS.readFile path
+    case decodeOrFail bytes of
+        Left (_, _, err) -> error $ "Could not parse bytestring, error: " ++ err
+        Right (_, _, MkExternalTerm terms) ->
+            return $ paramNames conf terms
+parameters _ = return emptyParamNames
 
 writePretty :: String -> IO ()
 writePretty path = do
@@ -104,6 +116,14 @@ optionsP = Options
         ( long "unformatted"
         <> short 'u'
         <> help "Dump unformatted debug info"
+        )
+    <*> option (Just <$> str)
+        ( long "parameters"
+        <> short 'p'
+        <> metavar "FILE"
+        <> help "File containing parameter information for a module"
+        <> showDefault
+        <> value Nothing
         )
     <*> option str
         ( long "out"

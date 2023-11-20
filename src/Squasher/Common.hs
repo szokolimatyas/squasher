@@ -292,6 +292,7 @@ data Options = Options
     , tupleUnionSize    :: Int
     , recordSize        :: Int
     , printUnformatted  :: Bool
+    , parametersPath    :: Maybe String
     , prettyOutputPath  :: String
     , inputPath         :: String
     } deriving(Eq, Ord, Show)
