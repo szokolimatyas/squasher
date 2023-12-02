@@ -179,7 +179,7 @@ aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = imap where
 
 typesAreSimilar :: SquashConfig -> Int -> Int -> Bool
 typesAreSimilar conf i1 i2 = case (lookupAlias i1 conf, lookupAlias i2 conf) of
-    (ETuple ts1, ETuple ts2) ->
+    (ETuple ts1, ETuple ts2) | length ts1 == length ts2 ->
         -- the number of matching equatable fields are greater than number of all fields divided by two
         count (\(t1, t2) -> isJust $ equate (resolve conf t1) (resolve conf t2)) (zip ts1 ts2) > div (length ts1) 2
     (ENamedAtom txt1, ENamedAtom txt2) -> txt1 == txt2
@@ -204,6 +204,7 @@ getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ ST
     -- Equiv.desc st
     mapM (fmap IntSet.toList . Equiv.desc st) clss where
         -- this makes the result equivalent with the agressive squash
+		-- but then do we even need the setup?
         --visit st is = Equiv.equateAll st is
         visit _  []     = return ()
         visit st (i:is) = Equiv.equateAll st (i : filter (typesAreSimilar conf i) is) >> visit st is

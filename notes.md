@@ -310,3 +310,9 @@ stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testda
 stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testdata\out1.bin
 
 stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testdata\gradualizer_typechecker.bin
+
+1> c("erlang/src/squasher_trans.erl").
+{ok,squasher_trans}
+2> c("erlang/src/tree.erl").
+{ok,tree}
+collect:prepare_trace().

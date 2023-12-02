@@ -1,9 +1,10 @@
 -module(tree).
 
--export([t1/0, node_num/1]).
+-export([t1/0, eval/1]).
 
-t1() -> {node, {node, {leaf, 1}, {node, {leaf, 2}, {leaf, 3}}}, {leaf, 4}}.
+-compile({parse_transform, squasher_trans}).
 
-node_num({node, L, R}) ->
-    1 + node_num(L) + node_num(R);
-node_num(_) -> 1.
+t1() -> {add, {num, 2}, {num, 3}}.
+
+eval({add, E1, E2}) -> eval(E1) + eval(E2);
+eval({num, N}) -> N.

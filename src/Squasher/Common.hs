@@ -155,6 +155,7 @@ equate (EContainer c1) (EContainer c2) = EContainer <$> equateCont c1 c2
 equate (ETuple ts1) (ETuple ts2) | length ts1 /= length ts2 = Nothing
 equate (ETuple (ENamedAtom a1 : ts1)) (ETuple (ENamedAtom a2 : ts2)) | a1 == a2 =
     Just $ ETuple $ ENamedAtom a1 : zipWith combine ts1 ts2
+-- should this be combine instead? don't think so
 equate (ETuple ts1) (ETuple ts2) =
     ETuple <$> zipWithM equate ts1 ts2
 equate (EUnion ts1) (EUnion ts2) = mkFlatUnion <$> foldM equateUnion ts1 ts2 -- (flip combineUnion)
@@ -338,6 +339,7 @@ mergeAliases conf as@(a1:rest) =
         -- resolve alias -> remove top-level aliases -> change a_2..a_n refs to a_1
         -- we subst with rest, just in case there are references between a_n and and a_m, n and m > 1
         process ai =
+			-- bit different from the paper: it only sets ai to a1
             substTy rest (EAliasMeta a1) (erase (resolve conf (EAliasMeta ai)))
         -- remove top-level aliases to avoid infinite types
         erase (EAliasMeta a') | a' `elem` as = EUnion HashSet.empty
