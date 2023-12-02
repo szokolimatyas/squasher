@@ -183,20 +183,30 @@ do_opt_tail_call(OrigName, Arity, infix_expr, Tree) ->
             ?SYN:infix_expr(NewLeft, Op, NewRight);
         false -> Tree
     end;
-do_opt_tail_call(OrigName, Arity, Type, Tree) ->
-    case sets:is_element(Type, ?BAD_COMPOUND) of
-        true -> Tree;
-        false ->
-            case ?SYN:subtrees(Tree) of
-                [] ->
-                    Tree;
-                Gs ->
-                    Tree1 = ?SYN:make_tree(?SYN:type(Tree),
-                                                [[do_opt_tail_call(OrigName, Arity, ?SYN:type(T), T) || T <- G]
-                                                    || G <- Gs]),
-                    ?SYN:copy_attrs(Tree, Tree1)
-            end
-    end. 
+do_opt_tail_call(OrigName, Arity, list, Tree) ->
+    Prefixes = ?SYN:list_prefix(Tree),
+    NewPrefixes = [ do_opt_tail_call(OrigName, Arity, ?SYN:type(P), P) || P  <- Prefixes],
+    Suffix = ?SYN:list_suffix(Tree),
+    NewSuffix = case Suffix of
+        none -> none;
+        _ -> do_opt_tail_call(OrigName, Arity, ?SYN:type(Suffix), Suffix)
+    end,
+    ?SYN:list(NewPrefixes, NewSuffix);
+do_opt_tail_call(_OrigName, _Arity, _Type, Tree) ->
+    Tree.
+    % case sets:is_element(Type, ?BAD_COMPOUND) of
+    %     true -> Tree;
+    %     false ->
+    %         case ?SYN:subtrees(Tree) of
+    %             [] ->
+    %                 Tree;
+    %             Gs ->
+    %                 Tree1 = ?SYN:make_tree(?SYN:type(Tree),
+    %                                             [[do_opt_tail_call(OrigName, Arity, ?SYN:type(T), T) || T <- G]
+    %                                                 || G <- Gs]),
+    %                 ?SYN:copy_attrs(Tree, Tree1)
+    %         end
+    % end. 
 
 optimize_call(OrigName, Arity, FormalParams, Application) ->
     %%% warning! shadowing in funs :(, might not handle it just yet
@@ -297,11 +307,46 @@ dom(Index, Name, Arity) ->
     ?SYN:abstract([{dom, Index, Arity}, {name, atom_to_list(Name), Arity}]).
 
 is_in_expr(Elem, InExpr) ->
-    erl_syntax_lib:fold(fun(Elem2, Acc) -> do_is_in_expr(Elem, Elem2, Acc) end, false, InExpr).
+    Elem1 = delete_posinfo(Elem),
+    InExpr1 = delete_posinfo(InExpr),
+    do_is_in_expr(Elem1, InExpr1).
 
-do_is_in_expr(_, _, true) -> true;
-do_is_in_expr(Elem1, Elem2, false) ->
-    (erl_syntax:type(Elem1) == erl_syntax:type(Elem2)) andalso (delete_posinfo(Elem1) == delete_posinfo(Elem2)).
+do_is_in_expr(Elem, InExpr) ->
+    ElemT = ?SYN:type(Elem),
+    InExprT = ?SYN:type(InExpr),
+    case ElemT == InExprT of
+        true -> 
+            case Elem == InExpr of
+                true ->
+                    true;
+                false ->
+                    do_is_in_expr1(Elem, InExprT, InExpr)
+            end;
+        false ->
+            do_is_in_expr1(Elem, InExprT, InExpr)
+    end.
+
+do_is_in_expr1(Elem, infix_expr, InExpr)->
+    Left = ?SYN:infix_expr_left(InExpr),
+    Op = ?SYN:infix_expr_operator(InExpr),
+    Right = ?SYN:infix_expr_right(InExpr),
+    case sets:is_element(?SYN:operator_name(Op), ?VALID_OPS) of
+        true ->
+            do_is_in_expr(Elem, Left) orelse
+            do_is_in_expr(Elem, Right);
+        false -> false
+    end;
+do_is_in_expr1(Elem, list, InExpr) ->
+    Prefixes = ?SYN:list_prefix(InExpr),
+    case lists:any(fun(P) -> do_is_in_expr(Elem, P) end, Prefixes) of
+        true -> true;
+        false ->
+            Suffix = ?SYN:list_suffix(InExpr),
+            do_is_in_expr(Elem, Suffix)
+    end;
+do_is_in_expr1(Elem, parentheses, InExpr) ->
+    do_is_in_expr(Elem, ?SYN:parentheses_body(InExpr));
+do_is_in_expr1(_, _, _) -> false. 
 
 delete_posinfo(Expr) ->
     erl_syntax_lib:map(fun(T) -> case element(2, T) of {_, _} -> setelement(2, T, {0, 0}); _ -> T end end, Expr).

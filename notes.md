@@ -316,3 +316,20 @@ stack run squasher-exe -- -u -s S2 --out myerl1.erl C:\Users\User\Desktop\testda
 2> c("erlang/src/tree.erl").
 {ok,tree}
 collect:prepare_trace().
+tree:eval(tree:t1()).
+collect:save_traces("outsimple.bin").
+
+for t1:
+
+ {integer,[{tuple_index,{atom,num},2,2},
+           {tuple_index,{atom,add},2,3},
+           {dom,1,1},
+           {name,"eval",1}]},
+ {integer,[{tuple_index,{atom,num},2,2},
+           {tuple_index,{atom,add},3,3},
+           {dom,1,1},
+           {name,"eval",1}]},
+ {integer,[{tuple_index,{atom,num},2,2},
+           {dom,1,1},
+           {name,"eval",1}]},
+ {integer,[{rng,1},{name,"eval",1}]}]

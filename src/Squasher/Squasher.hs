@@ -30,7 +30,7 @@ import           Squasher.Local
 import           Squasher.Types
 
 
-runner :: Options -> [Term] -> Except String (SquashConfig, SquashConfig)
+runner :: Options -> [Term] -> Except String (TyEnv, SquashConfig, SquashConfig)
 runner opts terms = do
     entries <- mapM entryFromTerm terms
     let env = foldl' (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
@@ -41,7 +41,7 @@ runner opts terms = do
                 S2 -> squashGlobal2
                 S3 -> squashGlobal3
     let env' = pruneAliases $ removeProxyAliases $ squashLocal opts env
-    return $ (env', post $ global env')
+    return $ (env, env', post $ global env')
 
 squashGlobal1, squashGlobal2, squashGlobal3, post :: SquashConfig -> SquashConfig
 squashGlobal1 = compose [ aliasSingleRec

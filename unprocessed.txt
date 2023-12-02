@@ -1,0 +1,4 @@
+
+Functions:
+eval({'num', integer()} | {'add', {'num', integer()}, {'num', integer()}}) -> integer()
+t1() -> {'add', {'num', integer()}, {'num', integer()}}

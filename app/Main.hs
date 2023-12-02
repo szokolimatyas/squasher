@@ -26,7 +26,8 @@ main = do
             putStrLn "Started..."
             case runExcept (runner o terms) of
                 Left err -> error err
-                Right (resOld, resNew) -> do
+                Right (old, resOld, resNew) -> do
+                    writeFile "unprocessed.txt" ("\nFunctions:\n" ++ show old)
                     writeFile "out.txt" ("Aliases:\n" ++ show (aliasEnv resOld) ++ "\nFunctions:\n" ++ show (tyEnv resOld))
                     when (printUnformatted o) $
                         writeFile "outnew.txt" ("Aliases:\n" ++ show (aliasEnv resNew) ++ "\nFunctions:\n" ++ show (tyEnv resNew))
