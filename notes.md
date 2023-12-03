@@ -333,3 +333,11 @@ for t1:
            {dom,1,1},
            {name,"eval",1}]},
  {integer,[{rng,1},{name,"eval",1}]}]
+
+
+fromList [(0,{'num', integer()}),(1,{'num', integer()}),(2,{'add', $1, $0}),(3,{'num', integer()}),(4,{'add', $1, $0} | {'num', integer()})]
+
+
+https://erlangforums.com/t/typing-with-pixie-dust-mackenzie-morgan-code-beam-america-2022/3065
+https://github.com/AdRoll/rebar3_typer
+https://tech.nextroll.com/blog/dev/2022/04/27/rebar3-typer.html
