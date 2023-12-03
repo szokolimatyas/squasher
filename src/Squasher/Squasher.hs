@@ -34,7 +34,6 @@ runner :: Options -> [Term] -> Except String (TyEnv, SquashConfig, SquashConfig)
 runner opts terms = do
     entries <- mapM entryFromTerm terms
     let env = foldl' (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-    Debug.Trace.traceM $ show $ strategy opts
     let global = 
             case strategy opts of
                 S1 -> squashGlobal1
@@ -160,7 +159,7 @@ inlineAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} 
     refsInFuns = IntMap.unionsWith (+) (map numOfRefs $ Map.elems funs)
     refsInAliases = IntMap.unionsWith (+) (map numOfRefs $ IntMap.elems aliasMap)
 
-    singleRefs = IntMap.filter (==1) $ IntMap.unionWith (+) refsInFuns refsInAliases
+    singleRefs = IntMap.filter (<=1) $ IntMap.unionWith (+) refsInFuns refsInAliases
 
     -- the problem with this is:
     -- inline (1375,{'clauses', list($1374)})
@@ -202,7 +201,7 @@ squashTuples conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs, o
     f t        EUnknown = Just t
     f EUnknown t        = Just t
     f (ETuple (t1:ts1)) (ETuple (t2:ts2)) | length ts1 == length ts2 = do
-        ts' <- zipWithM equate ts1 ts2
+        ts' <- zipWithM (\t1' t2' -> equate (resolve conf t1') (resolve conf t2')) ts1 ts2
         return $ ETuple (combine t1 t2:ts')
     f _                 _                 = Nothing
 
