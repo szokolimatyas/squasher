@@ -320,8 +320,10 @@ reg SquashConfig{aliasEnv = MkAliasEnv{..}, ..} t =
 
 -- maybe do a check that we are not entering a loop, just in case
 resolve :: SquashConfig -> ErlType -> ErlType
-resolve conf (EAliasMeta i) = resolve conf $ lookupAlias i conf
-resolve _    t              = t
+resolve conf t = go 0 t where
+    go n _ | n > 1000 = t
+    go n (EAliasMeta i) = go (n + 1) (lookupAlias i conf)
+    go _ t' = t'
 
 aliases :: ErlType -> IntSet
 aliases = para visit where
