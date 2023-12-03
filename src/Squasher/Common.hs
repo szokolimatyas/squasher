@@ -216,7 +216,7 @@ lubCont _ _ = EAny
 
 
 mkFlatUnion :: HashSet ErlType -> ErlType
-mkFlatUnion ts | HashSet.size flatUnion > 100 = HashSet.foldl' lub ENone flatUnion
+mkFlatUnion ts | HashSet.size flatUnion > 200 = HashSet.foldl' lub ENone flatUnion
                | otherwise = EUnion flatUnion where
 --    flatUnion = squashUnionElements $ Set.fold go Set.empty ts
     flatUnion = HashSet.foldl' go HashSet.empty ts
@@ -321,6 +321,7 @@ reg SquashConfig{aliasEnv = MkAliasEnv{..}, ..} t =
 -- maybe do a check that we are not entering a loop, just in case
 resolve :: SquashConfig -> ErlType -> ErlType
 resolve conf t = go 0 t where
+    go :: Int -> ErlType -> ErlType
     go n _ | n > 1000 = t
     go n (EAliasMeta i) = go (n + 1) (lookupAlias i conf)
     go _ t' = t'

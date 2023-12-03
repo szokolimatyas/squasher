@@ -230,22 +230,29 @@ getEq'' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ S
 
         doVisit _ i1 i2 | i1 == i2 = return ()
         doVisit st i1 i2 = do
-            let tgs1 = tagMap IntMap.! i1
-            let tgs2 = tagMap IntMap.! i2
-            let inter = Set.intersection tgs1 tgs2
-            let sizeDif s1 s2 = abs (Set.size s1 - Set.size s2) 
-            let sd1 = sizeDif tgs1 inter
-            let sd2 = sizeDif tgs2 inter
-            if typesAreSimilar conf i1 i2 then
+            let tgs1 = tagMulti conf (EAliasMeta i1)
+            let tgs2 = tagMulti conf (EAliasMeta i2)
+            when (not (Set.null tgs1) && Set.isSubsetOf tgs1 tgs2 && Set.size tgs2 - Set.size tgs1 <= thresh tgs2) $ 
                 Equiv.equate st i1 i2
-            else
-                when ((Set.size inter > 1) && not (sd1 > 1  || sd2 > 1)) $
-                    Equiv.equate st i1 i2
+        -- doVisit st i1 i2 = do
+        --     let tgs1 = tagMap IntMap.! i1
+        --     let tgs2 = tagMap IntMap.! i2
+        --     let inter = Set.intersection tgs1 tgs2
+        --     let sizeDif s1 s2 = Set.size s1 - Set.size s2
+        --     let sd1 = sizeDif tgs1 inter
+        --     let sd2 = sizeDif tgs2 inter
+        --     when ((not $ null inter) && (sd1 <= thresh tgs1 && sd2 <= thresh tgs2)) $
+        --         Equiv.equate st i1 i2
 
         setup st i = do
             let children = topLevelAliases (EAliasMeta i)
             Equiv.equateAll st (i:children)
 
+        thresh :: Set Tag -> Int
+        thresh s | Set.size s < 4 = 1
+                 | Set.size s < 10 = 5
+                 | Set.size s > 15 = 0
+                 | otherwise = 5
 
 topLevelAliases :: ErlType -> [Int]
 topLevelAliases (EAliasMeta i) = [i]
