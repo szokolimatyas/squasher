@@ -9,9 +9,9 @@ import qualified Data.IntMap.Strict as IntMap
 import           Data.IntSet        (IntSet)
 import qualified Data.IntSet        as IntSet
 import qualified Data.Map.Strict    as Map
+import qualified Debug.Trace
 import           Squasher.Common
 import           Squasher.Types
-import qualified Debug.Trace
 
 shouldMerge :: [ErlType] -> Bool
 shouldMerge (ETuple (ENamedAtom n : elems) : ts) =

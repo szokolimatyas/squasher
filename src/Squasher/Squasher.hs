@@ -34,7 +34,7 @@ runner :: Options -> [Term] -> Except String (TyEnv, SquashConfig, SquashConfig)
 runner opts terms = do
     entries <- mapM entryFromTerm terms
     let env = foldl' (\tenv (t, p) -> update t p tenv) (MkTyEnv Map.empty) entries
-    let global = 
+    let global =
             case strategy opts of
                 S1 -> squashGlobal1
                 S2 -> squashGlobal2
@@ -139,10 +139,10 @@ aliasesToGraph aliasMap =
         visit _ is              = concat is
 
 getReachable :: SquashConfig -> IntSet
-getReachable SquashConfig{aliasEnv=MkAliasEnv aliasMap _, tyEnv=MkTyEnv funs} = reachable where
+getReachable SquashConfig{aliasEnv=MkAliasEnv aliasMap _, tyEnv=MkTyEnv funs} = reach where
     aliasGraph = aliasesToGraph aliasMap
     immediate = Map.elems funs >>= aliases'
-    reachable = IntSet.fromList $ immediate ++ concat (bfs aliasGraph immediate)
+    reach = IntSet.fromList $ immediate ++ concat (bfs aliasGraph immediate)
 
     aliases' :: ErlType -> [Int]
     aliases' = para visit where
@@ -153,14 +153,18 @@ getReachable SquashConfig{aliasEnv=MkAliasEnv aliasMap _, tyEnv=MkTyEnv funs} = 
 -- | Inline aliases that have only one reference to them.
 -- TODO: use the graphs
 inlineAliases :: SquashConfig -> SquashConfig
-inlineAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs} =
+inlineAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs, options=Options{..}} =
     conf {aliasEnv = MkAliasEnv newAliasMap nextIndex, tyEnv = MkTyEnv newTyEnv } where
 
     refsInFuns = IntMap.unionsWith (+) (map numOfRefs $ Map.elems funs)
     refsInAliases = IntMap.unionsWith (+) (map numOfRefs $ IntMap.elems aliasMap)
 
-    singleRefs = IntMap.filter (<=1) $ IntMap.unionWith (+) refsInFuns refsInAliases
+    singleRefs = IntMap.filterWithKey f $ IntMap.unionWith (+) refsInFuns refsInAliases
 
+    f alias refs = case lookupAlias alias conf of
+        t@(ETuple ts) | length ts <= recordSize ->
+            refs <= 5 && not (IntSet.member alias $ aliases t)
+        _ -> refs <= 1
     -- the problem with this is:
     -- inline (1375,{'clauses', list($1374)})
     -- _then_

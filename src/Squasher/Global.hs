@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes    #-}
+{-# LANGUAGE RankNTypes #-}
 module Squasher.Global( aliasSingleRec
                       , squash, squashMulti
                       , strictSquashMulti --, strictSquash
@@ -160,7 +160,7 @@ aliasesToTags :: SquashConfig -> IntMap (Set Tag)
 aliasesToTags conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = imap where
     imap = IntMap.mapWithKey visit aliasM
 
-    visit i _ = tagMulti conf (EAliasMeta i) 
+    visit i _ = tagMulti conf (EAliasMeta i)
 -------------------------------------------------------------------------------
 -- LESS AGRESSIVE SQUASHING
 -------------------------------------------------------------------------------
@@ -204,7 +204,7 @@ getEq' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ ST
     -- Equiv.desc st
     mapM (fmap IntSet.toList . Equiv.desc st) clss where
         -- this makes the result equivalent with the agressive squash
-		-- but then do we even need the setup?
+        -- but then do we even need the setup?
         --visit st is = Equiv.equateAll st is
         visit _  []     = return ()
         visit st (i:is) = Equiv.equateAll st (i : filter (typesAreSimilar conf i) is) >> visit st is
@@ -232,7 +232,7 @@ getEq'' tagMap conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ S
         doVisit st i1 i2 = do
             let tgs1 = tagMulti conf (EAliasMeta i1)
             let tgs2 = tagMulti conf (EAliasMeta i2)
-            when (not (Set.null tgs1) && Set.isSubsetOf tgs1 tgs2 && Set.size tgs2 - Set.size tgs1 <= thresh tgs2) $ 
+            when (not (Set.null tgs1) && Set.isSubsetOf tgs1 tgs2 && Set.size tgs2 - Set.size tgs1 <= thresh tgs2) $
                 Equiv.equate st i1 i2
         -- doVisit st i1 i2 = do
         --     let tgs1 = tagMap IntMap.! i1
@@ -266,7 +266,7 @@ initGroups conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ STT.r
     --mapM_ (visit st) $ IntMap.keys aliasM
     clss <- Equiv.classes st
     -- Equiv.desc st
-    iss <- mapM (fmap IntSet.toList . Equiv.desc st) clss 
+    iss <- mapM (fmap IntSet.toList . Equiv.desc st) clss
     return $ Map.fromListWith (++) $ map (\is -> (Set.unions $ map (\i -> tagMulti conf (EAliasMeta i)) is, is)) iss where
         setup st i = do
             let children = topLevelAliases (EAliasMeta i)
