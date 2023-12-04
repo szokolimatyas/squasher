@@ -258,3 +258,16 @@ topLevelAliases :: ErlType -> [Int]
 topLevelAliases (EAliasMeta i) = [i]
 topLevelAliases (EUnion ts)    = concatMap topLevelAliases ts
 topLevelAliases _              = []
+
+initGroups :: SquashConfig -> Map (Set Tag) [Int]
+initGroups conf@SquashConfig{aliasEnv=MkAliasEnv aliasM _} = runIdentity $ STT.runSTT $ do
+    st <- Equiv.leastEquiv IntSet.singleton IntSet.union
+    mapM_ (setup st) $ IntMap.keys aliasM
+    --mapM_ (visit st) $ IntMap.keys aliasM
+    clss <- Equiv.classes st
+    -- Equiv.desc st
+    iss <- mapM (fmap IntSet.toList . Equiv.desc st) clss 
+    return $ Map.fromListWith (++) $ map (\is -> (Set.unions $ map (\i -> tagMulti conf (EAliasMeta i)) is, is)) iss where
+        setup st i = do
+            let children = topLevelAliases (EAliasMeta i)
+            Equiv.equateAll st (i:children)

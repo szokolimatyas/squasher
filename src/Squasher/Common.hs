@@ -216,7 +216,7 @@ lubCont _ _ = EAny
 
 
 mkFlatUnion :: HashSet ErlType -> ErlType
-mkFlatUnion ts | HashSet.size flatUnion > 200 = HashSet.foldl' lub ENone flatUnion
+mkFlatUnion ts | HashSet.size flatUnion > 1000 = HashSet.foldl' lub ENone flatUnion
                | otherwise = EUnion flatUnion where
 --    flatUnion = squashUnionElements $ Set.fold go Set.empty ts
     flatUnion = HashSet.foldl' go HashSet.empty ts
