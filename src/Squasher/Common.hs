@@ -342,7 +342,7 @@ mergeAliases conf as@(a1:rest) =
         -- resolve alias -> remove top-level aliases -> change a_2..a_n refs to a_1
         -- we subst with rest, just in case there are references between a_n and and a_m, n and m > 1
         process ai =
-			-- bit different from the paper: it only sets ai to a1
+            -- bit different from the paper: it only sets ai to a1
             substTy rest (EAliasMeta a1) (erase (resolve conf (EAliasMeta ai)))
         -- remove top-level aliases to avoid infinite types
         erase (EAliasMeta a') | a' `elem` as = EUnion HashSet.empty

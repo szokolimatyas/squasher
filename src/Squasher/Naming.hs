@@ -60,7 +60,7 @@ nameAll namesFromParams SquashConfig{aliasEnv=MkAliasEnv{..}, options=Options{..
 
 initialNames :: IntMap Name
 initialNames = IntMap.fromList $ zip [-1, -2..] $ map Alias
-    [ "any", "none", "dynamic", "pid", "port", "reference", "atom",  "float", "fun", "integer", "list", "map", "tuple"]
+    [ "any", "none", "dynamic", "pid", "port", "reference", "atom",  "float", "fun", "integer", "list", "map", "tuple", "function", "binary", "bitstring"]
 
 fitNames :: [Text] -> Text
 fitNames ts = Text.intercalate "_" $

@@ -72,6 +72,7 @@ post = compose [ removeProxyAliases
                , tryRemoveUnknowns
                , inlineAliases
                , pruneAliases
+              -- , upcastAtomUnions
                ]
 
 -- foldl'?
@@ -163,7 +164,8 @@ inlineAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs, 
 
     f alias refs = case lookupAlias alias conf of
         t@(ETuple ts) | length ts <= recordSize ->
-            refs <= 5 && not (IntSet.member alias $ aliases t)
+            IntSet.null (aliases t) || 
+            (refs <= 2 && not (IntSet.member alias (aliases t)))
         _ -> refs <= 1
     -- the problem with this is:
     -- inline (1375,{'clauses', list($1374)})
@@ -259,7 +261,7 @@ upcastAtomUnions conf@SquashConfig{aliasEnv = MkAliasEnv{..}, tyEnv = MkTyEnv fu
         -- this wont' be a loop because we ensured no loops in mergeAliases
         -- can inlineAliases or something else mess it up?
         isAtomLike t = case resolve conf t of
-            EAnyAtom     -> True;
+            EAnyAtom     -> True
             ENamedAtom _ -> True
             EBoolean     -> True
             EUnknown     -> True

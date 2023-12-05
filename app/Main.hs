@@ -19,6 +19,7 @@ main :: IO ()
 main = do
     o <- execParser opts
     bytes <- BS.readFile $ inputPath o
+    print o
     putStrLn "Input read"
     case decodeOrFail bytes of
         Left (_, _, err) -> error $ "Could not parse bytestring, error: " ++ err
