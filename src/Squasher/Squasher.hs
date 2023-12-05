@@ -70,6 +70,8 @@ post = compose [ removeProxyAliases
                , upcastAtomUnions
                , inlineAliases
                , tryRemoveUnknowns
+               , squashTuples
+               , upcastAtomUnions
                , inlineAliases
                , pruneAliases
               -- , upcastAtomUnions
@@ -165,7 +167,7 @@ inlineAliases conf@SquashConfig{aliasEnv = MkAliasEnv{..},tyEnv = MkTyEnv funs, 
     f alias refs = case lookupAlias alias conf of
         t@(ETuple ts) | length ts <= recordSize ->
             IntSet.null (aliases t) || 
-            (refs <= 2 && not (IntSet.member alias (aliases t)))
+            refs <= 1
         _ -> refs <= 1
     -- the problem with this is:
     -- inline (1375,{'clauses', list($1374)})
