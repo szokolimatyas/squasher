@@ -6,7 +6,7 @@
 -define(TRACE_TAB, traces).
 -define(HORIZONTAL_FUEL, 100).
 
--export([prepare_trace/0, track/2, track/4, save_traces/1, get_traces/0]).
+-export([prepare_trace/0, track/2, track/4, save_traces/0, save_traces/1, get_traces/0]).
 
 -export([start_erlang_trace/1,
          stop_erlang_trace/1]).
@@ -14,22 +14,39 @@
 -export([collect_loop/0]).
 
 put_trace(T, P) -> 
-    ets:insert(?TRACE_TAB, {T, P}).
+    catch ets:insert(?TRACE_TAB, {T, P}).
 get_traces() ->
-    ets:tab2list(?TRACE_TAB).
+    case global:whereis_name(squasher_table_owner) of
+        Pid when is_pid(Pid) ->
+            catch global:send(squasher_table_owner, stop),
+            ets:tab2list(?TRACE_TAB);
+        _ ->
+            error
+    end.
 
+save_traces() -> save_traces("default.bin").
 save_traces(FileName) ->
-    Traces = ets:tab2list(?TRACE_TAB),
-    file:write_file(FileName, term_to_binary(lists:uniq(Traces))).
+    case global:whereis_name(squasher_table_owner) of
+        Pid when is_pid(Pid) ->
+            Traces = ets:tab2list(?TRACE_TAB),
+            catch global:send(squasher_table_owner, stop),
+            file:write_file(FileName, term_to_binary(lists:uniq(Traces)));
+        _ ->
+            error
+    end.
 
 prepare_trace() ->
-    case ets:info(?TRACE_TAB) of
-        undefined ->
-            ok;
-        _ ->
-            ets:delete(?TRACE_TAB)
-    end,
-    ets:new(?TRACE_TAB, [bag, named_table, public]),
+    Pid = spawn(fun() -> 
+        case ets:info(?TRACE_TAB) of
+            undefined ->
+                ok;
+            _ ->
+                ets:delete(?TRACE_TAB)
+        end,
+        ets:new(?TRACE_TAB, [bag, named_table, public, {write_concurrency, auto}]),
+        table_loop()
+    end),
+    global:register_name(squasher_table_owner, Pid),
     ok.
 
 start_erlang_trace(InModule) ->
@@ -44,6 +61,12 @@ stop_erlang_trace(FileName) ->
     erlang:trace(all, false, [call]),
 	catch global:send(squasher_tracer, stop),
     save_traces(FileName).
+
+table_loop() ->
+    receive
+        stop -> ok;
+        _ -> table_loop()
+    end.
 
 collect_loop() -> 
     receive

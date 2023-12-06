@@ -113,8 +113,6 @@ combine t1 (EUnion ts) | HashSet.null ts = t1
 combine (EUnion ts1) (EUnion ts2) = mkFlatUnion $ HashSet.foldl' combineUnion ts1 ts2 -- (flip combineUnion)
 combine (EUnion ts) t1 = mkFlatUnion $ combineUnion ts t1
 combine t1 (EUnion ts) = mkFlatUnion $ combineUnion ts t1
-combine (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
-    EFun (zipWith combine argts1 argts2) (combine t1 t2)
 combine t1 t2 = mkFlatUnion $ combineUnion (HashSet.singleton t1) t2
 
 -- todo: better performance??
@@ -141,6 +139,8 @@ equate EUnknown t1 = Just t1
 equate t1 EUnknown = Just t1
 equate _ EAny = Just EAny
 equate EAny _ = Just EAny
+equate (EFun argts1 t1) (EFun argts2 t2) | length argts1 == length argts2 =
+    Just $ EFun (zipWith combine argts1 argts2) (combine t1 t2)
 equate t1@(ENamedAtom _) EAnyAtom = Just t1
 equate EAnyAtom t1@(ENamedAtom _) = Just t1
 equate EBoolean EAnyAtom = Just EAnyAtom

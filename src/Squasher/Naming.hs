@@ -2,18 +2,19 @@
 {-# LANGUAGE RecordWildCards   #-}
 module Squasher.Naming(Name(..), nameAll, paramNames, emptyParamNames, initialNames) where
 
-import qualified Data.HashSet    as HashSet
-import           Data.IntMap     (IntMap)
-import qualified Data.IntMap     as IntMap
-import           Data.Map        (Map)
-import qualified Data.Map        as Map
-import           Data.Text       (Text)
-import qualified Data.Text       as Text
+import           Data.Foldable       (foldl')
+import qualified Data.HashSet        as HashSet
+import           Data.IntMap         (IntMap)
+import qualified Data.IntMap         as IntMap
+import           Data.Map            (Map)
+import qualified Data.Map            as Map
+import           Data.Maybe          (mapMaybe)
+import           Data.Text           (Text)
+import qualified Data.Text           as Text
+import           Data.Char           (isAlphaNum)
+import qualified Foreign.Erlang.Term as Erlang
 import           Squasher.Common
 import           Squasher.Types
-import qualified Foreign.Erlang.Term as Erlang
-import           Data.Maybe      (mapMaybe)
-import           Data.Foldable   (foldl')
 
 data Name = Record Text
           | Alias Text
@@ -31,7 +32,7 @@ nameAll namesFromParams SquashConfig{aliasEnv=MkAliasEnv{..}, options=Options{..
             insertNew' i (fitName t $ fitNames ns <> "_tuple") names
         (EUnion uni) | Just ns <- mapM getTag $ HashSet.toList uni ->
             insertNew' i (fitName t $ fitNames ns) names
-        (EUnion uni) ->
+        (EUnion uni) | HashSet.size uni <= 3 ->
             let ns = map simpleName $ HashSet.toList uni in
             insertNew' i (fitName t $ fitNames ns) names
         _ ->
@@ -50,7 +51,7 @@ nameAll namesFromParams SquashConfig{aliasEnv=MkAliasEnv{..}, options=Options{..
             IntMap.insert i (Alias txt) m
 
     insertNew' :: Int -> Text -> IntMap Name -> IntMap Name
-    insertNew' i txt m = 
+    insertNew' i txt m =
         let n = IntMap.findWithDefault txt i namesFromParams in
         if Alias n `elem` m then
             IntMap.insert i (Alias $ n <> Text.pack (show i)) m
@@ -63,11 +64,7 @@ initialNames = IntMap.fromList $ zip [-1, -2..] $ map Alias
     [ "any", "none", "dynamic", "pid", "port", "reference", "atom",  "float", "fun", "integer", "list", "map", "tuple", "function", "binary", "bitstring"]
 
 fitNames :: [Text] -> Text
-fitNames ts = Text.intercalate "_" $
-    if sum (map Text.length ts) > 20 then
-        map (Text.take 3) ts
-    else
-        ts
+fitNames = Text.intercalate "_"
 
 fitName :: ErlType -> Text -> Text
 fitName _ txt | Text.length txt <= 30 = txt
@@ -78,10 +75,12 @@ fitName t _ = simpleName t
     -- handle $1 | $2 --> nameof $1 _ nameof $2  --> receive_discard/receive_or_discard
     -- handle {atom(), _} --> tuple1
 getTag :: ErlType -> Maybe Text
-getTag (ENamedAtom n)                = Just n
-getTag EBoolean                      = Just "bool"
-getTag (ETuple (ENamedAtom txt : _)) = Just txt
-getTag _                             = Nothing
+getTag (ENamedAtom n) 
+    | Text.all isAlphaNum n = Just n
+getTag EBoolean             = Just "bool"
+getTag (ETuple (ENamedAtom txt : _)) 
+    | Text.all isAlphaNum txt = Just txt
+getTag _                      = Nothing
 
 simpleName :: ErlType -> Text
 simpleName ty = case ty of
@@ -123,10 +122,10 @@ paramsFromTerm (Erlang.List ts Erlang.Nil) = mapMaybe go ts where
         Just (MkFunName n (fromIntegral i), doClauses clauses)
     go _ = Nothing
 
-    doClauses = mapMaybe doClause 
+    doClauses = mapMaybe doClause
     doClause (Erlang.List ts' Erlang.Nil) = Just $ map doName ts'
-    doClause _ = Nothing
-    
+    doClause _                            = Nothing
+
     doName (Erlang.Tuple [Erlang.Atom _ "name", Erlang.Atom _ txt]) | Text.length txt > 1 =
         Just (Text.toLower txt)
     doName _ = Nothing
@@ -140,7 +139,7 @@ paramNames SquashConfig{tyEnv=MkTyEnv tenv} term = IntMap.mapMaybe findMaxName n
 
     findMaxName :: Map Text Int -> Maybe Text
     findMaxName m = fst $ Map.foldlWithKey selMax (Nothing, 0) m where
-        selMax (Nothing, _) txt i = (Just txt, i) 
+        selMax (Nothing, _) txt i = (Just txt, i)
         selMax (Just txt', i') txt i = if i >= i' then (Just txt, i) else (Just txt', i')
 
     -- (aliasId :-> (paramName :-> occurrenceNumber))
@@ -152,7 +151,7 @@ paramNames SquashConfig{tyEnv=MkTyEnv tenv} term = IntMap.mapMaybe findMaxName n
 
         zipp acc' params = case Map.lookup funName tenv of
             Just (EFun args _) -> foldl' matchParam acc $ zip args params
-            _ -> acc'
+            _                  -> acc'
 
         matchParam acc' (EAliasMeta i, Just txt) =
             IntMap.insertWith (Map.unionWith (+)) i (Map.singleton txt 1) acc'
