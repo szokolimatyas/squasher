@@ -6,7 +6,7 @@
 -define(TRACE_TAB, traces).
 -define(HORIZONTAL_FUEL, 100).
 
--export([prepare_trace/0, track/2, track/4, save_traces/0, save_traces/1, get_traces/0]).
+-export([prepare_trace/0, track/2, track/4, save_traces/0, save_traces/1, save_traces_/1, get_traces/0]).
 
 -export([start_erlang_trace/1,
          stop_erlang_trace/1]).
@@ -14,7 +14,7 @@
 -export([collect_loop/0]).
 
 put_trace(T, P) -> 
-    catch ets:insert(?TRACE_TAB, {T, P}).
+	catch ets:insert(?TRACE_TAB, {T, P}).
 get_traces() ->
     case global:whereis_name(squasher_table_owner) of
         Pid when is_pid(Pid) ->
@@ -24,13 +24,21 @@ get_traces() ->
             error
     end.
 
+save_traces_(_) -> save_traces().
+
 save_traces() -> save_traces("default.bin").
 save_traces(FileName) ->
     case global:whereis_name(squasher_table_owner) of
         Pid when is_pid(Pid) ->
             Traces = ets:tab2list(?TRACE_TAB),
             catch global:send(squasher_table_owner, stop),
-            file:write_file(FileName, term_to_binary(lists:uniq(Traces)));
+            NewTraces = 
+                case file:read_file(FileName) of
+                    {ok, Bin} ->
+                        Traces ++ binary_to_term(Bin);
+                    _ -> Traces
+                end,
+            file:write_file(FileName, term_to_binary(lists:uniq(NewTraces)));
         _ ->
             error
     end.
@@ -106,25 +114,6 @@ collect_loop() ->
 track(V, P) ->
     track(V, P, ?DEFAULT_FUEL, ?HORIZONTAL_FUEL).
 
-%%% Investigate if tail recursion is still ok.
-%%% Remove trivial tracking scenarios (known at comptime).
-%%% Do not track unchanging variables! 
-%%% e.g in a replicate(What, N, Acc) function 'What' does not change
-%%% optimize for list construction, list iteration!
-%%% no need to re investigate the entire list tails every time 
-%%% because that could potentially make an O(n) into O(n*n)! :(
-%%% We can use proxies for some values if we know they don' leave
-%%% the module boundaries (or the boundaries of the changed code)
-%%% 
-%%% inspiration from space efficient coercion passing -->
-%%% trace passing?
-%%% 
-%%% user input for heuristics? (should I make this a record)
-%%% 
-%%% refactoring using the results -->
-%%% spec functions, convert tups to records
-
-%%% avoid exceptions caused by track
 track(V, P, _F, _HF) when is_integer(V) ->
     put_trace(integer, P),
     V;
@@ -181,9 +170,6 @@ track(Vals, P, F, HF) when is_list(Vals) ->
         fun(V) -> 
             track(V, [list_element | P], F - 1, HF)
         end, Vals, HF);
-%%% really naive implementation, but good for now?
-%%% we need to limit some of the recursion!
-%%% ALSO: shapemaps?
 track(Map, P, _, _) when is_map(Map) ->
     put_trace({map, []}, P),
     Map;

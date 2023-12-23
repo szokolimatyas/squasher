@@ -3,6 +3,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
+-- Ported from https://github.com/lindenbaum/hinterface, see LICENSE in same directory
 module Foreign.Erlang.Term(ExternalTerm(..), Term(..), FromTerm(..), AtomType(..)) where
 
 import           Control.Monad      (replicateM)

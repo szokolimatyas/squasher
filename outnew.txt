@@ -1,6 +1,0 @@
-Aliases:
-$1 -> {'num', integer()} | {'add', $1, $1}
-
-Functions:
-eval($1) -> integer()
-t1() -> $1

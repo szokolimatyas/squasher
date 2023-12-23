@@ -27,11 +27,9 @@ main = do
             putStrLn "Started..."
             case runExcept (runner o terms) of
                 Left err -> error err
-                Right (old, resOld, resNew) -> do
-                    writeFile "unprocessed.txt" ("\nFunctions:\n" ++ show old)
-                    writeFile "out.txt" ("Aliases:\n" ++ show (aliasEnv resOld) ++ "\nFunctions:\n" ++ show (tyEnv resOld))
+                Right resNew -> do
                     when (printUnformatted o) $
-                        writeFile "outnew.txt" ("Aliases:\n" ++ show (aliasEnv resNew) ++ "\nFunctions:\n" ++ show (tyEnv resNew))
+                        writeFile "out.txt" ("Aliases:\n" ++ show (aliasEnv resNew) ++ "\nFunctions:\n" ++ show (tyEnv resNew))
                     names <- parameters resNew
                     BS.writeFile "out.bin" $ encode $ MkExternalTerm $ out (nameAll names resNew) resNew
                     writePretty $ prettyOutputPath o

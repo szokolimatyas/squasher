@@ -27,25 +27,18 @@ import           Squasher.Common
 import           Squasher.Types
 
 
--- originally conf' was not used, which is weird
 singleRecFun :: SquashConfig -> FunName -> ErlType -> SquashConfig
 singleRecFun conf fn t = addFunction fn t' conf' where
-    (conf', t') = postwalk conf t f
-
-    --f co ty@(ENamedAtom _) = reg co ty
-    f co ty@(ETuple (ENamedAtom _ : _)) = reg co ty
-    f co ty                             = (co, ty)
+    (conf', t') = singleRecAlias conf t
 
 singleRecAlias :: SquashConfig -> ErlType -> (SquashConfig, ErlType)
 singleRecAlias conf t = (conf', t') where
     (conf', t') = postwalk conf t f
 
-    --f co ty@(ENamedAtom _) = reg co ty
     f co ty@(ETuple (ENamedAtom _ : _)) = reg co ty
     f co ty                             = (co, ty)
 
 
--- Bit weird
 aliasSingleRec :: SquashConfig -> SquashConfig
 aliasSingleRec conf = IntMap.foldlWithKey f conf' (aliasMap $ aliasEnv conf') where
     conf' = Map.foldlWithKey singleRecFun conf (unTyEnv $ tyEnv conf)
@@ -59,7 +52,7 @@ aliasSingleRec conf = IntMap.foldlWithKey f conf' (aliasMap $ aliasEnv conf') wh
         let
             (conf1, t1) = singleRecAlias conf0 t
         in
-            addAlias a t1 conf1
+			addAlias a t1 conf1
 
     foldChildren :: [ErlType] -> SquashConfig -> (SquashConfig, [ErlType])
     foldChildren ts confN = (confN', reverse ts') where
